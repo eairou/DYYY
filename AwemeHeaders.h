@@ -127,6 +127,14 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEMusicCoverButton : UIButton
 @end
 
+@interface AWELongPressPanelTableViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
+
+// 声明你将要hook的方法
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;
+
+@end
+
+
 @interface AWEAwemePlayVideoViewController : UIViewController
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context;
 - (void)setVideoControllerPlaybackRate:(double)arg0;
