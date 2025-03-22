@@ -127,10 +127,9 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEMusicCoverButton : UIButton
 @end
 
-@interface AWELongPressPanelTableViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
+@interface AWELongPressPanelTableViewController : UIView
 
 // 声明你将要hook的方法
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;
 
 @end
 
