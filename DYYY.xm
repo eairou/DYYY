@@ -313,32 +313,32 @@
 
 %hook AWELongPressPanelTableViewController
 
-// Hook UITableViewDelegate 方法以更改行高
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    // 调用原始方法以获取单元格
+    // 获取单元格
     UITableViewCell *cell = [self tableView:tableView cellForRowAtIndexPath:indexPath];
 
-    // 检查单元格是否是 AWELongPressPanelSettingCell 的实例
+    // 判断单元格类型
     if ([cell isKindOfClass:NSClassFromString(@"AWELongPressPanelSettingCell")]) {
-        // 遍历单元格的子视图以查找 UILabel
+        // 遍历主内容视图的子视图
         for (UIView *subview in cell.contentView.subviews) {
-            if ([subview isKindOfClass:[UILabel class]]) {
-                UILabel *label = (UILabel *)subview;
-								[DYYYManager showToast:label.text];
-                // 确定标签是否符合隐藏条件
-                if ([label.text isEqualToString:@"转发到日常"]) {
-                    // 如果符合条件，将高度设置为0以隐藏单元格
-                    return 0.0;
+            for (UIView *innerSubview in subview.subviews) {
+                if ([innerSubview isKindOfClass:[UILabel class]]) {
+                    UILabel *label = (UILabel *)innerSubview;
+[DYYYManager showToast:label.text];
+                    // 检查标签文本内容
+                    if ([label.text isEqualToString:@"推荐"]) {
+                        return 0.0;  // 将高度设置为0以隐藏该单元格
+                    }
                 }
             }
         }
     }
-
-    // 如果没有匹配的条件，则调用原始的方法
-    return %orig(tableView, indexPath);
+    
+    return %orig(tableView, indexPath);  // 原始方法调用，保持不变的高度
 }
 
 %end
+
 
 
 %hook AWELandscapeFeedEntryView
