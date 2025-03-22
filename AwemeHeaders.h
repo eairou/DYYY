@@ -243,6 +243,8 @@ typedef NS_ENUM(NSInteger, MediaType) {
 
 @interface AWELongPressPanelTableViewController : UIViewController
 @property (nonatomic, strong) AWEAwemeModel *awemeModel;
+// 确保为UITableView的数据源方法声明它
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
 @end
 
 @interface AWEModernLongPressPanelTableViewController : UIViewController
