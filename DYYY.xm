@@ -324,6 +324,7 @@
         for (UIView *subview in cell.contentView.subviews) {
             if ([subview isKindOfClass:[UILabel class]]) {
                 UILabel *label = (UILabel *)subview;
+								[DYYYManager showToast:label.text];
                 // 确定标签是否符合隐藏条件
                 if ([label.text isEqualToString:@"转发到日常"]) {
                     // 如果符合条件，将高度设置为0以隐藏单元格
