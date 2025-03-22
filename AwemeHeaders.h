@@ -127,9 +127,8 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEMusicCoverButton : UIButton
 @end
 
-@interface AWELongPressPanelTableViewController : UIView
+@interface AWELongPressPanelTableViewController : UIViewController
 
-// 声明你将要hook的方法
 
 @end
 
