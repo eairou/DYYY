@@ -127,11 +127,6 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEMusicCoverButton : UIButton
 @end
 
-@interface AWELongPressPanelTableViewController : UITableViewCell
-
-
-@end
-
 
 @interface AWEAwemePlayVideoViewController : UIViewController
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context;
