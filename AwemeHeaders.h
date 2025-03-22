@@ -127,7 +127,7 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEMusicCoverButton : UIButton
 @end
 
-@interface AWELongPressPanelTableViewController : UIViewController
+@interface AWELongPressPanelTableViewController : UITableViewCell
 
 
 @end
