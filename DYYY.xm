@@ -310,6 +310,36 @@
 }
 %end
 
+
+%hook AWELongPressPanelTableViewController
+
+// Hook UITableViewDelegate 方法以更改行高
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    // 调用原始方法以获取单元格
+    UITableViewCell *cell = [self tableView:tableView cellForRowAtIndexPath:indexPath];
+
+    // 检查单元格是否是 AWELongPressPanelSettingCell 的实例
+    if ([cell isKindOfClass:NSClassFromString(@"AWELongPressPanelSettingCell")]) {
+        // 遍历单元格的子视图以查找 UILabel
+        for (UIView *subview in cell.contentView.subviews) {
+            if ([subview isKindOfClass:[UILabel class]]) {
+                UILabel *label = (UILabel *)subview;
+                // 确定标签是否符合隐藏条件
+                if ([label.text isEqualToString:@"转发到日常"]) {
+                    // 如果符合条件，将高度设置为0以隐藏单元格
+                    return 0.0;
+                }
+            }
+        }
+    }
+
+    // 如果没有匹配的条件，则调用原始的方法
+    return %orig(tableView, indexPath);
+}
+
+%end
+
+
 %hook AWELandscapeFeedEntryView
 - (void)setCenter:(CGPoint)center {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYisEnableFullScreen"] || [[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYisEnableCommentBlur"]) {
