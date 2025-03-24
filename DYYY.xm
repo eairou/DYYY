@@ -311,34 +311,6 @@
 %end
 
 
-%hook AWELongPressPanelTableViewController
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    // 获取单元格
-    UITableViewCell *cell = [self tableView:tableView cellForRowAtIndexPath:indexPath];
-
-    // 判断单元格类型
-    if ([cell isKindOfClass:NSClassFromString(@"AWELongPressPanelSettingCell")]) {
-        // 遍历主内容视图的子视图
-        for (UIView *subview in cell.contentView.subviews) {
-            for (UIView *innerSubview in subview.subviews) {
-                if ([innerSubview isKindOfClass:[UILabel class]]) {
-                    UILabel *label = (UILabel *)innerSubview;
-[DYYYManager showToast:label.text];
-                    // 检查标签文本内容
-                    if ([label.text isEqualToString:@"推荐"]) {
-                        return 0.0;  // 将高度设置为0以隐藏该单元格
-                    }
-                }
-            }
-        }
-    }
-    
-    return %orig(tableView, indexPath);  // 原始方法调用，保持不变的高度
-}
-
-%end
-
 
 
 %hook AWELandscapeFeedEntryView
@@ -1434,6 +1406,7 @@
 
 %end
 
+/*
 %hook AWEModernLongPressPanelTableViewController
 
 - (NSArray *)dataArray {
@@ -1681,6 +1654,7 @@
 }
 
 %end
+*/
 
 %hook AWELongPressPanelTableViewController
 
@@ -2153,6 +2127,7 @@ static BOOL isDownloadFlied = NO;
 }
 %end
 
+/*
 %hook _TtC33AWECommentLongPressPanelSwiftImpl32CommentLongPressPanelCopyElement
 
 -(void)elementTapped{
@@ -2169,6 +2144,7 @@ static BOOL isDownloadFlied = NO;
     }
 }
 %end
+*/
 
 %hook AWEConcernSkylightCapsuleView
 - (void)setHidden:(BOOL)hidden {
