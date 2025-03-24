@@ -1669,6 +1669,14 @@
         ![[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYCopyText"]) {
         return originalArray;
     }
+    // 创建一个可变数组来存储过滤后的 group models
+    NSMutableArray *filteredGroups = [NSMutableArray array];
+    for (AWELongPressPanelViewGroupModel *groupModel in originalArray) {
+        // 检查 groupType
+        if (groupModel.groupType != 1) {
+            [filteredGroups addObject:groupModel];
+        }
+    }
     
     AWELongPressPanelViewGroupModel *newGroupModel = [[%c(AWELongPressPanelViewGroupModel) alloc] init];
     newGroupModel.groupType = 0;
@@ -1898,8 +1906,10 @@
     }
     
     newGroupModel.groupArr = viewModels;
-    
-    return [@[newGroupModel] arrayByAddingObjectsFromArray:originalArray];
+
+    return [@[newGroupModel] arrayByAddingObjectsFromArray:filteredGroups];
+
+    //return [@[newGroupModel] arrayByAddingObjectsFromArray:originalArray];
 }
 
 %end
