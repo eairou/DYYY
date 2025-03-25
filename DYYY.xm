@@ -24,6 +24,42 @@
 }
 
 %end
+
+%hook IGListSectionMap
+
+// Hook mObjects 方法
+- (NSMutableArray *)mObjects {
+    NSMutableArray *originalMObjects = %orig;
+
+    // 确保有至少两个元素
+    if ([originalMObjects count] > 2) {
+        [originalMObjects removeObjectAtIndex:0];
+        [originalMObjects removeObjectAtIndex:0];
+    }
+
+    return originalMObjects;
+}
+
+// Hook objects 方法
+- (NSArray *)objects {
+    NSArray *originalObjects = %orig;
+
+    // 创建一个可变拷贝来修改
+    if ([originalObjects count] > 2) {
+        NSMutableArray *mutableObjects = [originalObjects mutableCopy];
+        [mutableObjects removeObjectAtIndex:0];
+        [mutableObjects removeObjectAtIndex:0];
+        return [mutableObjects copy]; // 返回不可变数组
+    }
+
+    // 如果元素不足两个，直接返回原始数组
+    return originalObjects;
+}
+
+%end
+
+
+
 /*
 %hook AWESharePanelListManager
 
