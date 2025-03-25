@@ -193,7 +193,6 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) {
 [DYYYSettingItem itemWithTitle:@"测试3" key:@"test3" type:DYYYSettingItemTypeSwitch],
 [DYYYSettingItem itemWithTitle:@"测试4" key:@"test4" type:DYYYSettingItemTypeSwitch]
         ]
-        ]
     ];
 }
 
