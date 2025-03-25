@@ -25,39 +25,49 @@
 
 %end
 
+
 %hook IGListSectionMap
 
-// Hook mObjects 方法
-- (NSMutableArray *)mObjects {
-    NSMutableArray *originalMObjects = %orig;
+- (NSMutableArray *)mObject {
+    NSMutableArray *originalArray = %orig;
 
-    // 确保有至少两个元素
-    if ([originalMObjects count] > 2) {
-        [originalMObjects removeObjectAtIndex:0];
-        [originalMObjects removeObjectAtIndex:0];
+    NSMutableArray *filteredArray = [NSMutableArray arrayWithArray:originalArray];
+if ([[NSUserDefaults standardUserDefaults] boolForKey:@"test1"]) {
+        
+    // 确保有至少两个元素可以删除
+    if ([filteredArray count] > 1) {
+        [filteredArray removeObjectAtIndex:1];
+    }
+    
+    if ([filteredArray count] > 0) {
+        [filteredArray removeObjectAtIndex:0];
     }
 
-    return originalMObjects;
+    return filteredArray;
+}
+return %orig;
 }
 
-// Hook objects 方法
-- (NSArray *)objects {
-    NSArray *originalObjects = %orig;
-
-    // 创建一个可变拷贝来修改
-    if ([originalObjects count] > 2) {
-        NSMutableArray *mutableObjects = [originalObjects mutableCopy];
-        [mutableObjects removeObjectAtIndex:0];
-        [mutableObjects removeObjectAtIndex:0];
-        return [mutableObjects copy]; // 返回不可变数组
+- (NSArray *)object {
+    NSArray *originalArray = %orig;
+    NSMutableArray *filteredArray = [NSMutableArray arrayWithArray:originalArray];
+if ([[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
+        
+    // 确保有至少两个元素可以删除
+    if ([filteredArray count] > 1) {
+        [filteredArray removeObjectAtIndex:1];
+    }
+    
+    if ([filteredArray count] > 0) {
+        [filteredArray removeObjectAtIndex:0];
     }
 
-    // 如果元素不足两个，直接返回原始数组
-    return originalObjects;
+    return [NSArray arrayWithArray:filteredArray];
+}
+return %orig;
 }
 
 %end
-
 
 
 /*
