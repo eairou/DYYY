@@ -26,51 +26,42 @@
 %end
 
 
-%hook IGListSectionMap
-
+// Hook 返回 NSMutableArray 的 mObject 方法
 - (NSMutableArray *)mObject {
-
-  NSMutableArray *originalArray = %orig;
-
+    NSMutableArray *originalObjects = %orig;
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test1"]) {
         return originalArray;
-  }
+    }
+    // 确保满足删除条件
+    if ([originalObjects count] > 5) {
+        // 删除索引 0 和 1 的元素
+        [originalObjects removeObjectAtIndex:1]; // 注意顺序，先删除后面的索引
+        [originalObjects removeObjectAtIndex:0];
+    }
 
-  NSMutableArray *filteredArray = [NSMutableArray arrayWithArray:originalArray];
-	// 确保有至少两个元素可以删除
-	if ([filteredArray count] > 1) {
-	    [filteredArray removeObjectAtIndex:1];
-	}
-    
-	if ([filteredArray count] > 0) {
-	    [filteredArray removeObjectAtIndex:0];
-	}
-
-	return filteredArray;
+    return originalObjects;
 }
 
-
+// Hook 返回 NSArray 的 object 方法
 - (NSArray *)object {
-	
-	NSArray *originalArray = %orig;
+    NSArray *originalObjects = %orig;
 
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
         return originalArray;
-  }
+    }
 
-  NSMutableArray *filteredArray = [NSMutableArray arrayWithArray:originalArray];
-	// 确保有至少两个元素可以删除
-	if ([filteredArray count] > 1) {
-	    [filteredArray removeObjectAtIndex:1];
-	}
-    
-	if ([filteredArray count] > 0) {
-	    [filteredArray removeObjectAtIndex:0];
-	}
+    NSMutableArray *filteredObjects = [NSMutableArray arrayWithArray:originalObjects];
 
-	return [NSArray arrayWithArray:filteredArray];
+    // 确保满足删除条件
+    if ([filteredObjects count] > 5) {
+        // 删除索引 0 和 1 的元素
+        [filteredObjects removeObjectAtIndex:1];
+        [filteredObjects removeObjectAtIndex:0];
+    }
+
+    return [filteredObjects copy]; // 返回不可变数组
 }
-	
+
 %end
 
 
