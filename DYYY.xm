@@ -27,7 +27,7 @@
 
 %hook IGListSectionMap
 // Hook 返回 NSMutableArray 的 mObject 方法
-- (NSMutableArray *)mObject {
+- (NSMutableArray *)mObjects {
     NSMutableArray *originalObjects = %orig;
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test1"]) {
         return originalObjects;
@@ -43,7 +43,7 @@
 }
 
 // Hook 返回 NSArray 的 object 方法
-- (NSArray *)object {
+- (NSArray *)objects {
     NSArray *originalObjects = %orig;
 
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
