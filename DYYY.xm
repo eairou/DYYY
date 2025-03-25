@@ -25,7 +25,7 @@
 
 %end
 
-
+%hook IGListSectionMap
 // Hook 返回 NSMutableArray 的 mObject 方法
 - (NSMutableArray *)mObject {
     NSMutableArray *originalObjects = %orig;
