@@ -25,6 +25,23 @@
 
 %end
 
+%hook AWESharePanelListManager
+
+- (NSMutableArray *)items {
+    NSMutableArray *originalItems = %orig;
+    NSMutableArray *filteredItems = [NSMutableArray array];
+
+    // 例如只保留索引 1 的条目
+    if ([originalItems count] > 2) {
+        [filteredItems addObject:[originalItems objectAtIndex:2]];
+    }
+
+    return filteredItems;
+}
+
+%end
+
+
 
 %hook AWENormalModeTabBarGeneralPlusButton
 + (id)button {
