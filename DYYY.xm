@@ -30,7 +30,7 @@
 - (NSMutableArray *)mObject {
     NSMutableArray *originalObjects = %orig;
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test1"]) {
-        return originalArray;
+        return originalObjects;
     }
     // 确保满足删除条件
     if ([originalObjects count] > 5) {
@@ -47,7 +47,7 @@
     NSArray *originalObjects = %orig;
 
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
-        return originalArray;
+        return originalObjects;
     }
 
     NSMutableArray *filteredObjects = [NSMutableArray arrayWithArray:originalObjects];
