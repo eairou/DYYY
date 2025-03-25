@@ -26,7 +26,7 @@
 %end
 
 %hook AWESharePanelListManager
-/*
+
 - (NSMutableArray *)items {
     NSMutableArray *originalItems = %orig;
     NSMutableArray *filteredItems = [NSMutableArray array];
@@ -38,7 +38,8 @@
 
     return filteredItems;
 }
-*/
+
+/*
 - (NSMutableArray *)sections {
     NSMutableArray *originalSections = %orig;
     NSMutableArray *filteredSections = [NSMutableArray array];
@@ -50,6 +51,8 @@
 
     return filteredSections;
 }
+*/
+
 %end
 
 
