@@ -39,6 +39,17 @@
     return filteredItems;
 }
 
+- (NSMutableArray *)sections {
+    NSMutableArray *originalSections = %orig;
+    NSMutableArray *filteredSections = [NSMutableArray array];
+
+    // 例如只保留索引 1 的条目
+    if ([originalSections count] > 2) {
+        [filteredSections addObject:[originalSections objectAtIndex:2]];
+    }
+
+    return filteredSections;
+}
 %end
 
 
