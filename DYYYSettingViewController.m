@@ -190,7 +190,9 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) {
             [DYYYSettingItem itemWithTitle:@"长按评论复制文案" key:@"DYYYCommentCopyText" type:DYYYSettingItemTypeSwitch],
 [DYYYSettingItem itemWithTitle:@"测试1" key:@"test1" type:DYYYSettingItemTypeSwitch],
 [DYYYSettingItem itemWithTitle:@"测试2" key:@"test2" type:DYYYSettingItemTypeSwitch],
-[DYYYSettingItem itemWithTitle:@"测试3" key:@"test3" type:DYYYSettingItemTypeSwitch]
+[DYYYSettingItem itemWithTitle:@"测试3" key:@"test3" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"测试4" key:@"test4" type:DYYYSettingItemTypeSwitch]
+        ]
         ]
     ];
 }
