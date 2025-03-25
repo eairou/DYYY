@@ -29,44 +29,48 @@
 %hook IGListSectionMap
 
 - (NSMutableArray *)mObject {
-    NSMutableArray *originalArray = %orig;
 
-    NSMutableArray *filteredArray = [NSMutableArray arrayWithArray:originalArray];
-if ([[NSUserDefaults standardUserDefaults] boolForKey:@"test1"]) {
-        
-    // 确保有至少两个元素可以删除
-    if ([filteredArray count] > 1) {
-        [filteredArray removeObjectAtIndex:1];
-    }
+  NSMutableArray *originalArray = %orig;
+
+	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test1"]) {
+        return originalArray;
+  }
+
+  NSMutableArray *filteredArray = [NSMutableArray arrayWithArray:originalArray];
+	// 确保有至少两个元素可以删除
+	if ([filteredArray count] > 1) {
+	    [filteredArray removeObjectAtIndex:1];
+	}
     
-    if ([filteredArray count] > 0) {
-        [filteredArray removeObjectAtIndex:0];
-    }
+	if ([filteredArray count] > 0) {
+	    [filteredArray removeObjectAtIndex:0];
+	}
 
-    return filteredArray;
+	return filteredArray;
 }
-return %orig;
-}
+
 
 - (NSArray *)object {
-    NSArray *originalArray = %orig;
-    NSMutableArray *filteredArray = [NSMutableArray arrayWithArray:originalArray];
-if ([[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
-        
-    // 确保有至少两个元素可以删除
-    if ([filteredArray count] > 1) {
-        [filteredArray removeObjectAtIndex:1];
-    }
+	
+	NSArray *originalArray = %orig;
+
+	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
+        return originalArray;
+  }
+
+  NSMutableArray *filteredArray = [NSMutableArray arrayWithArray:originalArray];
+	// 确保有至少两个元素可以删除
+	if ([filteredArray count] > 1) {
+	    [filteredArray removeObjectAtIndex:1];
+	}
     
-    if ([filteredArray count] > 0) {
-        [filteredArray removeObjectAtIndex:0];
-    }
+	if ([filteredArray count] > 0) {
+	    [filteredArray removeObjectAtIndex:0];
+	}
 
-    return [NSArray arrayWithArray:filteredArray];
+	return [NSArray arrayWithArray:filteredArray];
 }
-return %orig;
-}
-
+	
 %end
 
 
