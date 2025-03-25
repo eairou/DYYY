@@ -187,7 +187,10 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) {
             [DYYYSettingItem itemWithTitle:@"移除评论图片水印" key:@"DYYYCommentNotWaterMark" type:DYYYSettingItemTypeSwitch],
             [DYYYSettingItem itemWithTitle:@"启用双击打开评论" key:@"DYYYEnableDoubleOpenComment" type:DYYYSettingItemTypeSwitch],
             [DYYYSettingItem itemWithTitle:@"保存评论区表情包" key:@"DYYYFourceDownloadEmotion" type:DYYYSettingItemTypeSwitch],
-            [DYYYSettingItem itemWithTitle:@"长按评论复制文案" key:@"DYYYCommentCopyText" type:DYYYSettingItemTypeSwitch]
+            [DYYYSettingItem itemWithTitle:@"长按评论复制文案" key:@"DYYYCommentCopyText" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"测试1" key:@"test1" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"测试2" key:@"test2" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"测试3" key:@"test3" type:DYYYSettingItemTypeSwitch]
         ]
     ];
 }
