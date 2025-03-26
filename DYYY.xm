@@ -41,7 +41,7 @@
 
     return originalObjects;
 }
-
+/*
 // Hook 返回 NSArray 的 object 方法
 - (NSArray *)objects {
     NSArray *originalObjects = %orig;
@@ -60,6 +60,25 @@
     }
 
     return [filteredObjects copy]; // 返回不可变数组
+}
+*/
+
+- (NSArray *)objects {
+    NSArray *originalObjects = %orig;
+
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
+        return originalObjects;
+    }
+
+    NSUInteger count = [originalObjects count];
+
+    // 确保至少有6个元素以便可截取子数组
+    if (count > 5) {
+        NSRange range = NSMakeRange(2, count - 2); // 结果中不包含前两个元素
+        return [originalObjects subarrayWithRange:range]; // 返回截取得到的子数组
+    } else {
+        return originalObjects; // 如果元素不足6个，就返回原数组
+    }
 }
 
 %end
