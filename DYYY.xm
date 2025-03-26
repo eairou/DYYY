@@ -67,7 +67,7 @@
 
 
 %hook AWESharePanelListManager
-
+/*
 - (NSMutableArray *)items {
     NSMutableArray *originalItems = %orig;
 
@@ -82,6 +82,22 @@
     }
 
     return filteredItems;
+}
+*/
+- (NSMutableArray *)items {
+    NSMutableArray *originalItems = %orig;
+
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test3"]) {
+        return originalItems;
+    }
+
+    // 移除索引 0 和 1 的条目（先移除较大的索引）
+    if ([originalItems count] > 2) {
+        [originalItems removeObjectAtIndex:1]; // 先移除索引 1
+        [originalItems removeObjectAtIndex:0]; // 再移除索引 0
+    }
+
+    return originalItems;
 }
 
 
