@@ -65,14 +65,18 @@
 %end
 
 
-/*
+
 %hook AWESharePanelListManager
 
 - (NSMutableArray *)items {
     NSMutableArray *originalItems = %orig;
+
+		if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test3"]) {
+        return originalItems;
+    }
     NSMutableArray *filteredItems = [NSMutableArray array];
 
-    // 例如只保留索引 1 的条目
+    // 例如只保留索引 2 的条目
     if ([originalItems count] > 2) {
         [filteredItems addObject:[originalItems objectAtIndex:2]];
     }
@@ -83,9 +87,13 @@
 
 - (NSMutableArray *)sections {
     NSMutableArray *originalSections = %orig;
+
+		if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test4"]) {
+        return originalSections;
+    }
     NSMutableArray *filteredSections = [NSMutableArray array];
 
-    // 例如只保留索引 1 的条目
+    // 例如只保留索引 2 的条目
     if ([originalSections count] > 2) {
         [filteredSections addObject:[originalSections objectAtIndex:2]];
     }
@@ -93,9 +101,8 @@
     return filteredSections;
 }
 
-
 %end
-*/
+
 
 
 %hook AWENormalModeTabBarGeneralPlusButton
