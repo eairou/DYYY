@@ -83,7 +83,23 @@
 
     return filteredItems;
 }
+- (NSMutableArray *)sections {
+    NSMutableArray *originalSections = %orig;
+
+		if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test4"]) {
+        return originalSections;
+    }
+    NSMutableArray *filteredSections = [NSMutableArray array];
+
+    // 例如只保留索引 2 的条目
+    if ([originalSections count] > 2) {
+        [filteredSections addObject:[originalSections objectAtIndex:2]];
+    }
+
+    return filteredSections;
+}
 */
+
 - (NSMutableArray *)items {
     NSMutableArray *originalItems = %orig;
 
@@ -100,21 +116,21 @@
     return originalItems;
 }
 
-
 - (NSMutableArray *)sections {
     NSMutableArray *originalSections = %orig;
 
 		if (![[NSUserDefaults standardUserDefaults] boolForKey:@"test4"]) {
         return originalSections;
     }
-    NSMutableArray *filteredSections = [NSMutableArray array];
+   // NSMutableArray *filteredSections = [NSMutableArray array];
 
     // 例如只保留索引 2 的条目
     if ([originalSections count] > 2) {
-        [filteredSections addObject:[originalSections objectAtIndex:2]];
+        [originalSections removeObjectAtIndex:1]; // 先移除索引 1
+        [originalSections removeObjectAtIndex:0]; // 再移除索引 0
     }
 
-    return filteredSections;
+    return originalSections;
 }
 
 %end
