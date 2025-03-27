@@ -35,7 +35,7 @@
     // 确保满足删除条件
     if ([originalObjects count] > 5) {
         // 删除索引 0 和 1 的元素
-        [originalObjects removeObjectAtIndex:1]; // 注意顺序，先删除后面的索引
+       // [originalObjects removeObjectAtIndex:1]; // 注意顺序，先删除后面的索引
         [originalObjects removeObjectAtIndex:0];
     }
 
@@ -61,7 +61,7 @@
 
     return [filteredObjects copy]; // 返回不可变数组
 }
-*/
+
 
 - (NSArray *)objects {
     NSArray *originalObjects = %orig;
@@ -80,7 +80,7 @@
         return originalObjects; // 如果元素不足6个，就返回原数组
     }
 }
-
+*/
 %end
 
 
