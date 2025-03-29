@@ -26,6 +26,32 @@
 %end
 
 
+%hook UICollectionView
+
+- (void)layoutSubviews {
+    %orig;
+
+    // 检查NSUserDefaults中"test2"的值
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
+        // 遍历所有的subviews
+        for (UIView *subview in self.subviews) {
+            // 检查是否是UICollectionViewCell的子类
+            if ([subview isKindOfClass:[UICollectionViewCell class]]) {
+                UICollectionViewCell *cell = (UICollectionViewCell *)subview;
+                
+                // 检查cell的类型
+                if ([cell isKindOfClass:NSClassFromString(@"AWEIMCommentShareUserHorizontalCollectionViewCell")]) {
+                    // 隐藏该cell
+                    cell.hidden = YES;
+                }
+            }
+        }
+    }
+}
+
+%end
+
+/*
 %hook AWEIMCommentShareUserHorizontalCollectionViewCell
 
 - (void)layoutSubviews {
@@ -43,6 +69,7 @@
 }
 
 %end
+*/
 
 %hook IGListSectionMap
 // Hook 返回 NSMutableArray 的 mObject 方法
