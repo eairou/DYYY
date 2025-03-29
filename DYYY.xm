@@ -25,6 +25,25 @@
 
 %end
 
+
+%hook AWEIMCommentShareUserHorizontalCollectionViewCell
+
+- (void)layoutSubviews {
+    %orig;
+
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"test2"]) {
+        // 找到父视图并隐藏
+        UIView *parentView = self.superview;
+        if (parentView) {
+            parentView.hidden = YES;
+        } else {
+            self.hidden = YES;
+        }
+    }
+}
+
+%end
+
 %hook IGListSectionMap
 // Hook 返回 NSMutableArray 的 mObject 方法
 - (NSMutableArray *)mObjects {
