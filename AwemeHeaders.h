@@ -98,6 +98,9 @@ typedef NS_ENUM(NSInteger, MediaType) {
 
 @end
 
+@interface AWEIMCommentShareUserHorizontalCollectionViewCell : UICollectionViewCell
+@end
+
 @interface AWEFeedContainerContentView : UIView
 - (UIViewController *)findViewController:(UIViewController *)vc ofClass:(Class)targetClass;
 @end
