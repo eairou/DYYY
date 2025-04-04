@@ -84,6 +84,37 @@ static void DYYYAddCustomViewToParent(UIView *parentView, float transparency) {
 
 %end
 
+%hook IESLiveMessageListTableView
+
+- (void)layoutSubviews {
+    %orig;
+    
+    // 目标缩放比例
+    CGFloat scale = 0.9;
+
+    // 获取原始的 frame 和 transform
+    CGRect originalFrame = self.frame;
+    CGAffineTransform originalTransform = self.transform;
+    
+    // 计算缩放的平移位移，使左下角保持固定
+    CGFloat tx = (originalFrame.size.width - originalFrame.size.width * scale);
+    CGFloat ty = (originalFrame.size.height - originalFrame.size.height * scale);
+    
+    // 注意要保持左下角，所以tx应为负值向左  ty 应为正值向下
+    tx = -tx;
+scale=-scale;
+
+    // 创建缩放变换
+    CGAffineTransform scaleTransform = CGAffineTransformMake(scale, -1.2246467991473532e-16, 1.2246467991473532e-16, scale, tx, ty);
+    
+    // 应用变换
+    self.transform = CGAffineTransformConcat(originalTransform, scaleTransform);
+}
+
+%end
+
+
+
 
 %hook AWENormalModeTabBarGeneralPlusButton
 + (id)button {
