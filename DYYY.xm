@@ -91,10 +91,12 @@ static void DYYYAddCustomViewToParent(UIView *parentView, float transparency) {
     
     // 目标缩放比例
     CGFloat scale = 0.9;
+    
+    // 重置变换
+    self.transform = CGAffineTransformIdentity;
 
-    // 获取原始的 frame 和 transform
+    // 重新获取原始的frame，因为transform被重置后frame可能会被还原
     CGRect originalFrame = self.frame;
-    CGAffineTransform originalTransform = self.transform;
     
     // 计算缩放的平移位移，使左下角保持固定
     CGFloat tx = (originalFrame.size.width - originalFrame.size.width * scale);
@@ -103,17 +105,15 @@ static void DYYYAddCustomViewToParent(UIView *parentView, float transparency) {
     // 注意要保持左下角，所以tx应为负值向左  ty 应为正值向下
     tx = -tx;
 scale=-scale;
-
+    
     // 创建缩放变换
     CGAffineTransform scaleTransform = CGAffineTransformMake(scale, -1.2246467991473532e-16, 1.2246467991473532e-16, scale, tx, ty);
-    
+
     // 应用变换
-    self.transform = CGAffineTransformConcat(originalTransform, scaleTransform);
+    self.transform = scaleTransform;
 }
 
 %end
-
-
 
 
 %hook AWENormalModeTabBarGeneralPlusButton
