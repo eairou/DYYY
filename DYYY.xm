@@ -103,6 +103,9 @@ static void DYYYAddCustomViewToParent(UIView *parentView, float transparency) {
     // 计算在 x 和 y 轴上的偏移量
     CGFloat tx = (originalWidth - scaledWidth) / 2;
     CGFloat ty = (originalHeight - scaledHeight) / 2;
+
+		// 注意要保持左下角，所以tx应为负值向左  ty应为正值向下
+		tx = -tx;
     
     // 应用缩放和平移
     self.transform = CGAffineTransformMake(scale, 0, 0, scale, tx, ty);
