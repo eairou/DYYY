@@ -25,7 +25,7 @@ typedef NS_ENUM(NSInteger, MediaType) {
 - (NSURL *)getDYYYSrcURLDownload;
 @end
 
-@interface IESLiveMessageListTableView : UIView
+@interface IESLivePublicScreenView : UIView
 @property (nonatomic, assign) CGRect frame;
 @property (nonatomic, strong) NSArray *subviews;
 @property (nonatomic, assign) CGAffineTransform transform;
