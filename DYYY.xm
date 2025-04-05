@@ -84,33 +84,28 @@ static void DYYYAddCustomViewToParent(UIView *parentView, float transparency) {
 
 %end
 
-%hook IESLiveMessageListTableView
+%hook IESLivePublicScreenView
 
 - (void)layoutSubviews {
     %orig;
     
-    // 目标缩放比例
+    // 设置缩放因子
     CGFloat scale = 0.9;
     
-    // 重置变换
-    self.transform = CGAffineTransformIdentity;
-
-    // 重新获取原始的frame，因为transform被重置后frame可能会被还原
-    CGRect originalFrame = self.frame;
+    // 原始宽和高
+    CGFloat originalWidth = self.bounds.size.width;
+    CGFloat originalHeight = self.bounds.size.height;
     
-    // 计算缩放的平移位移，使左下角保持固定
-    CGFloat tx = (originalFrame.size.width - originalFrame.size.width * scale);
-    CGFloat ty = (originalFrame.size.height - originalFrame.size.height * scale);
+    // 计算缩放后的宽和高
+    CGFloat scaledWidth = originalWidth * scale;
+    CGFloat scaledHeight = originalHeight * scale;
     
-    // 注意要保持左下角，所以tx应为负值向左  ty 应为正值向下
-    tx = -tx;
-scale=-scale;
+    // 计算在 x 和 y 轴上的偏移量
+    CGFloat tx = (originalWidth - scaledWidth) / 2;
+    CGFloat ty = (originalHeight - scaledHeight) / 2;
     
-    // 创建缩放变换
-    CGAffineTransform scaleTransform = CGAffineTransformMake(scale, -1.2246467991473532e-16, 1.2246467991473532e-16, scale, tx, ty);
-
-    // 应用变换
-    self.transform = scaleTransform;
+    // 应用缩放和平移
+    self.transform = CGAffineTransformMake(scale, 0, 0, scale, tx, ty);
 }
 
 %end
