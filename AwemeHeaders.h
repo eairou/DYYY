@@ -113,6 +113,22 @@ typedef NS_ENUM(NSInteger, MediaType) {
 - (BOOL)showShareFriends;
 @end
 
+//直播评论缩放 header
+@interface IESLivePublicScreenView : UIView
+@property (nonatomic, assign) CGRect frame;
+@property (nonatomic, strong) NSArray *subviews;
+@property (nonatomic, assign) CGAffineTransform transform;
+@end
+//隐藏直播电商优惠券 header
+@interface IESLiveConfigurableShortTouchView : UIView
+@end
+
+//隐藏直播展馆右侧 header
+@interface IESLiveActivityBannerNativeContainer : UIView
+@end
+
+
+
 @interface AWENormalModeTabBarGeneralButton : UIButton
 @end
 
