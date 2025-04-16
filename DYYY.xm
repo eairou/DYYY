@@ -117,6 +117,147 @@ static void DYYYAddCustomViewToParent(UIView *parentView, float transparency) {
 }
 %end
 
+
+%hook IESLiveActivityBannerNativeContainer
+
+- (void)autoScrollPage {
+    // 检查是否启用了隐藏功能
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYLiveZGRightHide"]) {
+
+        // 从 NSUserDefaults 中获取自定义标识字符串
+        NSString *labelsString = [[NSUserDefaults standardUserDefaults] stringForKey:@"DYYYLiveZGfilterKeywords"];
+
+        // 确保获取的字符串不为空或者为 nil
+        if (labelsString && labelsString.length > 0) {
+            // 创建一个数组来存储分割后的标识
+            NSArray *labelsToHide = [labelsString componentsSeparatedByString:@","];
+
+            // 确保 self.accessibilityLabel 不为 nil
+            if (self.accessibilityLabel) {
+                // 遍历关键词数组，检查是否存在于 accessibilityLabel 中
+                for (NSString *keyword in labelsToHide) {
+                    if ([self.accessibilityLabel containsString:keyword]) {
+                        // 移除视图的父视图
+                        [self.superview removeFromSuperview];
+                        return; // 找到匹配的关键词后就退出方法
+                    }
+                }
+            }
+        }
+    }
+
+    // 如果没有启用隐藏，或者没有匹配的关键词，则执行原始代码
+    %orig;
+}
+
+%end
+
+
+
+//点赞效果
+%hook HTSLiveDiggView
+
+- (id)iconImageView {
+
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYLiveTapEffect"]) {
+	    // 如果为 true,则不执行原方法的实现
+	    return nil;
+	} else {
+	    // 如果为 false,则执行原方法的实现
+	    return %orig;
+	}
+}
+
+%end
+
+
+//直播评论缩放
+%hook IESLivePublicScreenView
+
+- (void)layoutSubviews {
+    %orig;
+
+    // 检查 NSUserDefaults 中的值，如果为 false，则不执行后续缩放代码
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYLiveCommentScale"]) {
+        return; // 则直接返回
+    }
+    
+    // 设置缩放因子
+    CGFloat scale = 0.9;
+
+    // 原始宽和高
+    CGFloat originalWidth = self.bounds.size.width;
+    CGFloat originalHeight = self.bounds.size.height;
+
+    // 计算缩放后的宽和高
+    CGFloat scaledWidth = originalWidth * scale;
+    CGFloat scaledHeight = originalHeight * scale;
+
+    // 计算在 x 和 y 轴上的偏移量
+    CGFloat tx = (originalWidth - scaledWidth) / 2;
+    CGFloat ty = (originalHeight - scaledHeight) / 2;
+
+    // 注意要保持左下角，所以 tx 应为负值向左，ty 应为正值向下
+    tx = -tx;
+    
+    // 应用缩放和平移
+    self.transform = CGAffineTransformMake(scale, 0, 0, scale, tx, ty);
+}
+
+%end
+
+
+
+
+
+//隐藏直播电商优惠券
+%hook IESLiveConfigurableShortTouchView
+
+- (void)layoutSubviews {
+    %orig;
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYLiveYHQHide"]) {
+        if ([self.accessibilityLabel isEqualToString:@"电商优惠券"] && self.superview) {
+            [self.superview removeFromSuperview];
+        }
+    }
+}
+
+%end
+
+/*
+本地直播-优惠券
+电商优惠券
+
+
+白蛇传说,春日遛娃好去处,电商,日日新栏目限时领好券,生服,去哪玩,北环上新日全商户
+
+白蛇传说预约,春日遛娃好去处,电商0406,日日新栏目限时领好券,生服0331,去哪玩0402,北环上新日全商户
+*/
+
+%hook IESLiveDynamicUserEnterView
+
+- (CGFloat)stayTime {
+    CGFloat originalStayTime = %orig; // 调用原始的方法并获取返回值
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYtest1"]) {
+	   
+        // 你可以在这里进行自定义的逻辑修改
+        CGFloat modifiedStayTime = originalStayTime * 100; // 举例：将原始时间乘以2
+
+        return modifiedStayTime;
+    }else {
+        // 如果为 false,则执行原方法的实现
+        return %orig;
+    }
+}
+
+%end
+
+
+
+
+
+
 %hook AWEFeedContainerContentView
 - (void)setAlpha:(CGFloat)alpha {
 	// 纯净模式功能
@@ -2637,6 +2778,7 @@ static BOOL isDownloadFlied = NO;
 }
 %end
 
+/*
 %hook _TtC33AWECommentLongPressPanelSwiftImpl32CommentLongPressPanelCopyElement
 
 - (void)elementTapped {
@@ -2653,6 +2795,8 @@ static BOOL isDownloadFlied = NO;
 	}
 }
 %end
+*/
+
 
 // 去除启动视频广告
 %hook AWEAwesomeSplashFeedCellOldAccessoryView
