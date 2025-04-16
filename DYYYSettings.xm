@@ -665,6 +665,11 @@ static void showUserAgreementAlert() {
 			      @"detail" : @"",
 			      @"cellType" : @26,
 			      @"imageName" : @"ic_tag_outlined_20"},
+@{@"identifier" : @"DYYYLiveZGfilterKeywords",
+			      @"title" : @"直播展馆过滤词",
+			      @"detail" : @"",
+			      @"cellType" : @26,
+			      @"imageName" : @"ic_tag_outlined_20"},
 			    @{@"identifier" : @"DYYYfiltertimelimit",
 			      @"title" : @"推荐视频时限",
 			      @"detail" : @"",
@@ -759,7 +764,32 @@ static void showUserAgreementAlert() {
 					  },
 					  nil);
 				    };
-			    } else if ([item.identifier isEqualToString:@"DYYYfiltertimelimit"]) {
+			    } else if ([item.identifier isEqualToString:@"DYYYLiveZGfilterKeywords"]) {
+                        NSString *savedValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYLiveZGfilterKeywords"];
+                        item.detail = savedValue ?: @"";
+                        item.cellTappedBlock = ^{
+                            showTextInputAlert(@"展馆过滤关键词", item.detail, @"用半角逗号(,)分隔关键词", ^(NSString *text) {
+                                NSString *trimmedText = [text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                                setUserDefaults(trimmedText, @"DYYYLiveZGfilterKeywords");
+                                item.detail = trimmedText ?: @"";
+                                UIViewController *topVC = topView();
+                                if ([topVC isKindOfClass:%c(AWESettingBaseViewController)]) {
+                                    dispatch_async(dispatch_get_main_queue(), ^{
+                                        UITableView *tableView = nil;
+                                        for (UIView *subview in topVC.view.subviews) {
+                                            if ([subview isKindOfClass:[UITableView class]]) {
+                                                tableView = (UITableView *)subview;
+                                                break;
+                                            }
+                                        }
+                                        if (tableView) {
+                                            [tableView reloadData];
+                                        }
+                                    });
+                                }
+                            }, nil);
+                        };
+                    }else if ([item.identifier isEqualToString:@"DYYYfiltertimelimit"]) {
 				    NSString *savedValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYfiltertimelimit"];
 				    item.detail = savedValue ?: @"";
 				    item.cellTappedBlock = ^{
