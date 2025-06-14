@@ -1205,12 +1205,12 @@ NSTimeInterval timestampInterval = [self.awemeModel.createTime doubleValue];
 			if(author.customID.length > 0){
 				NSString *customId = author.customID;
 				NSString *currentUserFilter = [NSString stringWithFormat:@"Name-%@_Id-%@_Date%@", nickname, customId, dateString];
-[DYYYManager showToast:currentUserFilter];
+//[DYYYManager showToast:currentUserFilter];
 			[DYYYManager setNameMeta:currentUserFilter];
 			
 			}else{
 				NSString *currentUserFilter = [NSString stringWithFormat:@"Name-%@_shortId-%@_Date%@", nickname, shortId, dateString];
-[DYYYManager showToast:currentUserFilter];
+//[DYYYManager showToast:currentUserFilter];
 			[DYYYManager setNameMeta:currentUserFilter];
 			
 			}
