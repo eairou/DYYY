@@ -7,15 +7,17 @@
 #
 
 TARGET = iphone:clang:latest:15.0
-ARCHS = arm64 arm64e
+ARCHS = arm64
+# arm64e
 
 #export THEOS=/Users/huami/theos
 #export THEOS_PACKAGE_SCHEME=roothide
 
 # 根据参数选择打包方案
-ifeq ($(SCHEME),roothide)
-    export THEOS_PACKAGE_SCHEME = roothide
-else ifeq ($(SCHEME),rootless)
+#ifeq ($(SCHEME),roothide)
+#    export THEOS_PACKAGE_SCHEME = roothide
+#else 
+ifeq ($(SCHEME),rootless)
     export THEOS_PACKAGE_SCHEME = rootless
 else
     unexport THEOS_PACKAGE_SCHEME
