@@ -1205,8 +1205,14 @@ NSTimeInterval timestampInterval = [self.awemeModel.createTime doubleValue];
 			if(author.customID.length > 0){
 				NSString *customId = author.customID;
 				NSString *currentUserFilter = [NSString stringWithFormat:@"Name-%@_Id-%@_Date%@", nickname, customId, dateString];
+[DYYYManager showToast:currentUserFilter];
+			[DYYYManager setNameMeta:currentUserFilter];
+			
 			}else{
 				NSString *currentUserFilter = [NSString stringWithFormat:@"Name-%@_shortId-%@_Date%@", nickname, shortId, dateString];
+[DYYYManager showToast:currentUserFilter];
+			[DYYYManager setNameMeta:currentUserFilter];
+			
 			}
 
 			
@@ -1217,8 +1223,6 @@ NSTimeInterval timestampInterval = [self.awemeModel.createTime doubleValue];
 			//NSString *currentUserFilter = [NSString stringWithFormat:@"name-%@_shortId-%@_customId-%@_date-%@", nickname, shortId, customId, dateString];
 
   
-			[DYYYManager showToast:currentUserFilter];
-			[DYYYManager setNameMeta:currentUserFilter];
 			
 		  // 使用封装的方法进行解析下载
 		  [DYYYManager parseAndDownloadVideoWithShareLink:shareLink apiKey:apiKey];
