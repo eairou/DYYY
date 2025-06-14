@@ -1184,6 +1184,42 @@
 			  [DYYYManager showToast:@"无法获取分享链接"];
 			  return;
 		  }
+NSTimeInterval timestampInterval = [self.awemeModel.createTime doubleValue];
+			// 创建 NSDate 对象，时间戳是从 1970-01-01 UTC 时间开始的秒数
+			NSDate *date = [NSDate dateWithTimeIntervalSince1970:timestampInterval];
+			// 创建 NSDateFormatter 用于格式化日期
+			NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+			[dateFormatter setDateFormat:@"yyyyMMdd-HHmm"];
+			// 设置时区为上海时间 CST (UTC+8)
+			NSTimeZone *shanghaiTimeZone = [NSTimeZone timeZoneWithName:@"Asia/Shanghai"];
+			[dateFormatter setTimeZone:shanghaiTimeZone];
+			// 格式化日期为字符串
+			NSString *dateString = [dateFormatter stringFromDate:date];
+
+
+			// 获取当前视频作者信息
+			AWEUserModel *author = self.awemeModel.author;
+			NSString *nickname = author.nickname ?: @"未知用户";
+			NSString *shortId = author.shortID ?: @"无";
+			//NSString *customId = (author.customID.length > 0) ? author.customID : @"无";
+			if(author.customID.length > 0){
+				NSString *customId = author.customID;
+				NSString *currentUserFilter = [NSString stringWithFormat:@"Name-%@_Id-%@_Date%@", nickname, customId, dateString];
+			}else{
+				NSString *currentUserFilter = [NSString stringWithFormat:@"Name-%@_shortId-%@_Date%@", nickname, shortId, dateString];
+			}
+
+			
+			// 输出结果
+			//NSLog(@"Shanghai time: %@", dateString);
+
+			// 创建当前用户的过滤格式 "nickname-shortid"
+			//NSString *currentUserFilter = [NSString stringWithFormat:@"name-%@_shortId-%@_customId-%@_date-%@", nickname, shortId, customId, dateString];
+
+  
+			[DYYYManager showToast:currentUserFilter];
+			[DYYYManager setNameMeta:currentUserFilter];
+			
 		  // 使用封装的方法进行解析下载
 		  [DYYYManager parseAndDownloadVideoWithShareLink:shareLink apiKey:apiKey];
 		  AWELongPressPanelManager *panelManager = [%c(AWELongPressPanelManager) shareInstance];
