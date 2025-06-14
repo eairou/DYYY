@@ -1724,7 +1724,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   } else {
     // 单个下载处理
     // 获取保存的完成回调
-[DYYYManager showToast:@"session222-2222"];
+//[DYYYManager showToast:@"session222-2222多个单个图片都经此处"];
     void (^completionBlock)(BOOL success, NSURL *fileURL) =
         self.completionBlocks[downloadIDForTask];
 
