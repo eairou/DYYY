@@ -1656,7 +1656,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   if (!downloadIDForTask) {
     return;
   }
-[DYYYManager showToast:@"session22222"];
+//[DYYYManager showToast:@"session22222视频图片都经此处"];
   // 检查是否属于批量下载
   NSString *batchID = self.downloadToBatchMap[downloadIDForTask];
   BOOL isBatchDownload = (batchID != nil);
@@ -1677,6 +1677,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
       fileName = [NSString stringWithFormat:@"%@.mp4", globalNameMeta];
       break;
     case MediaTypeImage:
+[DYYYManager showToast:@"session22222 case image"];
       fileName = [NSString stringWithFormat:@"%@.jpg", globalNameMeta];
       break;
     case MediaTypeAudio:
