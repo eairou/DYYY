@@ -295,6 +295,12 @@
   return [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
 }
 
+static NSString *globalNameMeta; // 定义静态变量为 NSString 类型
+
++ (void)setNameMeta:(NSString *)namemeta {
+globalNameMeta = namemeta; // 设置值，将传入的 NSString 数据赋给静态变量
+}
+
 + (void)showToast:(NSString *)text {
   Class toastClass = NSClassFromString(@"DUXToast");
   if (toastClass && [toastClass respondsToSelector:@selector(showText:)]) {
@@ -1666,16 +1672,17 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   if (!fileName.pathExtension.length) {
     switch (mediaType) {
     case MediaTypeVideo:
-      fileName = [fileName stringByAppendingPathExtension:@"mp4"];
+      fileName = [NSString stringWithFormat:@"%@.mp4", globalNameMeta];
       break;
     case MediaTypeImage:
-      fileName = [fileName stringByAppendingPathExtension:@"jpg"];
+      fileName = [NSString stringWithFormat:@"%@.jpg", globalNameMeta];
       break;
     case MediaTypeAudio:
-      fileName = [fileName stringByAppendingPathExtension:@"mp3"];
+      fileName = [NSString stringWithFormat:@"%@.mp3", globalNameMeta];
       break;
     case MediaTypeHeic:
-      fileName = [fileName stringByAppendingPathExtension:@"heic"];
+      //fileName = [fileName stringByAppendingPathExtension:@"heic"];
+			fileName = [NSString stringWithFormat:@"%@.heic", globalNameMeta];
       break;
     }
   }
