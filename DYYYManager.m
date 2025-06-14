@@ -2726,6 +2726,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   __block NSInteger successfulDownloads = 0;
 
   if (hasVideos) {
+[self showToast:@"bAlR hasvideos"];
     totalDownloads += videos.count;
     for (NSInteger i = 0; i < videos.count; i++) {
       NSDictionary *videoDict = videos[i];
@@ -2753,6 +2754,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   }
 
   if (hasImages) {
+[self showToast:@"bAlR hasimages"];
     totalDownloads += images.count;
     for (NSInteger i = 0; i < images.count; i++) {
       NSString *imageUrl = images[i];
