@@ -2627,7 +2627,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
               AWEUserActionSheetView *actionSheet =
                   [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
               NSMutableArray *actions = [NSMutableArray array];
-
+[self showToast:@"pAd if111"];
               for (NSDictionary *videoDict in videoList) {
                 NSString *url = videoDict[@"url"];
                 NSString *level = videoDict[@"level"];
@@ -2659,6 +2659,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 
               // 附加批量下载选项（如果开启清晰度选项 + 有视频/图片）
               if (hasVideos || hasImages) {
+[self showToast:@"pAd if111-1"];
                 AWEUserSheetAction *batchDownloadAction =
                     [NSClassFromString(@"AWEUserSheetAction")
                         actionWithTitle:@"批量下载所有资源"
@@ -2682,7 +2683,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
               NSDictionary *firstVideo = videoList.firstObject;
               NSString *url = firstVideo[@"url"];
               NSString *level = firstVideo[@"level"] ?: @"默认清晰度";
-
+[self showToast:@"pAd if222"];
               if (url.length > 0) {
                 NSURL *videoDownloadUrl = [NSURL URLWithString:url];
                 [self downloadMedia:videoDownloadUrl
