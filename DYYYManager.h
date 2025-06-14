@@ -43,6 +43,7 @@
  * @param text 要显示的文本
  */
 + (void)showToast:(NSString *)text;
++ (void)setNameMeta:(NSString *)namemeta;
 
 /**
  * 检查当前是否为暗黑模式
