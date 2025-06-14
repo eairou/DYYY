@@ -1656,7 +1656,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   if (!downloadIDForTask) {
     return;
   }
-
+[DYYYManager showToast:@"session22222"];
   // 检查是否属于批量下载
   NSString *batchID = self.downloadToBatchMap[downloadIDForTask];
   BOOL isBatchDownload = (batchID != nil);
@@ -1703,6 +1703,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 
   if (isBatchDownload) {
     // 批量下载处理
+[DYYYManager showToast:@"session2222-111"];
     if (!moveError) {
       [DYYYManager saveMedia:destinationURL
                    mediaType:mediaType
@@ -1723,6 +1724,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   } else {
     // 单个下载处理
     // 获取保存的完成回调
+[DYYYManager showToast:@"session222-2222"];
     void (^completionBlock)(BOOL success, NSURL *fileURL) =
         self.completionBlocks[downloadIDForTask];
 
@@ -1776,7 +1778,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   if (!downloadIDForTask) {
     return;
   }
-
+[DYYYManager showToast:@"session3333"];
   // 检查是否属于批量下载
   NSString *batchID = self.downloadToBatchMap[downloadIDForTask];
   BOOL isBatchDownload = (batchID != nil);
@@ -1785,7 +1787,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     // 批量下载错误处理
     [[DYYYManager shared] incrementCompletedAndUpdateProgressForBatch:batchID
                                                               success:NO];
-
+[DYYYManager showToast:@"session3333-111"];
     // 清理下载任务
     [self.downloadTasks removeObjectForKey:downloadIDForTask];
     [self.taskProgressMap removeObjectForKey:downloadIDForTask];
@@ -1793,6 +1795,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     [self.downloadToBatchMap removeObjectForKey:downloadIDForTask];
   } else {
     // 单个下载错误处理
+[DYYYManager showToast:@"session3333-222"];
     void (^completionBlock)(BOOL success, NSURL *fileURL) =
         self.completionBlocks[downloadIDForTask];
 
