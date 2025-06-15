@@ -1695,7 +1695,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 			// 已有扩展名，则保持原扩展名
 			fileName = [NSString stringWithFormat:@"%@.%@", globalNameMeta, fileName.pathExtension];
 	}
-
+[DYYYManager showToast:fileName];
   NSURL *tempDir = [NSURL fileURLWithPath:NSTemporaryDirectory()];
   NSURL *destinationURL = [tempDir URLByAppendingPathComponent:fileName];
 
