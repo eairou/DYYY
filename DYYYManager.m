@@ -1670,14 +1670,17 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 
   // 处理下载的文件
   NSString *fileName = [downloadTask.originalRequest.URL lastPathComponent];
-[DYYYManager showToast:fileName];
-  if (!fileName.pathExtension.length) {
+//[DYYYManager showToast:fileName];
+
+  // 检查文件名是否有扩展名
+	if (!fileName.pathExtension.length) {
+		// 如果没有扩展名，根据媒体类型添加默认扩展名
     switch (mediaType) {
     case MediaTypeVideo:
       fileName = [NSString stringWithFormat:@"%@.mp4", globalNameMeta];
       break;
     case MediaTypeImage:
-[DYYYManager showToast:@"session22222 case image"];
+//[DYYYManager showToast:@"session22222 case image"];
       fileName = [NSString stringWithFormat:@"%@.jpg", globalNameMeta];
       break;
     case MediaTypeAudio:
@@ -1688,7 +1691,10 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 			fileName = [NSString stringWithFormat:@"%@.heic", globalNameMeta];
       break;
     }
-  }
+  }else {
+			// 已有扩展名，则保持原扩展名
+			fileName = [NSString stringWithFormat:@"%@.%@", globalNameMeta, fileName.pathExtension];
+	}
 
   NSURL *tempDir = [NSURL fileURLWithPath:NSTemporaryDirectory()];
   NSURL *destinationURL = [tempDir URLByAppendingPathComponent:fileName];
