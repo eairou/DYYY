@@ -1670,7 +1670,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 
   // 处理下载的文件
   NSString *fileName = [downloadTask.originalRequest.URL lastPathComponent];
-
+[DYYYManager showToast:fileName];
   if (!fileName.pathExtension.length) {
     switch (mediaType) {
     case MediaTypeVideo:
