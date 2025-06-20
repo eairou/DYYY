@@ -94,6 +94,16 @@
   return self;
 }
 
+
+static NSString *globalNameMeta; // 定义静态变量为 NSString 类型
+static NSInteger all;
+
+
++ (void)setNameMeta:(NSString *)namemeta {
+globalNameMeta = namemeta; // 设置值，将传入的 NSString 数据赋给静态变量
+}
+
+
 + (void)saveMedia:(NSURL *)mediaURL
         mediaType:(MediaType)mediaType
        completion:(void (^)(void))completion {
@@ -103,6 +113,8 @@
 
   [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
     if (status == PHAuthorizationStatusAuthorized) {
+NSString *originalFilename = [mediaURL lastPathComponent];
+//[DYYYManager showToast:originalFilename];
       // 如果是表情包类型，先检查实际格式
       if (mediaType == MediaTypeHeic) {
         // 检测文件的实际格式
@@ -186,7 +198,7 @@
                     completion();
                   }
                 } else {
-                  [DYYYUtils showToast:@"保存失败"];
+                  [DYYYUtils showToast:@"保存失败-1"];
                 }
                 // 不管成功失败都清理临时文件
                 [[NSFileManager defaultManager] removeItemAtPath:mediaURL.path
@@ -194,19 +206,41 @@
               }];
         }
       } else {
+//视频图片都经此处
         // 非表情包类型的正常保存流程
         [[PHPhotoLibrary sharedPhotoLibrary]
             performChanges:^{
+							// 创建资源选项
+              PHAssetResourceCreationOptions *creationOptions = [PHAssetResourceCreationOptions new];
+              creationOptions.originalFilename = originalFilename; // 关键设置
+              
               if (mediaType == MediaTypeVideo) {
                 [PHAssetChangeRequest
                     creationRequestForAssetFromVideoAtFileURL:mediaURL];
               } else {
+// 图片处理（包括HEIC）
+                // 根据媒体类型设置统一类型标识符
+                if (mediaType == MediaTypeHeic) {
+                    creationOptions.uniformTypeIdentifier = @"public.heic";
+                } else {
+                    creationOptions.uniformTypeIdentifier = @"public.image";
+                }
+                        
+                PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
+                [request addResourceWithType:PHAssetResourceTypePhoto
+                                           fileURL:mediaURL
+                                          options:creationOptions];
+
+              }
+
+/*
                 UIImage *image =
                     [UIImage imageWithContentsOfFile:mediaURL.path];
                 if (image) {
                   [PHAssetChangeRequest creationRequestForAssetFromImage:image];
                 }
-              }
+*/
+              
             }
             completionHandler:^(BOOL success, NSError *_Nullable error) {
               if (success) {
@@ -215,7 +249,7 @@
                   completion();
                 }
               } else {
-                [DYYYUtils showToast:@"保存失败"];
+                [DYYYUtils showToast:@"保存失败-2"];
               }
               // 不管成功失败都清理临时文件
               [[NSFileManager defaultManager] removeItemAtPath:mediaURL.path
@@ -1237,6 +1271,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     __block NSInteger completedCount = 0;
     __block NSInteger successCount = 0;
     NSInteger totalCount = imageURLs.count;
+all=totalCount;
 
     progressView.cancelBlock = ^{
       [self cancelAllDownloads];
@@ -1452,6 +1487,64 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     mediaType = (MediaType)[mediaTypeNumber integerValue];
   }
 
+
+// 用于跟踪序号
+static NSInteger index = 0;
+
+  // 处理下载的文件
+  NSString *fileName = [downloadTask.originalRequest.URL lastPathComponent];
+//[DYYYManager showToast:fileName];
+
+NSString *extension;
+
+// 根据是否已有扩展名决定如何设置 fileName 和 extension
+if (!fileName.pathExtension.length) {
+switch (mediaType) {
+    case MediaTypeVideo:
+        extension = @"mp4";
+        break;
+    case MediaTypeImage:
+        extension = @"jpg";
+        break;
+    case MediaTypeAudio:
+        extension = @"mp3";
+        break;
+    case MediaTypeHeic:
+        extension = @"heic";
+        break;
+}
+} else {
+extension = fileName.pathExtension;
+}
+
+// 初始化文件名为 globalNameMeta
+fileName = globalNameMeta;
+
+// 检查是否需要加后缀
+if (all > 1) {
+index++;
+// 在基础名称后加上序号和扩展名
+fileName = [NSString stringWithFormat:@"%@_%ld.%@", fileName, index, extension];
+
+// 在这里可以对新名称进行操作，例如打印出来或赋值回去
+//NSLog(@"Updated Name: %@", fileName);
+
+// 检查是否需要重置序号
+if (index == all) {
+    index = 0;
+all=1;
+}
+} else {
+// 如果不需要序号后缀，只需正常添加扩展名
+fileName = [NSString stringWithFormat:@"%@.%@", fileName, extension];
+}
+
+
+[DYYYUtils showToast:fileName];
+
+
+
+/*
   // 处理下载的文件
   NSString *fileName = [downloadTask.originalRequest.URL lastPathComponent];
 
@@ -1471,7 +1564,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
       break;
     }
   }
-
+*/
   NSURL *tempDir = [NSURL fileURLWithPath:NSTemporaryDirectory()];
   NSURL *destinationURL = [tempDir URLByAppendingPathComponent:fileName];
 
@@ -1485,7 +1578,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                           error:&moveError];
 
   if (isBatchDownload) {
-    // 批量下载处理
+    // 面板批量下载图片处理
     if (!moveError) {
       [DYYYManager saveMedia:destinationURL
                    mediaType:mediaType
@@ -1504,6 +1597,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     [self.taskProgressMap removeObjectForKey:downloadIDForTask];
     [self.mediaTypeMap removeObjectForKey:downloadIDForTask];
   } else {
+//接口解析保存的无论单个还是批量都经此处
     // 单个下载处理
     // 获取保存的完成回调
     void (^completionBlock)(BOOL success, NSURL *fileURL) =
@@ -2396,7 +2490,9 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 
 + (void)handleVideoData:(NSDictionary *)dataDict {
     // 首先检查videos和images数组
+//videolist为接口数据
     NSArray *videoList = dataDict[@"video_list"];
+
     NSArray *videos = dataDict[@"videos"];
     NSArray *images = dataDict[@"images"];
     NSArray *imgArray = dataDict[@"img"];
@@ -2409,7 +2505,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
         coverURL = dataDict[@"pics"];
     }
     
-    // 检查是否有视频列表(优先处理)
+    // 检查接口返回 是否有视频列表(优先处理)
     BOOL hasVideoList = [videoList isKindOfClass:[NSArray class]] && videoList.count > 0;
     if (hasVideoList) {
         AWEUserActionSheetView *actionSheet = [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
@@ -2464,7 +2560,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     BOOL hasVideos = [videos isKindOfClass:[NSArray class]] && videos.count > 0;
     BOOL hasImages = [images isKindOfClass:[NSArray class]] && images.count > 0;
     BOOL hasImgArray = [imgArray isKindOfClass:[NSArray class]] && imgArray.count > 0;
-    
+    //是否开启了接口显示视频清晰度选项
     BOOL shouldShowQualityOptions = [[NSUserDefaults standardUserDefaults]
                                       boolForKey:@"DYYYShowAllVideoQuality"];
     
@@ -2478,6 +2574,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
         }
         
         if (allImages.count > 0) {
+all = images.count; //获取 count 数量
             if (allImages.count == 1) {
                 // 单张图片直接下载
                 NSURL *imageDownloadUrl = [NSURL URLWithString:allImages[0]];
@@ -2496,7 +2593,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
         }
     }
 
-    // 单个视频情况下的处理
+    // 含单个视频情况下的处理 开启视频清晰度显示 //接口
     if (shouldShowQualityOptions && singleVideoURL && singleVideoURL.length > 0) {
         AWEUserActionSheetView *actionSheet = [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
         NSMutableArray *actions = [NSMutableArray array];
@@ -2514,7 +2611,8 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                }];
                     }];
         [actions addObject:videoAction];
-        
+
+        //接口有封面的情况
         if (coverURL && coverURL.length > 0) {
             AWEUserSheetAction *coverAction = [NSClassFromString(@"AWEUserSheetAction")
                 actionWithTitle:@"下载封面图"
@@ -2530,7 +2628,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                         }];
             [actions addObject:coverAction];
         }
-        
+        //接口解析 含音乐
         if (musicURL && musicURL.length > 0) {
             AWEUserSheetAction *musicAction = [NSClassFromString(@"AWEUserSheetAction")
                 actionWithTitle:@"下载背景音乐"
@@ -2547,14 +2645,14 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
             [actions addObject:musicAction];
         }
         
-        // 添加批量下载选项
+        // 添加图片 封面 到批量下载选项 
         NSMutableArray *allImages = [NSMutableArray array];
         if (hasImages) [allImages addObjectsFromArray:images];
         if (hasImgArray) [allImages addObjectsFromArray:imgArray];
         if (coverURL && coverURL.length > 0 && ![allImages containsObject:coverURL]) {
             [allImages addObject:coverURL];
         }
-        
+        //含单个视频和图片
         if (allImages.count > 0 || singleVideoURL.length > 0) {
             AWEUserSheetAction *batchDownloadAction = [NSClassFromString(@"AWEUserSheetAction")
                 actionWithTitle:@"批量下载所有资源"
@@ -2575,7 +2673,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
             return;
         }
     }
-
+//没开启视频清晰度选项 有单个视频
     if (!shouldShowQualityOptions && singleVideoURL && singleVideoURL.length > 0) {
         NSURL *videoDownloadUrl = [NSURL URLWithString:singleVideoURL];
         [self downloadMedia:videoDownloadUrl
@@ -2587,7 +2685,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
         return;
     }
 
-    // 如果前面的条件都不满足，尝试批量下载所有资源
+    // 如果前面的条件都不满足，尝试添加图片 封面 到批量下载所有资源
     NSMutableArray *allImages = [NSMutableArray array];
     if (hasImages) [allImages addObjectsFromArray:images];
     if (hasImgArray) [allImages addObjectsFromArray:imgArray];
@@ -2596,6 +2694,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     }
     
     if (allImages.count > 0 || hasVideos) {
+all = images.count; //获取 count 数量
         [self batchDownloadResources:videos images:allImages];
     } else {
         [DYYYUtils showToast:@"没有找到可下载的资源"];
