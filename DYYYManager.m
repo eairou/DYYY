@@ -1126,7 +1126,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                }
                              });
                            } else {
-[DYYYUtils showToast:@"downmedia的sucess中的else的savemedia"];
+//[DYYYUtils showToast:@"downmedia的sucess中的else的savemedia"];
                              [self saveMedia:fileURL
                                    mediaType:mediaType
                                   completion:^{
@@ -1482,6 +1482,9 @@ all=totalCount;
       break;
     }
   }
+
+
+[DYYYUtils showToast:@"urlsession中排查"];
 
   if (!downloadIDForTask) {
     return;
