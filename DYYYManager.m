@@ -215,8 +215,16 @@ NSString *originalFilename = [mediaURL lastPathComponent];
               creationOptions.originalFilename = originalFilename; // 关键设置
               
               if (mediaType == MediaTypeVideo) {
+                // 视频处理
+                        creationOptions.uniformTypeIdentifier = @"public.movie";
+                        PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
+                        [request addResourceWithType:PHAssetResourceTypeVideo
+                                           fileURL:mediaURL
+                                          options:creationOptions];
+/*
                 [PHAssetChangeRequest
                     creationRequestForAssetFromVideoAtFileURL:mediaURL];
+*/
               } else {
 // 图片处理（包括HEIC）
                 // 根据媒体类型设置统一类型标识符
