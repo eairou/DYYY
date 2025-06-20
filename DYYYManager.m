@@ -257,7 +257,8 @@ NSString *originalFilename = [mediaURL lastPathComponent];
                   completion();
                 }
               } else {
-                [DYYYUtils showToast:@"保存失败-2"];
+                //[DYYYUtils showToast:@"保存失败-2"];
+NSLog(@"hhhh");
               }
               // 不管成功失败都清理临时文件
               [[NSFileManager defaultManager] removeItemAtPath:mediaURL.path
@@ -1125,6 +1126,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                }
                              });
                            } else {
+[DYYYUtils showToast:@"downmedia的sucess中的else的savemedia"];
                              [self saveMedia:fileURL
                                    mediaType:mediaType
                                   completion:^{
@@ -1134,6 +1136,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                   }];
                            }
                          } else {
+[DYYYUtils showToast:@"downmedia的sucess相反的else"];
                            if (completion) {
                              completion(NO);
                            }
