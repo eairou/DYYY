@@ -143,6 +143,35 @@
 
 	BOOL isNewLivePhoto = (self.awemeModel.video && self.awemeModel.animatedImageVideoInfo != nil);
 
+
+// 获取视频创建时间并转换为日期字符串
+NSTimeInterval timestampInterval = [self.awemeModel.createTime doubleValue];
+NSDate *date = [NSDate dateWithTimeIntervalSince1970:timestampInterval];
+
+NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+[dateFormatter setDateFormat:@"yyyyMMdd-HHmm"];
+NSTimeZone *shanghaiTimeZone = [NSTimeZone timeZoneWithName:@"Asia/Shanghai"];
+[dateFormatter setTimeZone:shanghaiTimeZone];
+
+NSString *dateString = [dateFormatter stringFromDate:date];
+
+// 获取当前视频作者信息
+AWEUserModel *author = self.awemeModel.author;
+NSString *nickname = author.nickname ?: @"未知用户";
+NSString *identifier = author.customID.length > 0 ? author.customID : author.shortID ?: @"无";
+
+// 优化后的文件名格式化
+NSString *idType = author.customID.length > 0 ? @"Id" : @"shortId";
+NSString *filemeta = [NSString stringWithFormat:@"Name-%@_%@-%@_Date%@", nickname, idType, identifier, dateString];
+
+// 使用封装的方法
+[DYYYUtils showToast:filemeta];
+[DYYYManager setNameMeta:filemeta];
+			
+// 输出结果
+//NSLog(@"Shanghai time: %@", dateString);
+
+
 	// 视频下载功能 (非实况照片才显示)
 	if (enableSaveVideo && self.awemeModel.awemeType != 68 && !isNewLivePhoto) {
 		AWELongPressPanelBaseViewModel *downloadViewModel = [[%c(AWELongPressPanelBaseViewModel) alloc] init];
@@ -950,6 +979,36 @@
 	NSMutableArray *viewModels = [NSMutableArray array];
 
 	BOOL isNewLivePhoto = (self.awemeModel.video && self.awemeModel.animatedImageVideoInfo != nil);
+
+
+// 获取视频创建时间并转换为日期字符串
+NSTimeInterval timestampInterval = [self.awemeModel.createTime doubleValue];
+NSDate *date = [NSDate dateWithTimeIntervalSince1970:timestampInterval];
+
+NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+[dateFormatter setDateFormat:@"yyyyMMdd-HHmm"];
+NSTimeZone *shanghaiTimeZone = [NSTimeZone timeZoneWithName:@"Asia/Shanghai"];
+[dateFormatter setTimeZone:shanghaiTimeZone];
+
+NSString *dateString = [dateFormatter stringFromDate:date];
+
+// 获取当前视频作者信息
+AWEUserModel *author = self.awemeModel.author;
+NSString *nickname = author.nickname ?: @"未知用户";
+NSString *identifier = author.customID.length > 0 ? author.customID : author.shortID ?: @"无";
+
+// 优化后的文件名格式化
+NSString *idType = author.customID.length > 0 ? @"Id" : @"shortId";
+NSString *filemeta = [NSString stringWithFormat:@"Name-%@_%@-%@_Date%@", nickname, idType, identifier, dateString];
+
+// 使用封装的方法
+[DYYYUtils showToast:filemeta];
+[DYYYManager setNameMeta:filemeta];
+			
+// 输出结果
+//NSLog(@"Shanghai time: %@", dateString);
+
+
 
 	// 视频下载功能 (非实况照片才显示)
 	if (enableSaveVideo && self.awemeModel.awemeType != 68 && !isNewLivePhoto) {
