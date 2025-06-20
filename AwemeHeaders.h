@@ -90,6 +90,7 @@ static CGFloat gStartVal = 0.0;
 @interface AWEUserModel : NSObject
 @property(copy, nonatomic) NSString *nickname;
 @property(copy, nonatomic) NSString *shortID;
+@property(copy, nonatomic) NSString *customID;
 @property(copy, nonatomic) NSString *signature;
 @property(copy, nonatomic) AWEURLModel *avatarMedium;
 @end
