@@ -10,6 +10,28 @@ typedef NS_ENUM(NSInteger, MediaType) {
   MediaTypeHeic
 };
 
+static __weak UICollectionView *gFeedCV = nil;
+// 音量控制
+@interface AVSystemController : NSObject
++ (instancetype)sharedAVSystemController;
+- (BOOL)setVolumeTo:(float)value forCategory:(NSString *)cat;
+- (float)volumeForCategory:(NSString *)cat;
+@end
+// 亮度控制
+@interface SBHUDController : NSObject
++ (instancetype)sharedInstance;
+- (void)presentHUDWithIcon:(NSString *)name level:(float)level;
+@end
+// 调节模式&全局状态
+typedef NS_ENUM(NSUInteger, DYEdgeMode) {
+  DYEdgeModeNone = 0,
+  DYEdgeModeBrightness = 1,
+  DYEdgeModeVolume = 2,
+};
+static DYEdgeMode gMode = DYEdgeModeNone;
+static CGFloat gStartY = 0.0;
+static CGFloat gStartVal = 0.0;
+
 @interface URLModel : NSObject
 @property(nonatomic, strong) NSArray *originURLList;
 @end
@@ -68,6 +90,15 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEUserModel : NSObject
 @property(copy, nonatomic) NSString *nickname;
 @property(copy, nonatomic) NSString *shortID;
+@property(copy, nonatomic) NSString *signature;
+@property(copy, nonatomic) AWEURLModel *avatarMedium;
+@end
+
+@interface AWEAnimatedImageVideoInfo : NSObject
+@end
+
+@interface AWEPropGuideV2Model : NSObject
+@property(nonatomic, copy) NSString *propName;
 @end
 
 @interface AWEAwemeModel : NSObject
@@ -93,8 +124,9 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @property(nonatomic, copy) NSString *descriptionSimpleString;
 @property(nonatomic, strong) NSString *itemID;
 @property(nonatomic, strong) AWEUserModel *author;
-
+@property(nonatomic, strong) AWEAnimatedImageVideoInfo *animatedImageVideoInfo;
 @property(nonatomic, strong) AWEAwemeStatisticsModel *statistics;
+@property(nonatomic, strong) AWEPropGuideV2Model *propGuideV2;
 - (BOOL)isLive;
 - (AWESearchAwemeExtraModel *)searchExtraModel;
 @end
@@ -154,7 +186,6 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @end
 
 @interface AWEFeedContainerContentView : UIView
-- (UIViewController *)findViewController:(UIViewController *)vc ofClass:(Class)targetClass;
 @end
 
 @interface AWELeftSideBarEntranceView : UIView
@@ -177,7 +208,9 @@ typedef NS_ENUM(NSInteger, MediaType) {
 
 @interface AWEPlayInteractionViewController : UIViewController
 @property(nonatomic, strong) UIView *view;
+@property (nonatomic, strong) AWEAwemeModel *model;
 @property(nonatomic, strong) NSString *referString;
+@property(nonatomic, assign) BOOL isCommentVCShowing;
 - (void)performCommentAction;
 - (void)performLikeAction;
 - (void)showSharePanel;
@@ -245,7 +278,6 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @end
 
 @interface AWEPlayInteractionProgressController : AWEPlayInteractionNewBaseController
-- (UIViewController *)findViewController:(UIViewController *)vc ofClass:(Class)targetClass;
 @property(retain, nonatomic) id progressSlider;
 - (NSString *)formatTimeFromSeconds:(CGFloat)seconds;
 - (NSString *)convertSecondsToTimeString:(NSInteger)totalSeconds;
@@ -301,6 +333,10 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEUserWorkCollectionViewComponentCell : UICollectionViewCell
 @end
 
+@interface AWELandscapeFeedViewController : UIViewController
+@property(nonatomic, strong) UICollectionView *collectionView;
+@end
+
 @interface AWEFeedRefreshFooter : UIView
 @end
 
@@ -310,10 +346,6 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEBaseListViewController : UIViewController
 - (void)applyBlurEffectIfNeeded;
 - (UILabel *)findCommentLabel:(UIView *)view;
-@end
-
-// 隐藏视频定位
-@interface AWEFeedTemplateAnchorView : UIView
 @end
 
 // 隐藏同城定位
@@ -331,6 +363,9 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @end
 
 @interface AWETemplatePlayletView : UIView
+@end
+
+@interface AFDRecommendToFriendTagView : UIView
 @end
 
 @interface AFDRecommendToFriendEntranceLabel : UILabel
@@ -381,6 +416,7 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @property(nonatomic, assign) CGRect frame;
 @property(nonatomic, strong) NSArray *subviews;
 @property(nonatomic, assign) CGAffineTransform transform;
+- (BOOL)view:(UIView *)view containsSubviewOfClass:(Class)viewClass;
 @end
 
 @interface AWECommentImageModel : NSObject
@@ -518,7 +554,7 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @property(nonatomic, assign, getter=isHidden) BOOL hidden;
 @end
 
-@interface AWEProfileMixCollectionViewCell : UIView
+@interface AWEProfileMixItemCollectionViewCell : UICollectionViewCell
 @end
 
 @interface AWEProfileTaskCardStyleListCollectionViewCell : UIView
@@ -643,11 +679,9 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @end
 
 @interface AWEFeedTopBarContainer : UIView
-- (void)applyDYYYTransparency;
 @end
 
 @interface AWEHPTopBarCTAContainer : UIView
-- (void)applyDYYYTransparency;
 @end
 
 @interface ACCStickerContainerView : UIView
@@ -728,9 +762,6 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWESearchFeedTagView : UIView
 @end
 
-@interface AFDRecommendToFriendTagView : UIView
-@end
-
 @interface AFDAIbumFolioView : UIView
 @end
 
@@ -752,7 +783,6 @@ typedef NS_ENUM(NSInteger, MediaType) {
 - (void)applyCustomProgressStyle;
 @end
 
-// 添加 DUXContentSheet 相关声明
 @protocol IESIMContentSheetVCProtocol
 , AWEMRGlobalAlertTrackProtocol;
 @interface DUXBasicSheet : UIViewController
@@ -764,6 +794,7 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWESettingItemModel : NSObject
 @property(nonatomic, copy) NSString *identifier;
 @property(nonatomic, copy) NSString *title;
+@property(nonatomic, copy) NSString *subTitle;
 @property(nonatomic, copy) NSString *detail;
 @property(nonatomic, assign) NSInteger type;
 @property(nonatomic, copy) NSString *iconImageName;
@@ -774,6 +805,7 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @property(nonatomic, assign) BOOL isSwitchOn;
 @property(nonatomic, copy) void (^cellTappedBlock)(void);
 @property(nonatomic, copy) void (^switchChangedBlock)(void);
+- (void)refreshCell;
 @end
 
 @interface AWESettingBaseViewModel : NSObject
@@ -793,15 +825,6 @@ typedef NS_ENUM(NSInteger, MediaType) {
 
 - (AWESettingItemModel *)createSettingItem:(NSDictionary *)dict;
 - (AWESettingItemModel *)createSettingItem:(NSDictionary *)dict cellTapHandlers:(NSMutableDictionary *)cellTapHandlers;
-
-- (void)refreshTableView;
-- (void)updateSectionDataArray;
-- (void)handleConflictsAndDependenciesForSetting:(NSString *)identifier isEnabled:(BOOL)isEnabled;
-- (void)updateDependentItemsForSetting:(NSString *)identifier value:(id)value;
-- (void)handleConflictsAndDependenciesForSetting:(NSString *)identifier isEnabled:(BOOL)isEnabled;
-- (void)applyDependencyRulesForItem:(AWESettingItemModel *)item;
-- (void)updateConflictingItemUIState:(NSString *)identifier withValue:(BOOL)value;
-- (NSDictionary *)settingsDependencyConfig;
 @end
 
 @interface AWENavigationBar : UIView
@@ -812,18 +835,14 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @property(nonatomic, assign) NSInteger type;
 @property(nonatomic, assign) CGFloat sectionHeaderHeight;
 @property(nonatomic, copy) NSString *sectionHeaderTitle;
+@property(nonatomic, copy) NSString *sectionFooterTitle;
+@property (nonatomic, assign) BOOL useNewFooterLayout;
 @property(nonatomic, strong) NSArray *itemArray;
 @property(retain, nonatomic) NSString *identifier;
 @property(copy, nonatomic) NSString *title;
 - (id)initWithIdentifier:(id)arg1;
 - (void)setIsSelect:(BOOL)arg1;
 - (BOOL)isSelect;
-- (void)setCellTappedBlock:(id)arg1;
-- (AWESettingItemModel *)createSettingItem:(NSDictionary *)dict;
-- (AWESettingItemModel *)createSettingItem:(NSDictionary *)dict cellTapHandlers:(NSMutableDictionary *)cellTapHandlers;
-- (void)applyDependencyRulesForItem:(AWESettingItemModel *)item;
-- (void)handleConflictsAndDependenciesForSetting:(NSString *)identifier isEnabled:(BOOL)isEnabled;
-- (void)updateDependentItemsForSetting:(NSString *)identifier value:(id)value;
 @end
 
 @interface AWEPrivacySettingActionSheetConfig : NSObject
@@ -859,10 +878,16 @@ typedef NS_ENUM(NSInteger, MediaType) {
 - (void)setOnlyTopCornerClips:(BOOL)onlyTop;
 @end
 
+@interface AWELeftSideBarAddChildTransitionObject : NSObject
+@end
+
 @interface AWEButton : UIButton
 @end
 
 @interface AFDButton : UIButton
+@end
+
+@interface AWENoxusHighlightButton : UIButton
 @end
 
 @interface AWEProfileToggleView : UIView
@@ -877,9 +902,49 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @property(retain, nonatomic) UIImageView *imageView;
 @property(copy, nonatomic) void (^rightBtnClickedBlock)(void);
 @property(copy, nonatomic) void (^leftButtonClickedBlock)(void);
+@property(copy, nonatomic) void (^closeButtonClickedBlock)(void);
+@property(copy, nonatomic) void (^singleTapBlock)(void);
+@property(copy, nonatomic) void (^toggleBlock)(void);
+@property(copy, nonatomic) void (^tapDismissBlock)(void);
+@property(copy, nonatomic) void (^slideDismissBlock)(void);
+@property(copy, nonatomic) void (^afterDismissBlock)(void);
+@property(copy, nonatomic) void (^afterDismissWithSwitchChangedBlock)(void);
+@property(copy, nonatomic) NSString *knownButtonText;
+@property(assign, nonatomic) BOOL shouldShowKnownButton;
+@property(assign, nonatomic) UIEdgeInsets lockImageInset;
+@property(retain, nonatomic) UIImage *lockImage;
+@property(retain, nonatomic) UIImage *closeImage;
+@property(retain, nonatomic) AFDButton *cancelButton;
+@property(retain, nonatomic) AWEButton *knownButton;
 @property(retain, nonatomic) AWEButton *leftCancelButton;
 @property(retain, nonatomic) AWEButton *rightConfirmButton;
 
+- (void)configWithCloseButtonClickedBlock:(void (^)(void))closeButtonClickedBlock
+                           singleTapBlock:(void (^)(void))singleTapBlock
+                              toggleBlock:(void (^)(void))toggleBlock;
+- (void)configWithImageView:(UIImageView *)imageView
+                  titleText:(NSString *)titleText
+                contentText:(NSString *)contentText
+               settingsText:(NSString *)settingsText
+             singleTapBlock:(void (^)(void))singleTapBlock;
+- (void)configWithImageView:(UIImageView *)imageView
+                  lockImage:(UIImage *)lockImage
+             lockImageInset:(UIEdgeInsets)lockImageInset
+             titleLabelText:(NSString *)titleLabelText
+           contentLabelText:(NSString *)contentLabelText
+            knownButtonText:(NSString *)knownButtonText
+            toggleTitleText:(NSString *)toggleTitleText
+               defaultState:(BOOL)defaultState
+           defaultLockState:(BOOL)defaultLockState;
+- (void)configWithImageView:(UIImageView *)imageView
+                 closeImage:(UIImage *)closeImage
+                  lockImage:(UIImage *)lockImage
+             titleLabelText:(NSString *)titleLabelText
+           contentLabelText:(NSString *)contentLabelText
+            knownButtonText:(NSString *)knownButtonText
+            toggleTitleText:(NSString *)toggleTitleText
+               defaultState:(BOOL)defaultState
+           defaultLockState:(BOOL)defaultLockState;
 - (void)configWithImageView:(UIImageView *)imageView
                   lockImage:(UIImage *)lockImage
            defaultLockState:(BOOL)defaultLockState
@@ -896,10 +961,12 @@ typedef NS_ENUM(NSInteger, MediaType) {
 - (void)setShouldShowToggle:(BOOL)arg1;
 - (NSUInteger)animationStyle;
 - (NSUInteger)viewStyle;
-- (void)setSlideDismissBlock:(void (^)(void))slideDismissBlock;
-- (void)setTapDismissBlock:(void (^)(void))tapDismissBlock;
-- (void)setAfterDismissBlock:(void (^)(void))afterDismissBlock;
+- (void)cancelButtonTapped;
+- (void)settingsTextTapped;
+- (void)knownButtonClicked;
+- (void)showKnownButton;
 - (void)updateDarkModeAppearance;
+- (void)presentOnViewController:(UIViewController *)presentingViewController;
 @end
 
 @interface AWELoadingAndVolumeView : UIView
@@ -984,14 +1051,7 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWEDemaciaChapterProgressSlider : UIView
 @end
 
-@interface AWEABTestManager : NSObject
-@property(retain, nonatomic) NSDictionary *abTestData;
-@property(retain, nonatomic) NSMutableDictionary *consistentABTestDic;
-@property(copy, nonatomic) NSDictionary *performanceReversalDic;
-- (void)setAbTestData:(id)arg1;
-- (void)_saveABTestData:(id)arg1;
-- (id)abTestData;
-+ (id)sharedManager;
+@interface AWELiveAutoEnterStyleAView : UIView
 @end
 
 @interface IESLiveRoomComponent : NSObject
@@ -1003,25 +1063,6 @@ typedef NS_ENUM(NSInteger, MediaType) {
 - (void)setResolutionWithIndex:(NSInteger)index isManual:(BOOL)manual beginChange:(void (^)(void))beginChangeBlock completion:(void (^)(void))completionBlock;
 @end
 
-// 视频播放控制处理器
-@interface AWEPlayerPlayControlHandler : NSObject
-@property(nonatomic, strong) AVAudioUnitEQ *audioEQ;
-@property(nonatomic, strong) AVAudioUnitReverb *reverb;
-@property(nonatomic, assign) BOOL noiseFilterEnabled;
-- (void)setupNoiseFilter;
-- (void)addNoiseFilterButton;
-- (void)toggleNoiseFilter;
-- (void)setupAVPlayerItem:(AVPlayerItem *)item;
-- (id)player;
-@end
-
-// 视频控制视图
-@interface AWEFeedVideoControlView : UIView
-- (void)handleVideoQualityLongPress:(UILongPressGestureRecognizer *)gesture;
-@end
-
-@interface AWEMixVideoPanelMoreView : UIView
-@end
 @interface DUXPopover : UIView
 @end
 
@@ -1105,5 +1146,71 @@ typedef NS_ENUM(NSInteger, MediaType) {
 @interface AWESettingsTableViewController : AWESettingBaseViewController
 - (id)viewModel;
 - (void)removeAboutSection;
+@end
 
+@interface AWEProfileMixCollectionView : UICollectionView
+@property(nonatomic, assign) BOOL fromHome;
+@end
+
+@interface AFDViewedBottomView : UIView
+@property(nonatomic, strong, readonly) UIView *effectView;
+@end
+
+@interface AWEAwemeDetailNaviBarContainerView : UIView
+@end
+
+@interface AWEVideoBSModel : NSObject
+@property(nonatomic) NSNumber *bitrate;
+@property(nonatomic) AWEURLModel *playAddr;
+@end
+
+@interface AWENormalModeTabBarGeneralPlusButton : UIView
+@end
+
+@interface AWEMixVideoPanelMoreView : UIView
+@end
+
+@interface AWEPlayInteractionUserAvatarElement : NSObject
+@property(retain, nonatomic) AWEAwemeModel *model;
+@end
+
+@interface AWEPlayInteractionUserAvatarFollowController : UIViewController
+@property(retain, nonatomic) AWEAwemeModel *model;
+@end
+
+@interface AWECodeGenCommonAnchorBasicInfoModel : UIViewController
+@property(copy, nonatomic) NSString *name;
+@end
+
+@interface AWEFeedTemplateAnchorView : UIView
+@property(retain, nonatomic) AWECodeGenCommonAnchorBasicInfoModel *templateAnchorInfo;
+@end
+
+@interface AWEVideoPlayerConfiguration : NSObject
++ (void)setHDRBrightnessStrategy:(id)strategy;
++ (double)getHDRBrightnessOffset:(double)offset brightness:(double)brightness;
+@end
+
+@interface IESFiltersManager : NSObject
+- (void)setHDRIndensity:(double)intensity;
+@end
+
+@interface AWEFeedPauseVideoRelatedWordView : UIView
+@end
+
+@interface AWEFeedPauseRelatedWordComponent : NSObject
+@property(nonatomic, strong) AWEFeedPauseVideoRelatedWordView *relatedView;
+@property(nonatomic, strong) AWEAwemeModel *currentAweme;
+@property(nonatomic, assign) long long pauseContentNum;
+
+@end
+
+@interface YYAnimatedImageView : UIImageView
+@end
+
+@interface AWEProfileMentionLabel : UILabel
+@property(copy, nonatomic) NSString *text;
+@end
+
+@interface MTKView : UIView
 @end

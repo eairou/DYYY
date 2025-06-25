@@ -1,9 +1,12 @@
 #import "DYYYSettingsHelper.h"
 #import "DYYYUtils.h"
 #import <UIKit/UIKit.h>
+#import <objc/runtime.h>
+#import "DYYYImagePickerDelegate.h"
 
 #import "DYYYAboutDialogView.h"
 #import "DYYYCustomInputView.h"
+#import "DYYYIconOptionsDialogView.h"
 
 @implementation DYYYSettingsHelper
 
@@ -53,11 +56,12 @@
           @"dependencies" : @{
               // 普通依赖：当源设置开启时，目标设置项可用
               @"DYYYEnableDanmuColor" : @[ @"DYYYdanmuColor" ],
-              @"DYYYisEnableArea" : @[ @"DYYYLabelColor" ],
+              @"DYYYisEnableCommentBlur" : @[ @"DYYYisEnableCommentBarTransparent" ],
+              @"DYYYisEnableArea" : @[ @"DYYYGeonamesUsername", @"DYYYLabelColor", @"DYYYEnabsuijiyanse" ],
               @"DYYYisShowScheduleDisplay" : @[ @"DYYYScheduleStyle", @"DYYYProgressLabelColor", @"DYYYTimelineVerticalPosition" ],
               @"DYYYEnableNotificationTransparency" : @[ @"DYYYNotificationCornerRadius" ],
               @"DYYYEnableFloatSpeedButton" : @[ @"DYYYAutoRestoreSpeed", @"DYYYSpeedButtonShowX", @"DYYYSpeedButtonSize", @"DYYYSpeedSettings" ],
-              @"DYYYEnableFloatClearButton" : @[ @"DYYYClearButtonIcon", @"DYYYEnableFloatClearButtonSize", @"DYYYEnabshijianjindu", @"DYYYHideTimeProgress", @"DYYYHideDanmaku", @"DYYYHideSlider", @"DYYYHideTabBar", @"DYYYHideSpeed" ],
+              @"DYYYEnableFloatClearButton" : @[ @"DYYYClearButtonIcon", @"DYYYEnableFloatClearButtonSize", @"DYYYEnabshijianjindu", @"DYYYHideTimeProgress", @"DYYYHideDanmaku", @"DYYYHideSlider", @"DYYYHideTabBar", @"DYYYHideSpeed", @"DYYYHideChapter" ],
           },
 
           // ===== 条件依赖配置 =====
@@ -71,14 +75,14 @@
           @"conflicts" : @{
               @"DYYYEnableDoubleOpenComment" : @[ @"DYYYEnableDoubleOpenAlertController" ],
               @"DYYYEnableDoubleOpenAlertController" : @[ @"DYYYEnableDoubleOpenComment" ],
-              @"DYYYABTestBlockEnabled" : @[ @"DYYYABTestPatchEnabled" ],
-              @"DYYYABTestPatchEnabled" : @[ @"DYYYABTestBlockEnabled" ],
               @"DYYYEnabshijianjindu" : @[ @"DYYYHideTimeProgress" ],
               @"DYYYHideTimeProgress" : @[ @"DYYYEnabshijianjindu" ],
               @"DYYYHideLOTAnimationView" : @[ @"DYYYHideFollowPromptView" ],
               @"DYYYHideFollowPromptView" : @[ @"DYYYHideLOTAnimationView" ],
               @"DYYYisEnableModern" : @[ @"DYYYisEnableModernLight" ],
-              @"DYYYisEnableModernLight" : @[ @"DYYYisEnableModern" ]
+              @"DYYYisEnableModernLight" : @[ @"DYYYisEnableModern" ],
+              @"DYYYLabelColor" : @[ @"DYYYEnabsuijiyanse" ],
+              @"DYYYEnabsuijiyanse" : @[ @"DYYYLabelColor" ]
           },
 
           // ===== 互斥激活配置 =====
@@ -86,12 +90,12 @@
           @"mutualExclusive" : @{
               @"DYYYEnableDoubleOpenComment" : @[ @"DYYYEnableDoubleOpenAlertController" ],
               @"DYYYEnableDoubleOpenAlertController" : @[ @"DYYYEnableDoubleOpenComment" ],
-              @"DYYYABTestBlockEnabled" : @[ @"DYYYABTestPatchEnabled" ],
-              @"DYYYABTestPatchEnabled" : @[ @"DYYYABTestBlockEnabled" ],
               @"DYYYEnabshijianjindu" : @[ @"DYYYHideTimeProgress" ],
               @"DYYYHideTimeProgress" : @[ @"DYYYEnabshijianjindu" ],
               @"DYYYHideLOTAnimationView" : @[ @"DYYYHideFollowPromptView" ],
-              @"DYYYHideFollowPromptView" : @[ @"DYYYHideLOTAnimationView" ]
+              @"DYYYHideFollowPromptView" : @[ @"DYYYHideLOTAnimationView" ],
+              @"DYYYLabelColor" : @[ @"DYYYEnabsuijiyanse" ],
+              @"DYYYEnabsuijiyanse" : @[ @"DYYYLabelColor" ]
           },
 
           // ===== 值依赖配置 =====
@@ -104,58 +108,88 @@
     return config;
 }
 
+static BOOL settingActive(NSString *identifier) {
+    id val = [[NSUserDefaults standardUserDefaults] objectForKey:identifier];
+    if ([val isKindOfClass:[NSNumber class]]) {
+        return [val boolValue];
+    } else if ([val isKindOfClass:[NSString class]]) {
+        return ((NSString *)val).length > 0;
+    }
+    return NO;
+}
+
+static void collectSettingsVCs(UIViewController *vc, NSMutableArray *array) {
+    if ([vc isKindOfClass:NSClassFromString(@"AWESettingBaseViewController")]) {
+        [array addObject:vc];
+    }
+    for (UIViewController *child in vc.childViewControllers) {
+        collectSettingsVCs(child, array);
+    }
+    if (vc.presentedViewController) {
+        collectSettingsVCs(vc.presentedViewController, array);
+    }
+    if ([vc isKindOfClass:[UINavigationController class]]) {
+        for (UIViewController *c in ((UINavigationController *)vc).viewControllers) {
+            collectSettingsVCs(c, array);
+        }
+    }
+}
+
+static NSArray *allSettingsViewControllers(void) {
+    UIWindow *window = [DYYYUtils getActiveWindow];
+    if (!window) {
+        window = [UIApplication sharedApplication].keyWindow;
+    }
+    NSMutableArray *result = [NSMutableArray array];
+    if (window.rootViewController) {
+        collectSettingsVCs(window.rootViewController, result);
+    }
+    return result;
+}
+
 + (void)applyDependencyRulesForItem:(AWESettingItemModel *)item {
     NSDictionary *dependencies = [self settingsDependencyConfig][@"dependencies"];
     NSDictionary *conditionalDependencies = [self settingsDependencyConfig][@"conditionalDependencies"];
     NSDictionary *mutualExclusive = [self settingsDependencyConfig][@"mutualExclusive"];
     NSDictionary *valueDependencies = [self settingsDependencyConfig][@"valueDependencies"];
 
+    BOOL enableState = YES;
+
     for (NSString *sourceKey in dependencies) {
         NSArray *dependentItems = dependencies[sourceKey];
         if ([dependentItems containsObject:item.identifier]) {
-            BOOL sourceValue = [self getUserDefaults:sourceKey];
-            item.isEnable = sourceValue;
-            return;
+            enableState = settingActive(sourceKey);
+            break;
         }
     }
 
     for (NSString *targetKey in conditionalDependencies) {
+        if (![targetKey isEqualToString:item.identifier])
+            continue;
         NSDictionary *conditionConfig = conditionalDependencies[targetKey];
-        if ([targetKey isEqualToString:item.identifier]) {
-            NSString *conditionType = conditionConfig[@"condition"];
-            NSArray *settingList = conditionConfig[@"settings"];
+        NSString *conditionType = conditionConfig[@"condition"];
+        NSArray *settingList = conditionConfig[@"settings"];
 
-            if ([conditionType isEqualToString:@"OR"]) {
-                BOOL shouldEnable = NO;
-                for (NSString *settingKey in settingList) {
-                    if ([self getUserDefaults:settingKey]) {
-                        shouldEnable = YES;
-                        break;
-                    }
+        if ([conditionType isEqualToString:@"OR"]) {
+            BOOL shouldEnable = NO;
+            for (NSString *settingKey in settingList) {
+                if (settingActive(settingKey)) {
+                    shouldEnable = YES;
+                    break;
                 }
-                item.isEnable = shouldEnable;
-                return;
-            } else if ([conditionType isEqualToString:@"AND"]) {
-                BOOL shouldEnable = YES;
-                for (NSString *settingKey in settingList) {
-                    if (![self getUserDefaults:settingKey]) {
-                        shouldEnable = NO;
-                        break;
-                    }
-                }
-                item.isEnable = shouldEnable;
-                return;
             }
+            enableState = shouldEnable;
+        } else if ([conditionType isEqualToString:@"AND"]) {
+            BOOL shouldEnable = YES;
+            for (NSString *settingKey in settingList) {
+                if (!settingActive(settingKey)) {
+                    shouldEnable = NO;
+                    break;
+                }
+            }
+            enableState = shouldEnable;
         }
-    }
-
-    for (NSString *sourceKey in mutualExclusive) {
-        NSArray *exclusiveItems = mutualExclusive[sourceKey];
-        if ([exclusiveItems containsObject:item.identifier]) {
-            BOOL sourceValue = [self getUserDefaults:sourceKey];
-            item.isEnable = !sourceValue; // 当源设置关闭时，目标设置才能激活
-            return;
-        }
+        break;
     }
 
     for (NSString *sourceKey in valueDependencies) {
@@ -168,72 +202,63 @@
 
             if ([valueType isEqualToString:@"string"] && [condition isEqualToString:@"isNotEmpty"]) {
                 NSString *sourceValue = [[NSUserDefaults standardUserDefaults] objectForKey:sourceKey];
-                item.isEnable = (sourceValue != nil && sourceValue.length > 0);
-                return;
+                enableState = (sourceValue != nil && sourceValue.length > 0);
             }
+            break;
         }
     }
+
+    for (NSString *sourceKey in mutualExclusive) {
+        NSArray *exclusiveItems = mutualExclusive[sourceKey];
+        if ([exclusiveItems containsObject:item.identifier] && settingActive(sourceKey)) {
+            enableState = NO;
+            break;
+        }
+    }
+
+    item.isEnable = enableState;
 }
 
 + (void)handleConflictsAndDependenciesForSetting:(NSString *)identifier isEnabled:(BOOL)isEnabled {
     NSDictionary *conflicts = [self settingsDependencyConfig][@"conflicts"];
-    NSDictionary *dependencies = [self settingsDependencyConfig][@"dependencies"];
     if (isEnabled) {
         NSArray *conflictingItems = conflicts[identifier];
         if (conflictingItems) {
             for (NSString *conflictItem in conflictingItems) {
-                // 更新NSUserDefaults
-                [self setUserDefaults:@(NO) forKey:conflictItem];
-
-                // 立即更新互斥项的UI状态
                 [self updateConflictingItemUIState:conflictItem withValue:NO];
+                [self updateDependentItemsForSetting:conflictItem value:@(NO)];
             }
         }
     }
 
     [self updateDependentItemsForSetting:identifier value:@(isEnabled)];
-
-    [self refreshTableView];
 }
 + (void)updateConflictingItemUIState:(NSString *)identifier withValue:(BOOL)value {
-    UIViewController *topVC = topView();
-    AWESettingBaseViewController *settingsVC = nil;
-
-    // 查找当前视图控制器
-    if ([topVC isKindOfClass:NSClassFromString(@"AWESettingBaseViewController")]) {
-        settingsVC = (AWESettingBaseViewController *)topVC;
-    } else {
-        UIView *firstLevelView = [topVC.view.subviews firstObject];
-        UIView *secondLevelView = firstLevelView ? [firstLevelView.subviews firstObject] : nil;
-        UIView *thirdLevelView = secondLevelView ? [secondLevelView.subviews firstObject] : nil;
-
-        UIResponder *responder = thirdLevelView;
-        while (responder) {
-            if ([responder isKindOfClass:NSClassFromString(@"AWESettingBaseViewController")]) {
-                settingsVC = (AWESettingBaseViewController *)responder;
-                break;
-            }
-            responder = [responder nextResponder];
-        }
-    }
-
-    // 更新设置项UI
-    if (settingsVC) {
+    for (AWESettingBaseViewController *settingsVC in allSettingsViewControllers()) {
         AWESettingsViewModel *viewModel = (AWESettingsViewModel *)[settingsVC viewModel];
-        if (viewModel && [viewModel respondsToSelector:@selector(sectionDataArray)]) {
-            NSArray *sectionDataArray = [viewModel sectionDataArray];
-            for (AWESettingSectionModel *section in sectionDataArray) {
-                if ([section respondsToSelector:@selector(itemArray)]) {
-                    NSArray *itemArray = section.itemArray;
-                    for (id itemObj in itemArray) {
-                        if ([itemObj isKindOfClass:NSClassFromString(@"AWESettingItemModel")]) {
-                            AWESettingItemModel *item = (AWESettingItemModel *)itemObj;
-                            if ([item.identifier isEqualToString:identifier]) {
-                                item.isSwitchOn = value;
-                                break;
-                            }
+        if (!viewModel || ![viewModel respondsToSelector:@selector(sectionDataArray)])
+            continue;
+
+        NSArray *sectionDataArray = [viewModel sectionDataArray];
+        for (AWESettingSectionModel *section in sectionDataArray) {
+            if (![section respondsToSelector:@selector(itemArray)])
+                continue;
+            for (id itemObj in section.itemArray) {
+                if (![itemObj isKindOfClass:NSClassFromString(@"AWESettingItemModel")])
+                    continue;
+                AWESettingItemModel *item = (AWESettingItemModel *)itemObj;
+                if ([item.identifier isEqualToString:identifier]) {
+                    if (item.cellType == 6 || item.cellType == 37) {
+                        item.isSwitchOn = value;
+                        [self setUserDefaults:@(value) forKey:identifier];
+                    } else if (item.cellType == 20 || item.cellType == 26) {
+                        if (!value) {
+                            [self setUserDefaults:@"" forKey:identifier];
                         }
                     }
+                    item.isEnable = value;
+                    [item refreshCell];
+                    break;
                 }
             }
         }
@@ -247,109 +272,66 @@
     NSDictionary *valueDependencies = [self settingsDependencyConfig][@"valueDependencies"];
     NSDictionary *conflicts = [self settingsDependencyConfig][@"conflicts"];
 
-    UIViewController *topVC = topView();
-    AWESettingBaseViewController *settingsVC = nil;
-
-    UIView *firstLevelView = [topVC.view.subviews firstObject];
-    UIView *secondLevelView = [firstLevelView.subviews firstObject];
-    UIView *thirdLevelView = [secondLevelView.subviews firstObject];
-
-    UIResponder *responder = thirdLevelView;
-    while (responder) {
-        if ([responder isKindOfClass:NSClassFromString(@"AWESettingBaseViewController")]) {
-            settingsVC = (AWESettingBaseViewController *)responder;
-            break;
-        }
-        responder = [responder nextResponder];
-    }
-
-    AWESettingsViewModel *viewModel = (AWESettingsViewModel *)[settingsVC viewModel];
-    if (!viewModel || ![viewModel respondsToSelector:@selector(sectionDataArray)])
-        return;
-
-    NSArray *sectionDataArray = [viewModel sectionDataArray];
-
-    NSMutableSet *itemsToUpdate = [NSMutableSet set];
-
-    NSArray *directDependents = dependencies[identifier];
-    if (directDependents) {
-        [itemsToUpdate addObjectsFromArray:directDependents];
-    }
-
-    NSArray *exclusiveItems = mutualExclusive[identifier];
-    if (exclusiveItems) {
-        [itemsToUpdate addObjectsFromArray:exclusiveItems];
-    }
-
-    NSArray *conflictItems = conflicts[identifier];
-    if (conflictItems) {
-        [itemsToUpdate addObjectsFromArray:conflictItems];
-    }
-
-    for (NSString *targetItem in conditionalDependencies) {
-        NSDictionary *conditionInfo = conditionalDependencies[targetItem];
-        NSArray *settingsList = conditionInfo[@"settings"];
-        if ([settingsList containsObject:identifier]) {
-            [itemsToUpdate addObject:targetItem];
-        }
-    }
-
-    NSDictionary *valueDepInfo = valueDependencies[identifier];
-    if (valueDepInfo) {
-        NSArray *dependentItems = valueDepInfo[@"dependents"];
-        if (dependentItems) {
-            [itemsToUpdate addObjectsFromArray:dependentItems];
-        }
-    }
-
-    for (AWESettingSectionModel *section in sectionDataArray) {
-        if (![section respondsToSelector:@selector(itemArray)])
+    NSArray *allVCs = allSettingsViewControllers();
+    for (AWESettingBaseViewController *settingsVC in allVCs) {
+        AWESettingsViewModel *viewModel = (AWESettingsViewModel *)[settingsVC viewModel];
+        if (!viewModel || ![viewModel respondsToSelector:@selector(sectionDataArray)])
             continue;
 
-        NSArray *itemArray = section.itemArray;
-        for (id itemObj in itemArray) {
-            if (![itemObj isKindOfClass:NSClassFromString(@"AWESettingItemModel")])
+        NSArray *sectionDataArray = [viewModel sectionDataArray];
+
+        NSMutableSet *itemsToUpdate = [NSMutableSet set];
+
+        NSArray *directDependents = dependencies[identifier];
+        if (directDependents) {
+            [itemsToUpdate addObjectsFromArray:directDependents];
+        }
+
+        NSArray *exclusiveItems = mutualExclusive[identifier];
+        if (exclusiveItems) {
+            [itemsToUpdate addObjectsFromArray:exclusiveItems];
+        }
+
+        NSArray *conflictItems = conflicts[identifier];
+        if (conflictItems) {
+            [itemsToUpdate addObjectsFromArray:conflictItems];
+        }
+
+        for (NSString *targetItem in conditionalDependencies) {
+            NSDictionary *conditionInfo = conditionalDependencies[targetItem];
+            NSArray *settingsList = conditionInfo[@"settings"];
+            if ([settingsList containsObject:identifier]) {
+                [itemsToUpdate addObject:targetItem];
+            }
+        }
+
+        NSDictionary *valueDepInfo = valueDependencies[identifier];
+        if (valueDepInfo) {
+            NSArray *dependentItems = valueDepInfo[@"dependents"];
+            if (dependentItems) {
+                [itemsToUpdate addObjectsFromArray:dependentItems];
+            }
+        }
+
+        for (AWESettingSectionModel *section in sectionDataArray) {
+            if (![section respondsToSelector:@selector(itemArray)])
                 continue;
 
-            AWESettingItemModel *item = (AWESettingItemModel *)itemObj;
-            if ([itemsToUpdate containsObject:item.identifier]) {
-                [self applyDependencyRulesForItem:item];
+            NSArray *itemArray = section.itemArray;
+            for (id itemObj in itemArray) {
+                if (![itemObj isKindOfClass:NSClassFromString(@"AWESettingItemModel")])
+                    continue;
+
+                AWESettingItemModel *item = (AWESettingItemModel *)itemObj;
+                if ([itemsToUpdate containsObject:item.identifier]) {
+                    [self applyDependencyRulesForItem:item];
+                    [item refreshCell];
+                }
             }
         }
     }
 }
 
-+ (void)refreshTableView {
-    UIViewController *topVC = topView();
-    AWESettingBaseViewController *settingsVC = nil;
-    UITableView *tableView = nil;
-
-    UIView *firstLevelView = [topVC.view.subviews firstObject];
-    UIView *secondLevelView = [firstLevelView.subviews firstObject];
-    UIView *thirdLevelView = [secondLevelView.subviews firstObject];
-
-    UIResponder *responder = thirdLevelView;
-    while (responder) {
-        if ([responder isKindOfClass:NSClassFromString(@"AWESettingBaseViewController")]) {
-            settingsVC = (AWESettingBaseViewController *)responder;
-            break;
-        }
-        responder = [responder nextResponder];
-    }
-
-    if (settingsVC) {
-        for (UIView *subview in settingsVC.view.subviews) {
-            if ([subview isKindOfClass:[UITableView class]]) {
-                tableView = (UITableView *)subview;
-                break;
-            }
-        }
-
-        if (tableView) {
-            [tableView reloadData];
-        }
-    }
-}
 
 + (AWESettingItemModel *)createSettingItem:(NSDictionary *)dict {
     return [self createSettingItem:dict cellTapHandlers:nil];
@@ -359,13 +341,12 @@
     AWESettingItemModel *item = [[NSClassFromString(@"AWESettingItemModel") alloc] init];
     item.identifier = dict[@"identifier"];
     item.title = dict[@"title"];
+    item.subTitle = dict[@"subTitle"];
 
-    // 获取保存的实际值
     NSString *savedDetail = [[NSUserDefaults standardUserDefaults] objectForKey:item.identifier];
     NSString *placeholder = dict[@"detail"];
     item.detail = savedDetail ?: @"";
 
-    item.type = 1000;
     item.svgIconImageName = dict[@"imageName"];
     item.cellType = [dict[@"cellType"] integerValue];
     item.colorStyle = 0;
@@ -373,7 +354,7 @@
     item.isSwitchOn = [self getUserDefaults:item.identifier];
 
     [self applyDependencyRulesForItem:item];
-    if (item.cellType == 26 && cellTapHandlers != nil) {
+    if ((item.cellType == 20 || item.cellType == 26) && cellTapHandlers != nil) {
         cellTapHandlers[item.identifier] = ^{
           if (!item.isEnable)
               return;
@@ -389,11 +370,13 @@
                   [self updateDependentItemsForSetting:@"DYYYInterfaceDownload" value:text];
               }
 
-              [self refreshTableView];
+              [self handleConflictsAndDependenciesForSetting:item.identifier isEnabled:(text.length > 0)];
+
+              [item refreshCell];
           } onCancel:nil];
         };
         item.cellTappedBlock = cellTapHandlers[item.identifier];
-    } else if (item.cellType == 6) {
+    } else if (item.cellType == 6 || item.cellType == 37) {
         __weak AWESettingItemModel *weakItem = item;
         item.switchChangedBlock = ^{
           __strong AWESettingItemModel *strongItem = weakItem;
@@ -403,16 +386,199 @@
               BOOL isSwitchOn = !strongItem.isSwitchOn;
               strongItem.isSwitchOn = isSwitchOn;
               [self setUserDefaults:@(isSwitchOn) forKey:strongItem.identifier];
-
-              if ([strongItem.identifier isEqualToString:@"DYYYForceDownloadEmotion"] && isSwitchOn) {
-                  [self showAboutDialog:@"防蠢提示" message:@"这里指的是长按整条评论而非表情图片\n" onConfirm:nil];
-              }
               [self handleConflictsAndDependenciesForSetting:strongItem.identifier isEnabled:isSwitchOn];
           }
         };
     }
 
     return item;
+}
+
+#pragma mark
+
+extern void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed);
+extern void *kViewModelKey;
+
+
+static void showIconOptionsDialog(NSString *title, UIImage *previewImage, NSString *saveFilename, void (^onClear)(void), void (^onSelect)(void)) {
+    DYYYIconOptionsDialogView *optionsDialog = [[DYYYIconOptionsDialogView alloc] initWithTitle:title previewImage:previewImage];
+    optionsDialog.onClear = onClear;
+    optionsDialog.onSelect = onSelect;
+    [optionsDialog show];
+}
+
++ (AWESettingItemModel *)createIconCustomizationItemWithIdentifier:(NSString *)identifier
+                                  title:(NSString *)title
+                               svgIcon:(NSString *)svgIconName
+                            saveFile:(NSString *)saveFilename {
+    AWESettingItemModel *item = [[NSClassFromString(@"AWESettingItemModel") alloc] init];
+    item.identifier = identifier;
+    item.title = title;
+
+    NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *dyyyFolderPath = [documentsPath stringByAppendingPathComponent:@"DYYY"];
+    NSString *imagePath = [dyyyFolderPath stringByAppendingPathComponent:saveFilename];
+
+    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:imagePath];
+    item.detail = fileExists ? @"已设置" : @"默认";
+
+    item.type = 0;
+    item.svgIconImageName = svgIconName;
+    item.cellType = 26;
+    item.colorStyle = 0;
+    item.isEnable = YES;
+
+    __weak AWESettingItemModel *weakItem = item;
+    item.cellTappedBlock = ^{
+        if (![[NSFileManager defaultManager] fileExistsAtPath:dyyyFolderPath]) {
+            [[NSFileManager defaultManager] createDirectoryAtPath:dyyyFolderPath withIntermediateDirectories:YES attributes:nil error:nil];
+        }
+
+        UIViewController *topVC = topView();
+
+        UIImage *previewImage = nil;
+        if (fileExists) {
+            previewImage = [UIImage imageWithContentsOfFile:imagePath];
+        }
+
+        showIconOptionsDialog(title, previewImage, saveFilename, ^{
+          if ([[NSFileManager defaultManager] fileExistsAtPath:imagePath]) {
+              NSError *error = nil;
+              [[NSFileManager defaultManager] removeItemAtPath:imagePath error:&error];
+              if (!error) {
+                  weakItem.detail = @"默认";
+                  [weakItem refreshCell];
+              }
+          }
+        }, ^{
+          UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+          picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+          picker.allowsEditing = NO;
+          picker.mediaTypes = @[ @"public.image" ];
+
+          DYYYImagePickerDelegate *pickerDelegate = [[DYYYImagePickerDelegate alloc] init];
+          pickerDelegate.completionBlock = ^(NSDictionary *info) {
+            NSURL *originalImageURL = info[UIImagePickerControllerImageURL];
+            if (!originalImageURL) {
+                originalImageURL = info[UIImagePickerControllerReferenceURL];
+            }
+            if (originalImageURL) {
+                NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+                NSString *dyyyFolderPath = [documentsPath stringByAppendingPathComponent:@"DYYY"];
+                NSString *imagePath = [dyyyFolderPath stringByAppendingPathComponent:saveFilename];
+
+                NSData *imageData = [NSData dataWithContentsOfURL:originalImageURL];
+                const char *bytes = (const char *)imageData.bytes;
+                BOOL isGIF = (imageData.length >= 6 && (memcmp(bytes, "GIF87a", 6) == 0 || memcmp(bytes, "GIF89a", 6) == 0));
+                if (isGIF) {
+                    [imageData writeToFile:imagePath atomically:YES];
+                } else {
+                    UIImage *selectedImage = [UIImage imageWithData:imageData];
+                    imageData = UIImagePNGRepresentation(selectedImage);
+                    [imageData writeToFile:imagePath atomically:YES];
+                }
+
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    weakItem.detail = @"已设置";
+                    [weakItem refreshCell];
+                });
+            }
+          };
+
+          static char kDYYYPickerDelegateKey;
+          picker.delegate = pickerDelegate;
+          objc_setAssociatedObject(picker, &kDYYYPickerDelegateKey, pickerDelegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+          [topVC presentViewController:picker animated:YES completion:nil];
+        });
+    };
+
+    return item;
+}
+
++ (AWESettingSectionModel *)createSectionWithTitle:(NSString *)title items:(NSArray *)items {
+    return [self createSectionWithTitle:title footerTitle:nil items:items];
+}
+
++ (AWESettingSectionModel *)createSectionWithTitle:(NSString *)title footerTitle:(NSString *)footerTitle items:(NSArray *)items {
+    AWESettingSectionModel *section = [[NSClassFromString(@"AWESettingSectionModel") alloc] init];
+    section.sectionHeaderTitle = title;
+    section.sectionHeaderHeight = 40;
+    section.sectionFooterTitle = footerTitle;
+    section.useNewFooterLayout = YES;
+    section.type = 0;
+    section.itemArray = items;
+    return section;
+}
+
++ (AWESettingBaseViewController *)createSubSettingsViewController:(NSString *)title
+                                                        sections:(NSArray *)sectionsArray {
+    AWESettingBaseViewController *settingsVC = [[NSClassFromString(@"AWESettingBaseViewController") alloc] init];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([settingsVC.view isKindOfClass:[UIView class]]) {
+            Class navBarClass = NSClassFromString(@"AWENavigationBar");
+            for (UIView *subview in settingsVC.view.subviews) {
+                if (navBarClass && [subview isKindOfClass:navBarClass]) {
+                    id navigationBar = subview;
+                    if ([navigationBar respondsToSelector:@selector(titleLabel)]) {
+                        UILabel *label = [navigationBar valueForKey:@"titleLabel"];
+                        label.text = title;
+                    }
+                    break;
+                }
+            }
+        }
+    });
+
+    AWESettingsViewModel *viewModel = [[NSClassFromString(@"AWESettingsViewModel") alloc] init];
+    viewModel.colorStyle = 0;
+    viewModel.sectionDataArray = sectionsArray;
+    objc_setAssociatedObject(settingsVC, &kViewModelKey, viewModel, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+    return settingsVC;
+}
+
++ (UIViewController *)findViewController:(UIResponder *)responder {
+    while (responder) {
+        if ([responder isKindOfClass:[UIViewController class]]) {
+            return (UIViewController *)responder;
+        }
+        responder = [responder nextResponder];
+    }
+    return nil;
+}
+
++ (void)openSettingsWithViewController:(UIViewController *)vc {
+    BOOL hasAgreed = [[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYUserAgreementAccepted"];
+    showDYYYSettingsVC(vc, hasAgreed);
+}
+
++ (void)openSettingsFromView:(UIView *)view {
+    UIViewController *currentVC = [self findViewController:view];
+    if ([currentVC isKindOfClass:NSClassFromString(@"AWELeftSideBarViewController")]) {
+        [self openSettingsWithViewController:currentVC];
+    }
+}
+
++ (void)addTapGestureToView:(UIView *)view target:(id)target {
+    view.userInteractionEnabled = YES;
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:target action:@selector(openDYYYSettings)];
+    [view addGestureRecognizer:tapGesture];
+}
+
++ (void)showUserAgreementAlert {
+    [self showTextInputAlert:@"用户协议" defaultText:@"" placeholder:@"" onConfirm:^(NSString *text) {
+        if ([text isEqualToString:@"我已阅读并同意继续使用"]) {
+            [self setUserDefaults:@"YES" forKey:@"DYYYUserAgreementAccepted"];
+        } else {
+            [DYYYUtils showToast:@"请正确输入内容"];
+            [self showUserAgreementAlert];
+        }
+    } onCancel:^{
+        [DYYYUtils showToast:@"请立即卸载本插件"];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            exit(0);
+        });
+    }];
 }
 
 @end
