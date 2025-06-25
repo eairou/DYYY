@@ -21,6 +21,9 @@
  */
 + (instancetype)shared;
 
+// 判断当前是否为暗黑模式
++ (BOOL)isDarkMode;
+
 #pragma mark - UI相关方法
 
 #pragma mark - 媒体保存方法

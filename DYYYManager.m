@@ -67,6 +67,10 @@
   return sharedInstance;
 }
 
++ (BOOL)isDarkMode {
+  return [DYYYUtils isDarkMode];
+}
+
 - (instancetype)init {
   self = [super init];
   if (self) {

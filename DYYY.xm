@@ -2026,6 +2026,8 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 
 %end
 
+%end
+
 %group AutoPlay
 
 %hook AWEAwemeDetailTableViewController
