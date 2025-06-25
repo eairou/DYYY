@@ -1,118 +1,106 @@
 #import "DYYYBottomAlertView.h"
 #import "AwemeHeaders.h"
-
 #import "DYYYUtils.h"
 
 @implementation DYYYBottomAlertView
 
-// 自定义方法，支持同时自定义取消和确认按钮文本
 + (UIViewController *)showAlertWithTitle:(NSString *)title
                                  message:(NSString *)message
-                         cancelButtonText:(NSString *)cancelButtonText
-                        confirmButtonText:(NSString *)confirmButtonText
+                               avatarURL:(nullable NSString *)avatarURL
+                        cancelButtonText:(nullable NSString *)cancelButtonText
+                       confirmButtonText:(nullable NSString *)confirmButtonText
                             cancelAction:(DYYYAlertActionHandler)cancelAction
+                             closeAction:(nullable DYYYAlertActionHandler)closeAction
                            confirmAction:(DYYYAlertActionHandler)confirmAction {
     
     AFDPrivacyHalfScreenViewController *vc = [NSClassFromString(@"AFDPrivacyHalfScreenViewController") new];
     
-    // 使用默认值处理空参数
-    if (!cancelButtonText) {
+    if (!vc) return nil;
+
+    if (cancelButtonText.length == 0) {
         cancelButtonText = @"取消";
     }
     
-    if (!confirmButtonText) {
+    if (confirmButtonText.length == 0) {
         confirmButtonText = @"确定";
     }
     
-    DYYYAlertActionHandler wrappedCancelAction = nil;
-    if (cancelAction) {
-        wrappedCancelAction = ^{
-            [self dismissAlertViewController:vc];
-            cancelAction();
-        };
-    } else {
-        wrappedCancelAction = ^{
-            [self dismissAlertViewController:vc];
-        };
+    UIImageView *imageView = nil;
+    if (avatarURL.length > 0) {
+        imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 60, 60)];
+        imageView.translatesAutoresizingMaskIntoConstraints = NO;
+        [imageView.widthAnchor constraintEqualToConstant:60].active = YES;
+        [imageView.heightAnchor constraintEqualToConstant:60].active = YES;
+        imageView.layer.cornerRadius = 30;
+        imageView.contentMode = UIViewContentModeScaleAspectFill;
+        imageView.layer.masksToBounds = YES;
+        imageView.clipsToBounds = YES;
+        
+        // 设置默认占位图
+        imageView.image = [UIImage imageNamed:@"AppIcon60x60"];
+        
+        // 异步加载网络图片
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:avatarURL]];
+            if (imageData) {
+                UIImage *image = [UIImage imageWithData:imageData];
+                if (image) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        imageView.image = image;
+                    });
+                }
+            }
+        });
     }
     
-    DYYYAlertActionHandler wrappedConfirmAction = nil;
-    if (confirmAction) {
-        wrappedConfirmAction = ^{
-            [self dismissAlertViewController:vc];
-            confirmAction();
-        };
-    } else {
-        wrappedConfirmAction = ^{
-            [self dismissAlertViewController:vc];
-        };
-    }
+    DYYYAlertActionHandler wrappedCancelAction = ^{
+        if (cancelAction) cancelAction();
+    };
     
-    // 设置滑动关闭和点击关闭的处理
-    [vc setSlideDismissBlock:^{
-        [self dismissAlertViewController:vc];
-    }];
-    
-    [vc setTapDismissBlock:^{
-        [self dismissAlertViewController:vc];
-    }];
-    
-    // 设置关闭后的回调
-    [vc setAfterDismissBlock:^{
-        if (vc.view.superview) {
-            [self dismissAlertViewController:vc];
+    DYYYAlertActionHandler wrappedCloseActionBlock = ^{
+        if (closeAction) {
+            closeAction();
+        } else {
+        wrappedCancelAction();
         }
-    }];
+    };
     
-    [vc configWithImageView:nil 
-                  lockImage:nil 
-           defaultLockState:NO 
-            titleLabelText:title 
-          contentLabelText:message 
-      leftCancelButtonText:cancelButtonText 
-    rightConfirmButtonText:confirmButtonText 
-       rightBtnClickedBlock:wrappedConfirmAction
-      leftButtonClickedBlock:wrappedCancelAction];
+    DYYYAlertActionHandler wrappedConfirmAction = ^{
+        if (confirmAction) confirmAction();
+    };
     
-    // 设置圆角
-    [vc setCornerRadius:16.0];
-    [vc setOnlyTopCornerClips:YES];
-    
-    [vc setUseCardUIStyle:YES];
+    vc.closeButtonClickedBlock = wrappedCloseActionBlock;
+    vc.slideDismissBlock = wrappedCloseActionBlock;
+    vc.tapDismissBlock = wrappedCloseActionBlock;
 
-    // 使用 keyWindow 直接添加视图
-    UIWindow *window = [UIApplication sharedApplication].keyWindow;
-    [vc.view setFrame:window.bounds];
-    [window addSubview:vc.view];
+    [vc configWithImageView:imageView
+                  lockImage:nil
+           defaultLockState:NO
+             titleLabelText:title
+           contentLabelText:message
+       leftCancelButtonText:cancelButtonText
+     rightConfirmButtonText:confirmButtonText
+       rightBtnClickedBlock:wrappedConfirmAction
+     leftButtonClickedBlock:wrappedCancelAction];
     
-    // 将视图控制器作为子视图控制器添加到根视图控制器
+    if (avatarURL.length > 0) {
+        [vc setCornerRadius:11];
+        [vc setOnlyTopCornerClips:YES];
+    } else {
+        [vc setUseCardUIStyle:YES];
+    }
+    
     UIViewController *topVC = topView();
-    [topVC addChildViewController:vc];
-    [vc didMoveToParentViewController:topVC];
+    if (topVC
+        && [vc respondsToSelector:@selector(presentOnViewController:)]
+	    && !topVC.presentedViewController
+	    && ![topVC isBeingPresented]
+	    && ![topVC isBeingDismissed]) {
+            [vc presentOnViewController:topVC];
+    } else {
+        return nil; 
+    }
     
     return vc;
 }
-
-// 添加用于移除弹窗的辅助方法
-+ (void)dismissAlertViewController:(UIViewController *)viewController {
-    if (!viewController) return;
-    
-    [viewController willMoveToParentViewController:nil];
-    [viewController.view removeFromSuperview];
-    [viewController removeFromParentViewController];
-}
-
-// 原始方法保持不变，维持向后兼容性
-+ (UIViewController *)showAlertWithTitle:(NSString *)title
-                                 message:(NSString *)message
-                            cancelAction:(DYYYAlertActionHandler)cancelAction
-                           confirmAction:(DYYYAlertActionHandler)confirmAction {
-    return [self showAlertWithTitle:title 
-                            message:message 
-                    cancelButtonText:@"取消" 
-                   confirmButtonText:@"确定" 
-                        cancelAction:cancelAction 
-                       confirmAction:confirmAction];
-}
-
 @end

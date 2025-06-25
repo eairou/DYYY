@@ -8,10 +8,23 @@
                        optionsArray:(NSArray<NSString *> *)optionsArray
                          headerText:(NSString *)headerText
                      onPresentingVC:(UIViewController *)presentingVC {
+    
+    return [self showWithPreferenceKey:preferenceKey 
+                          optionsArray:optionsArray 
+                            headerText:headerText 
+                        onPresentingVC:presentingVC 
+                      selectionChanged:nil];
+}
+
++ (NSString *)showWithPreferenceKey:(NSString *)preferenceKey
+                       optionsArray:(NSArray<NSString *> *)optionsArray
+                         headerText:(NSString *)headerText
+                     onPresentingVC:(UIViewController *)presentingVC
+                   selectionChanged:(void (^)(NSString *selectedValue))callback {
 
     NSString *savedPreference = [[NSUserDefaults standardUserDefaults] stringForKey:preferenceKey];
     if (!savedPreference && optionsArray.count > 0) {
-        savedPreference = optionsArray[0]; // 默认使用第一个
+        savedPreference = optionsArray[0];
     }
 
     Class AWESettingItemModelClass = NSClassFromString(@"AWESettingItemModel");
@@ -21,6 +34,8 @@
 
     NSMutableArray *models = [NSMutableArray array];
     NSMutableArray *modelRefs = [NSMutableArray array];
+    
+    __block id contentSheet = nil;
 
     for (NSString *option in optionsArray) {
         id model = [[AWESettingItemModelClass alloc] initWithIdentifier:option];
@@ -40,6 +55,14 @@
             NSString *selectedValue = [currentModel title];
             [[NSUserDefaults standardUserDefaults] setObject:selectedValue forKey:preferenceKey];
             [[NSUserDefaults standardUserDefaults] synchronize];
+            
+            if (callback) {
+                callback(selectedValue);
+            }
+            
+            if (contentSheet) {
+                [contentSheet dismissViewControllerAnimated:YES completion:nil];
+            }
         }];
     }
 
@@ -68,7 +91,7 @@
         [sheetView.bottomAnchor constraintEqualToAnchor:containerVC.view.bottomAnchor]
     ]];
 
-    id contentSheet = [[DUXContentSheetClass alloc] initWithRootViewController:containerVC
+    contentSheet = [[DUXContentSheetClass alloc] initWithRootViewController:containerVC
                                                                  withTopType:0
                                                             withSheetAligment:0];
     [contentSheet setAutoAlignmentCenter:YES];
@@ -80,7 +103,6 @@
 
     [contentSheet showOnViewController:presentingVC completion:nil];
     
-    // 直接返回当前选择的值
     return savedPreference;
 }
 

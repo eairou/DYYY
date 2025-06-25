@@ -1,6 +1,6 @@
 #import "DYYYKeywordListView.h"
 #import "DYYYCustomInputView.h"
-#import "DYYYManager.h"
+#import "DYYYUtils.h"
 
 @interface DYYYKeywordListView ()
 
@@ -18,12 +18,24 @@
 
 @implementation DYYYKeywordListView
 
+- (void)setAddItemTitle:(NSString *)addItemTitle {
+  _addItemTitle = [addItemTitle copy];
+  NSString *addTitle = _addItemTitle ?: @"添加";
+  if (self.addButton) {
+    [self.addButton setTitle:[@"+ " stringByAppendingString:addTitle]
+                     forState:UIControlStateNormal];
+  }
+}
+
 - (instancetype)initWithTitle:(NSString *)title keywords:(NSArray *)keywords {
   if (self = [super initWithFrame:UIScreen.mainScreen.bounds]) {
     self.keywords = [NSMutableArray arrayWithArray:keywords ?: @[]];
+    self.addItemTitle = @"添加过滤项";
+    self.editItemTitle = @"编辑过滤项";
+    self.inputPlaceholder = @"请输入过滤项";
     self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2];
 
-    BOOL isDarkMode = [DYYYManager isDarkMode];
+    BOOL isDarkMode = [DYYYUtils isDarkMode];
 
     // 创建模糊效果背景
     self.blurView = [[UIVisualEffectView alloc]
@@ -88,7 +100,9 @@
         [UIColor colorWithRed:45/255.0 green:45/255.0 blue:45/255.0 alpha:1.0] :
         [UIColor colorWithRed:245/255.0 green:245/255.0 blue:245/255.0 alpha:1.0];
     self.addButton.layer.cornerRadius = 8;
-    [self.addButton setTitle:@"+ 添加过滤项" forState:UIControlStateNormal];
+    NSString *addTitle = self.addItemTitle ?: @"添加";
+    [self.addButton setTitle:[@"+ " stringByAppendingString:addTitle]
+                         forState:UIControlStateNormal];
     [self.addButton setTitleColor:[UIColor colorWithRed:11/255.0
                                                   green:223/255.0
                                                    blue:154/255.0
@@ -186,9 +200,9 @@
 
 - (void)addKeywordTapped {
   DYYYCustomInputView *inputView = [[DYYYCustomInputView alloc]
-      initWithTitle:@"添加过滤项"
+      initWithTitle:self.addItemTitle
         defaultText:nil
-        placeholder:@"请输入过滤项，多个用逗号分隔"];
+        placeholder:self.inputPlaceholder];
 
   __weak typeof(self) weakSelf = self;
   inputView.onConfirm = ^(NSString *text) {
@@ -237,7 +251,7 @@
   UITableViewCell *cell =
       [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
   
-  BOOL isDarkMode = [DYYYManager isDarkMode];
+  BOOL isDarkMode = [DYYYUtils isDarkMode];
 
   if (!cell) {
     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
@@ -246,25 +260,26 @@
     // 删除按钮
     UIButton *deleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
     deleteButton.frame = CGRectMake(0, 0, 30, 30);
-
-    // 使用无填充的圆形 X 图标
-    UIImage *xImage = [[UIImage systemImageNamed:@"xmark"]
-        imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    [deleteButton setImage:xImage forState:UIControlStateNormal];
     
-    // 设置删除按钮颜色
-    [deleteButton setTintColor:isDarkMode ?
-        [UIColor colorWithRed:160/255.0 green:160/255.0 blue:165/255.0 alpha:1.0] :
-        [UIColor colorWithRed:124/255.0 green:124/255.0 blue:130/255.0 alpha:1.0]];
-
-    // 设置灰色
-    cell.accessoryView = deleteButton;
-    cell.textLabel.textColor = [UIColor colorWithRed:124 / 255.0
-                                             green:124 / 255.0
-                                              blue:130 / 255.0
-                                             alpha:1.0]; // #7c7c82
-
-    // 添加按压效果
+    // 自绘制叉号图标
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(12, 12), NO, 0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGContextSetStrokeColorWithColor(context, [UIColor colorWithRed:180/255.0 green:180/255.0 blue:185/255.0 alpha:1.0].CGColor);
+    CGContextSetLineWidth(context, 1.5);
+    
+    CGContextMoveToPoint(context, 1, 1);
+    CGContextAddLineToPoint(context, 11, 11);
+    
+    CGContextMoveToPoint(context, 11, 1);
+    CGContextAddLineToPoint(context, 1, 11);
+    
+    CGContextStrokePath(context);
+    
+    UIImage *xImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    [deleteButton setImage:xImage forState:UIControlStateNormal];
     deleteButton.adjustsImageWhenHighlighted = YES;
 
     [deleteButton addTarget:self
@@ -281,7 +296,7 @@
 
   // 配置单元格
   cell.textLabel.text = self.keywords[indexPath.row];
-  cell.accessoryView.tag = indexPath.row; // 用于识别删除哪个过滤项
+  cell.accessoryView.tag = indexPath.row;
   
   // 设置背景色透明，以便表格背景色可见
   cell.backgroundColor = [UIColor clearColor];
@@ -302,9 +317,9 @@
 
   NSString *currentKeyword = self.keywords[indexPath.row];
   DYYYCustomInputView *inputView =
-      [[DYYYCustomInputView alloc] initWithTitle:@"编辑过滤项"
+      [[DYYYCustomInputView alloc] initWithTitle:self.editItemTitle
                                      defaultText:currentKeyword
-                                     placeholder:@"请输入过滤项"];
+                                     placeholder:self.inputPlaceholder];
 
   __weak typeof(self) weakSelf = self;
   inputView.onConfirm = ^(NSString *text) {

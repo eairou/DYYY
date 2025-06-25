@@ -12,6 +12,7 @@
 #import <objc/runtime.h>
 
 #import "DYYYToast.h"
+#import "DYYYUtils.h"
 
 @interface DYYYManager () {
   AVAssetExportSession *session;
@@ -30,12 +31,12 @@
     NSMutableDictionary<NSString *, DYYYToast *> *progressViews;
 @property(nonatomic, strong) NSOperationQueue *downloadQueue;
 @property(nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *>
-    *taskProgressMap; // 添加进度映射
+    *taskProgressMap;
 @property(nonatomic, strong)
     NSMutableDictionary<NSString *, void (^)(BOOL success, NSURL *fileURL)>
-        *completionBlocks; // 添加完成回调存储
+        *completionBlocks;
 @property(nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *>
-    *mediaTypeMap; // 添加媒体类型映射
+    *mediaTypeMap;
 
 // 批量下载相关属性
 @property(nonatomic, strong) NSMutableDictionary<NSString *, NSString *>
@@ -66,6 +67,10 @@
   return sharedInstance;
 }
 
++ (BOOL)isDarkMode {
+  return [DYYYUtils isDarkMode];
+}
+
 - (instancetype)init {
   self = [super init];
   if (self) {
@@ -74,13 +79,13 @@
     _progressViews = [NSMutableDictionary dictionary];
     _downloadQueue = [[NSOperationQueue alloc] init];
     _downloadQueue.maxConcurrentOperationCount =
-        3; // A maximum of 3 concurrent downloads
+        3;
     _taskProgressMap =
-        [NSMutableDictionary dictionary]; // Initialize progress mapping
+        [NSMutableDictionary dictionary];
     _completionBlocks =
-        [NSMutableDictionary dictionary]; // Initialize completion blocks
+        [NSMutableDictionary dictionary];
     _mediaTypeMap =
-        [NSMutableDictionary dictionary]; // Initialize media type mapping
+        [NSMutableDictionary dictionary];
 
     // 初始化批量下载相关字典
     _downloadToBatchMap = [NSMutableDictionary dictionary];
@@ -93,214 +98,6 @@
   return self;
 }
 
-+ (UIWindow *)getActiveWindow {
-  if (@available(iOS 15.0, *)) {
-    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
-      if ([scene isKindOfClass:[UIWindowScene class]] &&
-          scene.activationState == UISceneActivationStateForegroundActive) {
-        for (UIWindow *w in ((UIWindowScene *)scene).windows) {
-          if (w.isKeyWindow)
-            return w;
-        }
-      }
-    }
-    return nil;
-  } else {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    return [UIApplication sharedApplication].windows.firstObject;
-#pragma clang diagnostic pop
-  }
-}
-
-+ (UIViewController *)getActiveTopController {
-  UIWindow *window = [self getActiveWindow];
-  if (!window)
-    return nil;
-
-  UIViewController *topController = window.rootViewController;
-  while (topController.presentedViewController) {
-    topController = topController.presentedViewController;
-  }
-
-  return topController;
-}
-
-+ (UIColor *)colorWithHexString:(NSString *)hexString {
-  // 处理rainbow直接生成彩虹色的情况
-  if ([hexString.lowercaseString isEqualToString:@"rainbow"] ||
-      [hexString.lowercaseString isEqualToString:@"#rainbow"]) {
-    CGSize size = CGSizeMake(400, 100);
-    UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-
-    // 彩虹色：红、橙、黄、绿、青、蓝、紫
-    UIColor *red = [UIColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:1.0];
-    UIColor *orange = [UIColor colorWithRed:1.0 green:0.5 blue:0.0 alpha:1.0];
-    UIColor *yellow = [UIColor colorWithRed:1.0 green:1.0 blue:0.0 alpha:1.0];
-    UIColor *green = [UIColor colorWithRed:0.0 green:1.0 blue:0.0 alpha:1.0];
-    UIColor *cyan = [UIColor colorWithRed:0.0 green:1.0 blue:1.0 alpha:1.0];
-    UIColor *blue = [UIColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:1.0];
-    UIColor *purple = [UIColor colorWithRed:0.5 green:0.0 blue:0.5 alpha:1.0];
-
-    NSArray *colorsArray = @[
-      (__bridge id)red.CGColor, (__bridge id)orange.CGColor,
-      (__bridge id)yellow.CGColor, (__bridge id)green.CGColor,
-      (__bridge id)cyan.CGColor, (__bridge id)blue.CGColor,
-      (__bridge id)purple.CGColor
-    ];
-
-    // 创建渐变
-    CGGradientRef gradient = CGGradientCreateWithColors(
-        colorSpace, (__bridge CFArrayRef)colorsArray, NULL);
-
-    CGPoint startPoint = CGPointMake(0, size.height / 2);
-    CGPoint endPoint = CGPointMake(size.width, size.height / 2);
-
-    CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, 0);
-    UIImage *gradientImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    CGGradientRelease(gradient);
-    CGColorSpaceRelease(colorSpace);
-
-    return [UIColor colorWithPatternImage:gradientImage];
-  }
-
-  // 如果包含半角逗号，则解析两个颜色代码并生成渐变色
-  if ([hexString containsString:@","]) {
-    NSArray *components = [hexString componentsSeparatedByString:@","];
-    if (components.count == 2) {
-      NSString *firstHex = [[components objectAtIndex:0]
-          stringByTrimmingCharactersInSet:[NSCharacterSet
-                                              whitespaceCharacterSet]];
-      NSString *secondHex = [[components objectAtIndex:1]
-          stringByTrimmingCharactersInSet:[NSCharacterSet
-                                              whitespaceCharacterSet]];
-
-      // 分别解析两个颜色
-      UIColor *firstColor = [self colorWithHexString:firstHex];
-      UIColor *secondColor = [self colorWithHexString:secondHex];
-
-      // 使用渐变layer生成图片
-      CGSize size = CGSizeMake(400, 100);
-      UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-      CGContextRef context = UIGraphicsGetCurrentContext();
-      CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-
-      // 普通双色渐变效果
-      CGFloat midR = (CGColorGetComponents(firstColor.CGColor)[0] +
-                      CGColorGetComponents(secondColor.CGColor)[0]) /
-                     2;
-      CGFloat midG = (CGColorGetComponents(firstColor.CGColor)[1] +
-                      CGColorGetComponents(secondColor.CGColor)[1]) /
-                     2;
-      CGFloat midB = (CGColorGetComponents(firstColor.CGColor)[2] +
-                      CGColorGetComponents(secondColor.CGColor)[2]) /
-                     2;
-      UIColor *midColor = [UIColor colorWithRed:midR
-                                          green:midG
-                                           blue:midB
-                                          alpha:1.0];
-
-      NSArray *colorsArray = @[
-        (__bridge id)firstColor.CGColor, (__bridge id)midColor.CGColor,
-        (__bridge id)secondColor.CGColor
-      ];
-
-      // 创建渐变
-      CGGradientRef gradient = CGGradientCreateWithColors(
-          colorSpace, (__bridge CFArrayRef)colorsArray, NULL);
-
-      CGPoint startPoint = CGPointMake(0, size.height / 2);
-      CGPoint endPoint = CGPointMake(size.width, size.height / 2);
-
-      CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, 0);
-      UIImage *gradientImage = UIGraphicsGetImageFromCurrentImageContext();
-      UIGraphicsEndImageContext();
-      CGGradientRelease(gradient);
-      CGColorSpaceRelease(colorSpace);
-
-      return [UIColor colorWithPatternImage:gradientImage];
-    }
-  }
-
-  // 处理随机颜色的情况
-  if ([hexString.lowercaseString isEqualToString:@"random"] ||
-      [hexString.lowercaseString isEqualToString:@"#random"]) {
-    return [UIColor colorWithRed:(CGFloat)arc4random_uniform(256) / 255.0
-                           green:(CGFloat)arc4random_uniform(256) / 255.0
-                            blue:(CGFloat)arc4random_uniform(256) / 255.0
-                           alpha:1.0];
-  }
-
-  // 去掉"#"前缀并转为大写
-  NSString *colorString =
-      [[hexString stringByReplacingOccurrencesOfString:@"#"
-                                            withString:@""] uppercaseString];
-  CGFloat alpha = 1.0;
-  CGFloat red = 0.0;
-  CGFloat green = 0.0;
-  CGFloat blue = 0.0;
-
-  if (colorString.length == 8) {
-    // 8位十六进制：AARRGGBB，前两位为透明度
-    NSScanner *scanner = [NSScanner
-        scannerWithString:[colorString substringWithRange:NSMakeRange(0, 2)]];
-    unsigned int alphaValue;
-    [scanner scanHexInt:&alphaValue];
-    alpha = (CGFloat)alphaValue / 255.0;
-
-    scanner = [NSScanner
-        scannerWithString:[colorString substringWithRange:NSMakeRange(2, 2)]];
-    unsigned int redValue;
-    [scanner scanHexInt:&redValue];
-    red = (CGFloat)redValue / 255.0;
-
-    scanner = [NSScanner
-        scannerWithString:[colorString substringWithRange:NSMakeRange(4, 2)]];
-    unsigned int greenValue;
-    [scanner scanHexInt:&greenValue];
-    green = (CGFloat)greenValue / 255.0;
-
-    scanner = [NSScanner
-        scannerWithString:[colorString substringWithRange:NSMakeRange(6, 2)]];
-    unsigned int blueValue;
-    [scanner scanHexInt:&blueValue];
-    blue = (CGFloat)blueValue / 255.0;
-  } else {
-    // 处理常规6位十六进制：RRGGBB
-    NSScanner *scanner = nil;
-    unsigned int hexValue = 0;
-
-    if (colorString.length == 6) {
-      scanner = [NSScanner scannerWithString:colorString];
-    } else if (colorString.length == 3) {
-      // 3位简写格式：RGB
-      NSString *r = [colorString substringWithRange:NSMakeRange(0, 1)];
-      NSString *g = [colorString substringWithRange:NSMakeRange(1, 1)];
-      NSString *b = [colorString substringWithRange:NSMakeRange(2, 1)];
-      colorString =
-          [NSString stringWithFormat:@"%@%@%@%@%@%@", r, r, g, g, b, b];
-      scanner = [NSScanner scannerWithString:colorString];
-    }
-
-    if (scanner && [scanner scanHexInt:&hexValue]) {
-      red = ((hexValue & 0xFF0000) >> 16) / 255.0;
-      green = ((hexValue & 0x00FF00) >> 8) / 255.0;
-      blue = (hexValue & 0x0000FF) / 255.0;
-    }
-  }
-
-  return [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
-}
-
-+ (void)showToast:(NSString *)text {
-  Class toastClass = NSClassFromString(@"DUXToast");
-  if (toastClass && [toastClass respondsToSelector:@selector(showText:)]) {
-    [toastClass performSelector:@selector(showText:) withObject:text];
-  }
-}
 
 + (void)saveMedia:(NSURL *)mediaURL
         mediaType:(MediaType)mediaType
@@ -308,6 +105,13 @@
   if (mediaType == MediaTypeAudio) {
     return;
   }
+
+  void (^completionWrapper)(void) = ^{
+    if (completion) {
+      completion();
+    }
+    [DYYYUtils clearCacheDirectory];
+  };
 
   [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
     if (status == PHAuthorizationStatusAuthorized) {
@@ -330,19 +134,15 @@
                                                      removeItemAtPath:mediaURL
                                                                           .path
                                                                 error:nil];
-                                                 if (completion) {
-                                                   completion();
-                                                 }
+                                                 completionWrapper();
                                                }];
                               } else {
-                                [self showToast:@"转换失败"];
+                                [DYYYUtils showToast:@"转换失败"];
                                 // 清理临时文件
                                 [[NSFileManager defaultManager]
                                     removeItemAtPath:mediaURL.path
                                                error:nil];
-                                if (completion) {
-                                  completion();
-                                }
+                                completionWrapper();
                               }
                             }];
         } else if ([actualFormat isEqualToString:@"heic"] ||
@@ -358,19 +158,15 @@
                                              [[NSFileManager defaultManager]
                                                  removeItemAtPath:mediaURL.path
                                                             error:nil];
-                                             if (completion) {
-                                               completion();
-                                             }
+                                             completionWrapper();
                                            }];
                         } else {
-                          [self showToast:@"转换失败"];
+                          [DYYYUtils showToast:@"转换失败"];
                           // 清理临时文件
                           [[NSFileManager defaultManager]
                               removeItemAtPath:mediaURL.path
                                          error:nil];
-                          if (completion) {
-                            completion();
-                          }
+                          completionWrapper();
                         }
                       }];
         } else if ([actualFormat isEqualToString:@"gif"]) {
@@ -390,11 +186,9 @@
               }
               completionHandler:^(BOOL success, NSError *_Nullable error) {
                 if (success) {
-                  if (completion) {
-                    completion();
-                  }
+                  completionWrapper();
                 } else {
-                  [self showToast:@"保存失败"];
+                  [DYYYUtils showToast:@"保存失败"];
                 }
                 // 不管成功失败都清理临时文件
                 [[NSFileManager defaultManager] removeItemAtPath:mediaURL.path
@@ -419,11 +213,9 @@
             completionHandler:^(BOOL success, NSError *_Nullable error) {
               if (success) {
 
-                if (completion) {
-                  completion();
-                }
+                completionWrapper();
               } else {
-                [self showToast:@"保存失败"];
+                [DYYYUtils showToast:@"保存失败"];
               }
               // 不管成功失败都清理临时文件
               [[NSFileManager defaultManager] removeItemAtPath:mediaURL.path
@@ -519,10 +311,11 @@
             completion();
           }
         } else {
-          [self showToast:@"保存失败"];
+          [DYYYUtils showToast:@"保存失败"];
         }
         // 不管成功失败都清理临时文件
         [[NSFileManager defaultManager] removeItemAtPath:gifURL.path error:nil];
+        [DYYYUtils clearCacheDirectory];
       }];
 }
 
@@ -540,7 +333,7 @@ static void ReleaseWebPData(void *info, const void *data, size_t size) {
             [[webpURL.lastPathComponent stringByDeletingPathExtension]
                 stringByAppendingPathExtension:@"gif"];
         NSURL *gifURL = [NSURL
-            fileURLWithPath:[NSTemporaryDirectory()
+            fileURLWithPath:[[DYYYUtils cacheDirectory]
                                 stringByAppendingPathComponent:gifFileName]];
 
         // 读取WebP文件数据
@@ -902,7 +695,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
             [[heicURL.lastPathComponent stringByDeletingPathExtension]
                 stringByAppendingPathExtension:@"gif"];
         NSURL *gifURL = [NSURL
-            fileURLWithPath:[NSTemporaryDirectory()
+            fileURLWithPath:[[DYYYUtils cacheDirectory]
                                 stringByAppendingPathComponent:gifFileName]];
 
         // 4. GIF属性
@@ -1001,12 +794,12 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
               [[NSFileManager defaultManager] fileExistsAtPath:videoPath];
 
           dispatch_async(dispatch_get_main_queue(), ^{
-            if (imageExists && videoExists) {
-              [[DYYYManager shared] saveLivePhoto:imagePath videoUrl:videoPath];
-              if (completion) {
-                completion();
-              }
-              return;
+              if (imageExists && videoExists) {
+                [[DYYYManager shared] saveLivePhoto:imagePath videoUrl:videoPath];
+                if (completion) {
+                  completion();
+                }
+                return;
             } else {
               // 文件不完整，需要重新下载
               [self startDownloadLivePhotoProcess:imageURL
@@ -1031,7 +824,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                            completion:(void (^)(void))completion {
   // 创建临时目录
   NSString *livePhotoPath =
-      [NSTemporaryDirectory() stringByAppendingPathComponent:@"LivePhoto"];
+      [[DYYYUtils cacheDirectory] stringByAppendingPathComponent:@"LivePhoto"];
 
   NSFileManager *fileManager = [NSFileManager defaultManager];
   if (![fileManager fileExistsAtPath:livePhotoPath]) {
@@ -1215,7 +1008,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
           [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
           [[NSFileManager defaultManager] removeItemAtPath:videoPath error:nil];
           [manager.fileLinks removeObjectForKey:uniqueKey];
-          [DYYYManager showToast:@"保存实况照片失败"];
+          [DYYYUtils showToast:@"保存实况照片失败"];
         }
       } else {
         // 清理不完整的文件
@@ -1224,13 +1017,13 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
         if (videoExists)
           [[NSFileManager defaultManager] removeItemAtPath:videoPath error:nil];
         [manager.fileLinks removeObjectForKey:uniqueKey];
-        [DYYYManager showToast:@"下载实况照片失败"];
+        [DYYYUtils showToast:@"下载实况照片失败"];
       }
 
-      if (completion) {
-        completion();
-      }
-    });
+        if (completion) {
+          completion();
+        }
+      });
   });
 }
 
@@ -1279,6 +1072,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                      [[NSFileManager defaultManager]
                                          removeItemAtURL:fileURL
                                                    error:nil];
+                                     [DYYYUtils clearCacheDirectory];
                                    }];
                                UIViewController *rootVC =
                                    [UIApplication sharedApplication]
@@ -1289,6 +1083,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                if (completion) {
                                  completion(YES);
                                }
+                               [DYYYUtils clearCacheDirectory];
                              });
                            } else {
                              [self saveMedia:fileURL
@@ -1297,12 +1092,14 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                     if (completion) {
                                       completion(YES);
                                     }
+                                    [DYYYUtils clearCacheDirectory];
                                   }];
                            }
                          } else {
                            if (completion) {
                              completion(NO);
                            }
+                           [DYYYUtils clearCacheDirectory];
                          }
                        }];
 }
@@ -1386,7 +1183,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     }
   }
 
-  NSString *livePhotoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"LivePhotoBatch"];
+  NSString *livePhotoPath = [[DYYYUtils cacheDirectory] stringByAppendingPathComponent:@"LivePhotoBatch"];
   NSFileManager *fileManager = [NSFileManager defaultManager];
   if ([fileManager fileExistsAtPath:livePhotoPath]) {
     NSError *error = nil;
@@ -1396,7 +1193,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     }
   }
   
-  NSString *generalLivePhotoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"LivePhoto"];
+  NSString *generalLivePhotoPath = [[DYYYUtils cacheDirectory] stringByAppendingPathComponent:@"LivePhoto"];
   if ([fileManager fileExistsAtPath:generalLivePhotoPath]) {
     NSError *error = nil;
     [fileManager removeItemAtPath:generalLivePhotoPath error:&error];
@@ -1574,6 +1371,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
       for (NSString *downloadID in downloadIDs) {
         [self.downloadToBatchMap removeObjectForKey:downloadID];
       }
+      [DYYYUtils clearCacheDirectory];
     }
   }
 }
@@ -1680,7 +1478,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     }
   }
 
-  NSURL *tempDir = [NSURL fileURLWithPath:NSTemporaryDirectory()];
+  NSURL *tempDir = [NSURL fileURLWithPath:[DYYYUtils cacheDirectory]];
   NSURL *destinationURL = [tempDir URLByAppendingPathComponent:fileName];
 
   NSError *moveError;
@@ -1799,7 +1597,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
       [self.mediaTypeMap removeObjectForKey:downloadIDForTask];
 
       if (error.code != NSURLErrorCancelled) {
-        [DYYYManager showToast:@"下载失败"];
+        [DYYYUtils showToast:@"下载失败"];
       }
 
       if (completionBlock) {
@@ -1861,18 +1659,18 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                               [[NSFileManager defaultManager]
                                   removeItemAtPath:photoFile
                                              error:nil];
-                              [[NSFileManager defaultManager]
-                                  removeItemAtPath:videoFile
-                                             error:nil];
-                            }
+                                [[NSFileManager defaultManager]
+                                    removeItemAtPath:videoFile
+                                               error:nil];
+                              }
+                              [DYYYUtils clearCacheDirectory];
                           });
                         }];
                   }];
     }];
   } else {
     dispatch_async(dispatch_get_main_queue(), ^{
-      [DYYYManager
-          showToast:@"当前iOS版本不支持实况照片，将分别保存图片和视频"];
+      [DYYYUtils showToast:@"当前iOS版本不支持实况照片，将分别保存图片和视频"];
     });
   }
 }
@@ -2077,9 +1875,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
   return item;
 }
 - (NSString *)filePathFromTmp:(NSString *)filename {
-  NSString *tempPath = NSTemporaryDirectory();
-  NSString *filePath = [tempPath stringByAppendingPathComponent:filename];
-  return filePath;
+  return [[DYYYUtils cacheDirectory] stringByAppendingPathComponent:filename];
 }
 
 - (void)deleteFile:(NSString *)file {
@@ -2118,7 +1914,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 
     if (!supportsLivePhoto) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self showToast:@"当前iOS版本不支持实况照片"];
+            [DYYYUtils showToast:@"当前iOS版本不支持实况照片"];
             if (completion) {
                 completion(0, livePhotos.count);
             }
@@ -2153,7 +1949,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
         __block NSInteger phase = 0; // 0:下载图片阶段，1:下载视频阶段，2:合成阶段
         
         // 创建临时目录
-        NSString *livePhotoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"LivePhotoBatch"];
+        NSString *livePhotoPath = [[DYYYUtils cacheDirectory] stringByAppendingPathComponent:@"LivePhotoBatch"];
         NSFileManager *fileManager = [NSFileManager defaultManager];
         [fileManager createDirectoryAtPath:livePhotoPath withIntermediateDirectories:YES attributes:nil error:nil];
 
@@ -2304,7 +2100,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                     // 没有相册权限
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [progressView dismiss];
-                        [self showToast:@"没有相册权限，无法保存实况照片"];
+                        [DYYYUtils showToast:@"没有相册权限，无法保存实况照片"];
                         
                         [fileManager removeItemAtPath:livePhotoPath error:nil];
                         
@@ -2542,18 +2338,10 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     }];
 }
 
-+ (BOOL)isDarkMode {
-  Class themeManagerClass = NSClassFromString(@"AWEUIThemeManager");
-  if (!themeManagerClass) {
-    return NO;
-  }
-  return [themeManagerClass isLightTheme] ? NO : YES;
-}
-
 + (void)parseAndDownloadVideoWithShareLink:(NSString *)shareLink
                                     apiKey:(NSString *)apiKey {
   if (shareLink.length == 0 || apiKey.length == 0) {
-    [self showToast:@"分享链接或API密钥无效"];
+    [DYYYUtils showToast:@"分享链接或API密钥无效"];
     return;
   }
 
@@ -2573,7 +2361,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                             NSError *error) {
           dispatch_async(dispatch_get_main_queue(), ^{
             if (error) {
-              [self showToast:[NSString
+              [DYYYUtils showToast:[NSString
                                   stringWithFormat:@"接口请求失败: %@",
                                                    error.localizedDescription]];
               return;
@@ -2585,13 +2373,13 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                                                 options:0
                                                   error:&jsonError];
             if (jsonError) {
-              [self showToast:@"解析接口返回数据失败"];
+              [DYYYUtils showToast:@"解析接口返回数据失败"];
               return;
             }
 
             NSInteger code = [json[@"code"] integerValue];
             if (code != 0 && code != 200) {
-              [self showToast:[NSString stringWithFormat:@"接口返回错误: %@",
+              [DYYYUtils showToast:[NSString stringWithFormat:@"接口返回错误: %@",
                                                          json[@"msg"]
                                                              ?: @"未知错误"]];
               return;
@@ -2599,194 +2387,224 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
 
             NSDictionary *dataDict = json[@"data"];
             if (!dataDict) {
-              [self showToast:@"接口返回数据为空"];
+              [DYYYUtils showToast:@"接口返回数据为空"];
               return;
             }
-            NSArray *videos = dataDict[@"videos"];
-            NSArray *images = dataDict[@"images"];
-            NSArray *videoList = dataDict[@"video_list"];
-            BOOL hasVideos =
-                [videos isKindOfClass:[NSArray class]] && videos.count > 0;
-            BOOL hasImages =
-                [images isKindOfClass:[NSArray class]] && images.count > 0;
-            BOOL hasVideoList = [videoList isKindOfClass:[NSArray class]] &&
-                                videoList.count > 0;
-            BOOL shouldShowQualityOptions =
-                [[NSUserDefaults standardUserDefaults]
-                    boolForKey:@"DYYYShowAllVideoQuality"];
-
-            // 如果启用了显示清晰度选项，并且存在 videoList，则弹出选择面板
-            if (shouldShowQualityOptions && hasVideoList) {
-              AWEUserActionSheetView *actionSheet =
-                  [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
-              NSMutableArray *actions = [NSMutableArray array];
-
-              for (NSDictionary *videoDict in videoList) {
-                NSString *url = videoDict[@"url"];
-                NSString *level = videoDict[@"level"];
-                if (url.length > 0 && level.length > 0) {
-                  AWEUserSheetAction *qualityAction = [NSClassFromString(
-                      @"AWEUserSheetAction")
-                      actionWithTitle:level
-                              imgName:nil
-                              handler:^{
-                                NSURL *videoDownloadUrl =
-                                    [NSURL URLWithString:url];
-                                [self
-                                    downloadMedia:videoDownloadUrl
-                                        mediaType:MediaTypeVideo
-                                       completion:^(BOOL success) {
-                                         if (success) {
-                                         } else {
-                                           [self showToast:
-                                                     [NSString
-                                                         stringWithFormat:
-                                                             @"已取消保存 (%@)",
-                                                             level]];
-                                         }
-                                       }];
-                              }];
-                  [actions addObject:qualityAction];
-                }
-              }
-
-              // 附加批量下载选项（如果开启清晰度选项 + 有视频/图片）
-              if (hasVideos || hasImages) {
-                AWEUserSheetAction *batchDownloadAction =
-                    [NSClassFromString(@"AWEUserSheetAction")
-                        actionWithTitle:@"批量下载所有资源"
-                                imgName:nil
-                                handler:^{
-                                  [self batchDownloadResources:videos
-                                                        images:images];
-                                }];
-                [actions addObject:batchDownloadAction];
-              }
-
-              if (actions.count > 0) {
-                [actionSheet setActions:actions];
-                [actionSheet show];
-                return;
-              }
-            }
-
-            // 如果未开启清晰度选项，但有 video_list，自动下载第一个清晰度
-            if (!shouldShowQualityOptions && hasVideoList) {
-              NSDictionary *firstVideo = videoList.firstObject;
-              NSString *url = firstVideo[@"url"];
-              NSString *level = firstVideo[@"level"] ?: @"默认清晰度";
-
-              if (url.length > 0) {
-                NSURL *videoDownloadUrl = [NSURL URLWithString:url];
-                [self downloadMedia:videoDownloadUrl
-                          mediaType:MediaTypeVideo
-                         completion:^(BOOL success) {
-                           if (success) {
-                           } else {
-                             [self showToast:[NSString stringWithFormat:
-                                                           @"已取消保存 (%@)",
-                                                           level]];
-                           }
-                         }];
-                return;
-              }
-            }
-
-            [self batchDownloadResources:videos images:images];
+            
+            // 交给handleVideoData处理数据
+            [self handleVideoData:dataDict];
           });
         }];
 
   [dataTask resume];
 }
 
-+ (void)batchDownloadResources:(NSArray *)videos images:(NSArray *)images {
-  BOOL hasVideos = [videos isKindOfClass:[NSArray class]] && videos.count > 0;
-  BOOL hasImages = [images isKindOfClass:[NSArray class]] && images.count > 0;
++ (void)handleVideoData:(NSDictionary *)dataDict {
+    // 首先检查videos和images数组
+    NSArray *videoList = dataDict[@"video_list"];
+    NSArray *videos = dataDict[@"videos"];
+    NSArray *images = dataDict[@"images"];
+    NSArray *imgArray = dataDict[@"img"];
+    
+    // 获取封面URL
+    NSString *coverURL = nil;
+    if (dataDict[@"cover"] && [dataDict[@"cover"] length] > 0) {
+        coverURL = dataDict[@"cover"];
+    } else if (dataDict[@"pics"] && [dataDict[@"pics"] length] > 0) {
+        coverURL = dataDict[@"pics"];
+    }
+    
+    // 检查是否有视频列表(优先处理)
+    BOOL hasVideoList = [videoList isKindOfClass:[NSArray class]] && videoList.count > 0;
+    if (hasVideoList) {
+        AWEUserActionSheetView *actionSheet = [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
+        NSMutableArray *actions = [NSMutableArray array];
 
-  NSMutableArray<id> *videoFiles =
-      [NSMutableArray arrayWithCapacity:videos.count];
-  NSMutableArray<id> *imageFiles =
-      [NSMutableArray arrayWithCapacity:images.count];
-  for (NSInteger i = 0; i < videos.count; i++)
-    [videoFiles addObject:[NSNull null]];
-  for (NSInteger i = 0; i < images.count; i++)
-    [imageFiles addObject:[NSNull null]];
+        for (NSDictionary *videoDict in videoList) {
+            NSString *url = videoDict[@"url"];
+            NSString *level = videoDict[@"level"];
+            if (url.length > 0 && level.length > 0) {
+                AWEUserSheetAction *qualityAction = [NSClassFromString(@"AWEUserSheetAction")
+                    actionWithTitle:level
+                            imgName:nil
+                            handler:^{
+                              NSURL *videoDownloadUrl = [NSURL URLWithString:url];
+                              [self downloadMedia:videoDownloadUrl
+                                        mediaType:MediaTypeVideo
+                                       completion:^(BOOL success) {
+                                         if (!success) {
+                                         }
+                                       }];
+                            }];
+                [actions addObject:qualityAction];
+            }
+        }
 
-  dispatch_group_t downloadGroup = dispatch_group_create();
-  __block NSInteger totalDownloads = 0;
-  __block NSInteger completedDownloads = 0;
-  __block NSInteger successfulDownloads = 0;
-
-  if (hasVideos) {
-    totalDownloads += videos.count;
-    for (NSInteger i = 0; i < videos.count; i++) {
-      NSDictionary *videoDict = videos[i];
-      NSString *videoUrl = videoDict[@"url"];
-      if (videoUrl.length == 0) {
-        completedDownloads++;
-        continue;
-      }
-      dispatch_group_enter(downloadGroup);
-      NSURL *videoDownloadUrl = [NSURL URLWithString:videoUrl];
-      [self downloadMediaWithProgress:videoDownloadUrl
-                            mediaType:MediaTypeVideo
-                             progress:nil
-                           completion:^(BOOL success, NSURL *fileURL) {
-                             if (success && fileURL) {
-                               @synchronized(videoFiles) {
-                                 videoFiles[i] = fileURL;
-                               }
-                               successfulDownloads++;
+        if (actions.count > 0) {
+            [actionSheet setActions:actions];
+            [actionSheet show];
+            return;
+        }
+    }
+    
+    // 尝试获取视频URL
+    NSString *singleVideoURL = nil;
+    if (dataDict[@"url"] && [dataDict[@"url"] length] > 0) {
+        singleVideoURL = dataDict[@"url"];
+    } else if (dataDict[@"video"] && [dataDict[@"video"] length] > 0) {
+        singleVideoURL = dataDict[@"video"];
+    } else if (dataDict[@"video_url"] && [dataDict[@"video_url"] length] > 0) {
+        singleVideoURL = dataDict[@"video_url"];
+    }
+    
+    // 尝试获取音乐URL
+    NSString *musicURL = nil;
+    if (dataDict[@"music"] && [dataDict[@"music"] length] > 0) {
+        musicURL = dataDict[@"music"];
+    } else if (dataDict[@"music_url"] && [dataDict[@"music_url"] length] > 0) {
+        musicURL = dataDict[@"music_url"];
+    }
+    
+    // 确保处理空的videos数组
+    BOOL hasVideos = [videos isKindOfClass:[NSArray class]] && videos.count > 0;
+    BOOL hasImages = [images isKindOfClass:[NSArray class]] && images.count > 0;
+    BOOL hasImgArray = [imgArray isKindOfClass:[NSArray class]] && imgArray.count > 0;
+    
+    BOOL shouldShowQualityOptions = [[NSUserDefaults standardUserDefaults]
+                                      boolForKey:@"DYYYShowAllVideoQuality"];
+    
+    // 如果只有图片没有视频，直接处理图片下载
+    if (!hasVideos && singleVideoURL == nil && (hasImages || hasImgArray || coverURL != nil)) {
+        NSMutableArray *allImages = [NSMutableArray array];
+        if (hasImages) [allImages addObjectsFromArray:images];
+        if (hasImgArray) [allImages addObjectsFromArray:imgArray];
+        if (coverURL && coverURL.length > 0 && ![allImages containsObject:coverURL]) {
+            [allImages addObject:coverURL];
+        }
+        
+        if (allImages.count > 0) {
+            if (allImages.count == 1) {
+                // 单张图片直接下载
+                NSURL *imageDownloadUrl = [NSURL URLWithString:allImages[0]];
+                [self downloadMedia:imageDownloadUrl
+                          mediaType:MediaTypeImage
+                         completion:^(BOOL success) {
+                             if (!success) {
+                                 [DYYYUtils showToast:@"图片下载失败"];
                              }
-                             completedDownloads++;
-                             dispatch_group_leave(downloadGroup);
-                           }];
-    }
-  }
-
-  if (hasImages) {
-    totalDownloads += images.count;
-    for (NSInteger i = 0; i < images.count; i++) {
-      NSString *imageUrl = images[i];
-      if (imageUrl.length == 0) {
-        completedDownloads++;
-        continue;
-      }
-      dispatch_group_enter(downloadGroup);
-      NSURL *imageDownloadUrl = [NSURL URLWithString:imageUrl];
-      [self downloadMediaWithProgress:imageDownloadUrl
-                            mediaType:MediaTypeImage
-                             progress:nil
-                           completion:^(BOOL success, NSURL *fileURL) {
-                             if (success && fileURL) {
-                               @synchronized(imageFiles) {
-                                 imageFiles[i] = fileURL;
-                               }
-                               successfulDownloads++;
-                             }
-                             completedDownloads++;
-                             dispatch_group_leave(downloadGroup);
-                           }];
-    }
-  }
-
-  dispatch_group_notify(downloadGroup, dispatch_get_main_queue(), ^{
-    NSInteger videoSuccessCount = 0;
-    for (id file in videoFiles) {
-      if ([file isKindOfClass:[NSURL class]]) {
-        [self saveMedia:(NSURL *)file mediaType:MediaTypeVideo completion:nil];
-        videoSuccessCount++;
-      }
+                         }];
+            } else {
+                // 多张图片批量下载
+                [self downloadAllImages:allImages];
+            }
+            return;
+        }
     }
 
-    NSInteger imageSuccessCount = 0;
-    for (id file in imageFiles) {
-      if ([file isKindOfClass:[NSURL class]]) {
-        [self saveMedia:(NSURL *)file mediaType:MediaTypeImage completion:nil];
-        imageSuccessCount++;
-      }
+    // 单个视频情况下的处理
+    if (shouldShowQualityOptions && singleVideoURL && singleVideoURL.length > 0) {
+        AWEUserActionSheetView *actionSheet = [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
+        NSMutableArray *actions = [NSMutableArray array];
+        
+        AWEUserSheetAction *videoAction = [NSClassFromString(@"AWEUserSheetAction")
+            actionWithTitle:@"下载视频"
+                    imgName:nil
+                    handler:^{
+                      NSURL *videoDownloadUrl = [NSURL URLWithString:singleVideoURL];
+                      [self downloadMedia:videoDownloadUrl
+                                mediaType:MediaTypeVideo
+                               completion:^(BOOL success) {
+                                 if (!success) {
+                                 }
+                               }];
+                    }];
+        [actions addObject:videoAction];
+        
+        if (coverURL && coverURL.length > 0) {
+            AWEUserSheetAction *coverAction = [NSClassFromString(@"AWEUserSheetAction")
+                actionWithTitle:@"下载封面图"
+                        imgName:nil
+                        handler:^{
+                          NSURL *imageDownloadUrl = [NSURL URLWithString:coverURL];
+                          [self downloadMedia:imageDownloadUrl
+                                    mediaType:MediaTypeImage
+                                   completion:^(BOOL success) {
+                                     if (!success) {
+                                     }
+                                   }];
+                        }];
+            [actions addObject:coverAction];
+        }
+        
+        if (musicURL && musicURL.length > 0) {
+            AWEUserSheetAction *musicAction = [NSClassFromString(@"AWEUserSheetAction")
+                actionWithTitle:@"下载背景音乐"
+                        imgName:nil
+                        handler:^{
+                          NSURL *audioDownloadUrl = [NSURL URLWithString:musicURL];
+                          [self downloadMedia:audioDownloadUrl
+                                    mediaType:MediaTypeAudio
+                                   completion:^(BOOL success) {
+                                     if (!success) {
+                                     }
+                                   }];
+                        }];
+            [actions addObject:musicAction];
+        }
+        
+        // 添加批量下载选项
+        NSMutableArray *allImages = [NSMutableArray array];
+        if (hasImages) [allImages addObjectsFromArray:images];
+        if (hasImgArray) [allImages addObjectsFromArray:imgArray];
+        if (coverURL && coverURL.length > 0 && ![allImages containsObject:coverURL]) {
+            [allImages addObject:coverURL];
+        }
+        
+        if (allImages.count > 0 || singleVideoURL.length > 0) {
+            AWEUserSheetAction *batchDownloadAction = [NSClassFromString(@"AWEUserSheetAction")
+                actionWithTitle:@"批量下载所有资源"
+                        imgName:nil
+                        handler:^{
+                          NSMutableArray *singleVideoArray = nil;
+                          if (singleVideoURL.length > 0) {
+                              singleVideoArray = [NSMutableArray arrayWithObject:@{@"url": singleVideoURL}];
+                          }
+                          [self batchDownloadResources:singleVideoArray images:allImages];
+                        }];
+            [actions addObject:batchDownloadAction];
+        }
+        
+        if (actions.count > 0) {
+            [actionSheet setActions:actions];
+            [actionSheet show];
+            return;
+        }
     }
-  });
+
+    if (!shouldShowQualityOptions && singleVideoURL && singleVideoURL.length > 0) {
+        NSURL *videoDownloadUrl = [NSURL URLWithString:singleVideoURL];
+        [self downloadMedia:videoDownloadUrl
+                  mediaType:MediaTypeVideo
+                 completion:^(BOOL success) {
+                   if (!success) {
+                   }
+                 }];
+        return;
+    }
+
+    // 如果前面的条件都不满足，尝试批量下载所有资源
+    NSMutableArray *allImages = [NSMutableArray array];
+    if (hasImages) [allImages addObjectsFromArray:images];
+    if (hasImgArray) [allImages addObjectsFromArray:imgArray];
+    if (coverURL && coverURL.length > 0 && ![allImages containsObject:coverURL]) {
+        [allImages addObject:coverURL];
+    }
+    
+    if (allImages.count > 0 || hasVideos) {
+        [self batchDownloadResources:videos images:allImages];
+    } else {
+        [DYYYUtils showToast:@"没有找到可下载的资源"];
+    }
 }
 
 #define DYYYLogVideo(format, ...) NSLog((@"[DYYY视频合成] " format), ##__VA_ARGS__)
@@ -2824,7 +2642,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
         };
         
         // 创建临时目录
-        NSString *mediaPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"VideoComposition"];
+        NSString *mediaPath = [[DYYYUtils cacheDirectory] stringByAppendingPathComponent:@"VideoComposition"];
         NSFileManager *fileManager = [NSFileManager defaultManager];
         if ([fileManager fileExistsAtPath:mediaPath]) {
             DYYYLogVideo(@"正在清理旧的临时目录: %@", mediaPath);
@@ -3164,7 +2982,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
                    (long)(i+1), (long)imageFiles.count, image.size.width, image.size.height);
         
         // 创建临时视频文件路径
-        NSString *tempVideoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:
+        NSString *tempVideoPath = [[DYYYUtils cacheDirectory] stringByAppendingPathComponent:
                                   [NSString stringWithFormat:@"temp_img_%@.mp4", [NSUUID UUID].UUIDString]];
         
         dispatch_group_enter(processingGroup);
@@ -3688,5 +3506,160 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width,
     transform = CGAffineTransformTranslate(transform, xOffset / scale, yOffset / scale);
     
     return transform;
+}
+
+// 动画贴纸和GIF相关方法迁移自 DYYYUtils.m
++ (void)saveAnimatedSticker:(YYAnimatedImageView *)targetStickerView {
+    if (!targetStickerView) {
+        [DYYYUtils showToast:@"无法获取表情视图"];
+        return;
+    }
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (status != PHAuthorizationStatusAuthorized) {
+                [DYYYUtils showToast:@"需要相册权限才能保存"];
+                return;
+            }
+            if ([self isBDImageWithHeifURL:targetStickerView.image]) {
+                [self saveHeifSticker:targetStickerView];
+                return;
+            }
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                NSArray *images = [self getImagesFromYYAnimatedImageView:targetStickerView];
+                CGFloat duration = [self getDurationFromYYAnimatedImageView:targetStickerView];
+                if (!images || images.count == 0) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [DYYYUtils showToast:@"无法获取表情帧"];
+                    });
+                    return;
+                }
+                NSString *tempPath = [[DYYYUtils cacheDirectory] stringByAppendingPathComponent:
+                                      [NSString stringWithFormat:@"sticker_%ld.gif", (long)[[NSDate date] timeIntervalSince1970]]];
+                BOOL success = [self createGIFWithImages:images duration:duration path:tempPath progress:^(float progress) {}];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (!success) {
+                        return;
+                    }
+                    [self saveGIFToPhotoLibrary:tempPath completion:^(BOOL saved, NSError *error) {
+                        if (saved) {
+                            [DYYYToast showSuccessToastWithMessage:@"已保存到相册"];
+                        } else {
+                            NSString *errorMsg = error ? error.localizedDescription : @"未知错误";
+                            [DYYYUtils showToast:[NSString stringWithFormat:@"保存失败: %@", errorMsg]];
+                        }
+                    }];
+                });
+            });
+        });
+    }];
+}
++ (BOOL)isBDImageWithHeifURL:(UIImage *)image {
+    if (!image) return NO;
+    if ([NSStringFromClass([image class]) containsString:@"BDImage"]) {
+        if ([image respondsToSelector:@selector(bd_webURL)]) {
+            NSURL *webURL = [image performSelector:@selector(bd_webURL)];
+            if (webURL) {
+                NSString *urlString = webURL.absoluteString;
+                return [urlString containsString:@".heif"] || [urlString containsString:@".heic"];
+            }
+        }
+    }
+    return NO;
+}
++ (void)saveHeifSticker:(YYAnimatedImageView *)stickerView {
+    UIImage *image = stickerView.image;
+    NSURL *heifURL = [image performSelector:@selector(bd_webURL)];
+    if (!heifURL) {
+        [DYYYUtils showToast:@"无法获取表情URL"];
+        return;
+    }
+    [DYYYManager convertHeicToGif:heifURL completion:^(NSURL *gifURL, BOOL success) {
+        if (!success || !gifURL) {
+            [DYYYUtils showToast:@"表情转换失败"];
+            return;
+        }
+        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+            PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
+            [request addResourceWithType:PHAssetResourceTypePhoto fileURL:gifURL options:nil];
+        } completionHandler:^(BOOL success, NSError * _Nullable error) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (success) {
+                    [DYYYToast showSuccessToastWithMessage:@"已保存到相册"];
+                } else {
+                    NSString *errorMsg = error ? error.localizedDescription : @"未知错误";
+                    [DYYYUtils showToast:[NSString stringWithFormat:@"保存失败: %@", errorMsg]];
+                }
+                NSError *removeError = nil;
+                [[NSFileManager defaultManager] removeItemAtURL:gifURL error:&removeError];
+                if (removeError) {
+                    NSLog(@"删除临时转换文件失败: %@", removeError);
+                }
+            });
+        }];
+    }];
+}
++ (NSArray *)getImagesFromYYAnimatedImageView:(YYAnimatedImageView *)imageView {
+    if (!imageView || !imageView.image) {
+        return nil;
+    }
+    if ([imageView.image respondsToSelector:@selector(images)]) {
+        return [imageView.image performSelector:@selector(images)];
+    } else if (imageView.animationImages) {
+        return imageView.animationImages;
+    }
+    return nil;
+}
++ (CGFloat)getDurationFromYYAnimatedImageView:(YYAnimatedImageView *)imageView {
+    if (!imageView || !imageView.image) {
+        return 0;
+    }
+    if ([imageView.image respondsToSelector:@selector(duration)]) {
+        CGFloat duration = [[imageView.image performSelector:@selector(duration)] floatValue];
+        if (duration > 0) {
+            return duration;
+        }
+    }
+    if (imageView.animationDuration > 0 && imageView.animationImages.count > 0) {
+        return imageView.animationDuration;
+    }
+    NSArray *images = [self getImagesFromYYAnimatedImageView:imageView];
+    return 0.1 * (images ? images.count : 10);
+}
++ (BOOL)createGIFWithImages:(NSArray *)images duration:(CGFloat)duration path:(NSString *)path progress:(void(^)(float progress))progressBlock {
+    if (images.count == 0) return NO;
+    float frameDuration = duration / images.count;
+    CGImageDestinationRef destination = CGImageDestinationCreateWithURL((__bridge CFURLRef)[NSURL fileURLWithPath:path], kUTTypeGIF, images.count, NULL);
+    if (!destination) return NO;
+    NSDictionary *gifProperties = @{ (__bridge NSString *)kCGImagePropertyGIFDictionary: @{ (__bridge NSString *)kCGImagePropertyGIFLoopCount: @0 } };
+    CGImageDestinationSetProperties(destination, (__bridge CFDictionaryRef)gifProperties);
+    for (NSUInteger i = 0; i < images.count; i++) {
+        UIImage *image = images[i];
+        NSDictionary *frameProperties = @{ (__bridge NSString *)kCGImagePropertyGIFDictionary: @{ (__bridge NSString *)kCGImagePropertyGIFDelayTime: @(frameDuration) } };
+        CGImageDestinationAddImage(destination, image.CGImage, (__bridge CFDictionaryRef)frameProperties);
+        if (progressBlock) {
+            progressBlock((float)(i + 1) / images.count);
+        }
+    }
+    BOOL success = CGImageDestinationFinalize(destination);
+    CFRelease(destination);
+    return success;
+}
++ (void)saveGIFToPhotoLibrary:(NSString *)path completion:(void(^)(BOOL success, NSError *error))completion {
+    NSURL *fileURL = [NSURL fileURLWithPath:path];
+    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+        PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
+        [request addResourceWithType:PHAssetResourceTypePhoto fileURL:fileURL options:nil];
+    } completionHandler:^(BOOL success, NSError * _Nullable error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (completion) {
+                completion(success, error);
+            }
+            NSError *removeError = nil;
+            [[NSFileManager defaultManager] removeItemAtPath:path error:&removeError];
+            if (removeError) {
+                NSLog(@"删除临时GIF文件失败: %@", removeError);
+            }
+        });
+    }];
 }
 @end
