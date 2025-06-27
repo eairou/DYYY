@@ -21,6 +21,8 @@
  */
 + (instancetype)shared;
 
++ (void)setNameMeta:(NSString *)namemeta;
+
 #pragma mark - UI相关方法
 
 #pragma mark - 媒体保存方法
