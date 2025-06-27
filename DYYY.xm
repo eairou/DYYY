@@ -190,13 +190,13 @@
 	NSArray *currentChannelIDList = arg2;
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSMutableArray *newCurrentChannelIDList = [NSMutableArray arrayWithArray:currentChannelIDList];
-	NSString *hideOtherChannels = [defaults objectForKey:@"DYYYHideOtherChannel"] ?: @"";
-	NSArray *hideChannelKeywords = [hideOtherChannels componentsSeparatedByString:@","];
+	//NSString *hideOtherChannels = [defaults objectForKey:@"DYYYHideOtherChannel"] ?: @"";
+	//NSArray *hideChannelKeywords = [hideOtherChannels componentsSeparatedByString:@","];
 
 	for (AWEHPTopTabItemModel *tabItemModel in channelModels) {
 		NSString *channelID = tabItemModel.channelID;
-		NSString *newChannelTitle = tabItemModel.title;
-		NSString *oldChannelTitle = tabItemModel.channelTitle;
+		//NSString *newChannelTitle = tabItemModel.title;
+		//NSString *oldChannelTitle = tabItemModel.channelTitle;
 		BOOL isHideChannel = NO;
 
 		if ([channelID isEqualToString:@"homepage_hot_container"]) {
@@ -228,6 +228,7 @@
 		} else if ([channelID isEqualToString:@"homepage_pad_game"]) {
 			isHideChannel = [defaults boolForKey:@"DYYYHideGame"];
 		}
+/*
 		if (oldChannelTitle.length > 0 || newChannelTitle.length > 0) {
 			for (NSString *keyword in hideChannelKeywords) {
 				if (keyword.length > 0 && ([oldChannelTitle containsString:keyword] || [newChannelTitle containsString:keyword])) {
@@ -235,6 +236,7 @@
 				}
 			}
 		}
+*/
 		if (!isHideChannel) {
 			[newChannelModels addObject:tabItemModel];
 		} else {
@@ -1825,6 +1827,8 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 }
 %end
 
+
+/*
 %hook _TtC33AWECommentLongPressPanelSwiftImpl32CommentLongPressPanelCopyElement
 
 - (void)elementTapped {
@@ -1841,6 +1845,8 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 	}
 }
 %end
+*/
+
 
 // 启用自动勾选原图
 %hook AWEIMPhotoPickerFunctionModel
