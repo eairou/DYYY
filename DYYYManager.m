@@ -266,6 +266,12 @@ NSString *originalFilename = [mediaURL lastPathComponent];
               } else {
 //[DYYYUtils showToast:[NSString stringWithFormat:@"保存失败2: %@", finalName]];
 //[DYYYUtils showToast:@"保存失败-2"];
+// 检查并显示错误信息
+        if (error) {
+            [DYYYUtils showToast:[NSString stringWithFormat:@"保存失败: %@", error.localizedDescription]];
+        } else {
+            [DYYYUtils showToast:@"保存失败，未知错误"];
+        }
               }
               // 不管成功失败都清理临时文件
               [[NSFileManager defaultManager] removeItemAtPath:mediaURL.path
