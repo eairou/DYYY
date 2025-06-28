@@ -264,7 +264,7 @@ NSString *originalFilename = [mediaURL lastPathComponent];
                   completion();
                 }
               } else {
-[DYYYUtils showToast:[NSString stringWithFormat:@"保存失败2: %@", finalName]];
+//[DYYYUtils showToast:[NSString stringWithFormat:@"保存失败2: %@", finalName]];
 //[DYYYUtils showToast:@"保存失败-2"];
               }
               // 不管成功失败都清理临时文件
