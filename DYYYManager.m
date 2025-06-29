@@ -221,7 +221,7 @@ NSString *originalFilename = [mediaURL lastPathComponent];
                 // 视频处理
 [DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的if视频: %@", finalName]];
 
-                        creationOptions.uniformTypeIdentifier = @"public.movie";
+                        creationOptions.uniformTypeIdentifier = @"public.mpeg-4";
                         PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
                         [request addResourceWithType:PHAssetResourceTypeVideo
                                            fileURL:mediaURL
