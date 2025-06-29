@@ -220,16 +220,16 @@ NSString *originalFilename = [mediaURL lastPathComponent];
               if (mediaType == MediaTypeVideo) {
                 // 视频处理
 [DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的if视频: %@", finalName]];
-/*
+
                         creationOptions.uniformTypeIdentifier = @"public.movie";
                         PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
                         [request addResourceWithType:PHAssetResourceTypeVideo
                                            fileURL:mediaURL
                                           options:creationOptions];
-*/
+/*
                 [PHAssetChangeRequest
                     creationRequestForAssetFromVideoAtFileURL:mediaURL];
-
+*/
               } else {
 [DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的else图片: %@", finalName]];
 
