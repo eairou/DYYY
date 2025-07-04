@@ -1517,6 +1517,7 @@ NSString *extension;
 
 // 根据是否已有扩展名决定如何设置 fileName 和 extension
 if (!fileName.pathExtension.length) {
+[DYYYUtils showToast:@"无媒体格式后缀"];
   switch (mediaType) {
     case MediaTypeVideo:
         extension = @"mp4";
