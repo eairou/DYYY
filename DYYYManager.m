@@ -961,6 +961,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
                                                                        audioURL:audioURL
                                                                      completion:^(BOOL mergeSuccess, NSURL *mergedURL) {
                                                                        if (mergeSuccess) {
+[DYYYUtils showToast:@"音视频合成成功"];
                                                                            [self saveMedia:mergedURL
                                                                                  mediaType:mediaType
                                                                                 completion:^{
@@ -969,6 +970,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
                                                                                   }
                                                                                 }];
                                                                        } else {
+[DYYYUtils showToast:@"音视频合成失败"];
                                                                            [self saveMedia:fileURL
                                                                                  mediaType:mediaType
                                                                                 completion:^{
