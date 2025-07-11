@@ -57,7 +57,7 @@ static CGFloat gStartVal = 0.0;
 @property(copy, nonatomic) NSArray *bitrateModels;
 @property(copy, nonatomic) NSArray *bitrateRawData;
 @property(copy, nonatomic) NSArray *bitrateModels_origin;
-@property(nonatomic, copy) NSArray *audioBSModels
+@property(nonatomic, copy) NSArray *audioBSModels;
 @property(nonatomic, assign) AWEURLModel *h264URL;
 @property(nonatomic, strong) AWEURLModel *coverURL;
 @end
