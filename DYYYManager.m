@@ -1160,7 +1160,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
         }
 
         // 生成操作条目的标题，包含质量类型、文件大小以及图像宽度和高度
-        NSString *title = [NSString stringWithFormat:@"类型：%@, 文件大小：%@, 图像尺寸：%.0fx%.0f", qualityType, formattedSize, imageWidth, imageHeight];
+        NSString *title = [NSString stringWithFormat:@"%@, 大小：%@, 尺寸：%.0fx%.0f", qualityType, formattedSize, imageWidth, imageHeight];
        
       //  NSLog(@"质量类型: %@, URL: %@", qualityType, url.absoluteString);
 
