@@ -109,6 +109,14 @@ static inline CGFloat DYYYFrameDelayForProperties(CFDictionaryRef properties) {
     }
     return self;
 }
+static NSString *globalNameMeta; // 定义静态变量为 NSString 类型
+static NSInteger allNumber;
+static NSString *finalName;
+
++ (void)setNameMeta:(NSString *)namemeta {
+  globalNameMeta = namemeta; // 设置值，将传入的 NSString 数据赋给静态变量
+}
+
 
 + (void)saveMedia:(NSURL *)mediaURL mediaType:(MediaType)mediaType completion:(void (^)(void))completion {
     if (mediaType == MediaTypeAudio) {
@@ -117,6 +125,11 @@ static inline CGFloat DYYYFrameDelayForProperties(CFDictionaryRef properties) {
 
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
       if (status == PHAuthorizationStatusAuthorized) {
+
+// 获取原始文件名（不含路径）
+NSString *originalFilename = [mediaURL lastPathComponent];
+//[DYYYManager showToast:originalFilename];
+
           // 如果是表情包类型，先检查实际格式
           if (mediaType == MediaTypeHeic) {
               // 检测文件的实际格式
@@ -193,29 +206,74 @@ static inline CGFloat DYYYFrameDelayForProperties(CFDictionaryRef properties) {
                       }];
               }
           } else {
-              // 非表情包类型的正常保存流程
-              [[PHPhotoLibrary sharedPhotoLibrary]
-                  performChanges:^{
-                    if (mediaType == MediaTypeVideo) {
-                        [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:mediaURL];
-                    } else {
-                        UIImage *image = [UIImage imageWithContentsOfFile:mediaURL.path];
-                        if (image) {
-                            [PHAssetChangeRequest creationRequestForAssetFromImage:image];
-                        }
-                    }
-                  }
-                  completionHandler:^(BOOL success, NSError *_Nullable error) {
-                    if (success) {
-                        if (completion) {
-                            completion();
-                        }
-                    } else {
-                        [DYYYUtils showToast:@"保存失败"];
-                    }
-                    // 不管成功失败都清理临时文件
-                    [[NSFileManager defaultManager] removeItemAtPath:mediaURL.path error:nil];
-                  }];
+              //视频图片都经此处
+        // 非表情包类型的正常保存流程
+        [[PHPhotoLibrary sharedPhotoLibrary]
+            performChanges:^{
+							// 创建资源选项
+              PHAssetResourceCreationOptions *creationOptions = [PHAssetResourceCreationOptions new];
+              creationOptions.originalFilename = originalFilename; // 关键设置
+              
+              if (mediaType == MediaTypeVideo) {
+                // 视频处理
+[DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的if视频: %@", finalName]];
+
+                        creationOptions.uniformTypeIdentifier = @"public.mpeg-4";
+                        PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
+                        [request addResourceWithType:PHAssetResourceTypeVideo
+                                           fileURL:mediaURL
+                                          options:creationOptions];
+/*
+                [PHAssetChangeRequest
+                    creationRequestForAssetFromVideoAtFileURL:mediaURL];
+*/
+              } else {
+[DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的else图片: %@", finalName]];
+
+// 图片处理（包括HEIC）
+                // 根据媒体类型设置统一类型标识符
+                if (mediaType == MediaTypeHeic) {
+                    creationOptions.uniformTypeIdentifier = @"public.heic";
+                } else {
+                    creationOptions.uniformTypeIdentifier = @"public.image";
+                }
+                        
+                PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
+                [request addResourceWithType:PHAssetResourceTypePhoto
+                                           fileURL:mediaURL
+                                          options:creationOptions];
+
+              }
+
+/*
+                UIImage *image =
+                    [UIImage imageWithContentsOfFile:mediaURL.path];
+                if (image) {
+                  [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+                }
+*/
+              
+            }
+            completionHandler:^(BOOL success, NSError *_Nullable error) {
+              if (success) {
+
+                if (completion) {
+                  completion();
+                }
+              } else {
+//[DYYYUtils showToast:[NSString stringWithFormat:@"保存失败2: %@", finalName]];
+//[DYYYUtils showToast:@"保存失败-2"];
+// 检查并显示错误信息
+        if (error) {
+            [DYYYUtils showToast:[NSString stringWithFormat:@"保存失败: %@", error.localizedDescription]];
+        } else {
+            [DYYYUtils showToast:@"保存失败，未知错误"];
+        }
+              }
+              // 不管成功失败都清理临时文件
+              [[NSFileManager defaultManager] removeItemAtPath:mediaURL.path
+                                                         error:nil];
+            }];
           }
       }
     }];
@@ -895,8 +953,10 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
                                      }
                                    });
                                } else {
+//[DYYYUtils showToast:[NSString stringWithFormat:@"downmedia中sucess中的else的savemedia: %@", finalName]];
                                    if (mediaType == MediaTypeVideo && audioURL) {
                                        if (![self videoHasAudio:fileURL]) {
+[DYYYUtils showToast:@"视频无音频 准备下载音频"];
                                            [self downloadAudioAndMergeWithVideo:fileURL
                                                                        audioURL:audioURL
                                                                      completion:^(BOOL mergeSuccess, NSURL *mergedURL) {
@@ -930,6 +990,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
                                         }];
                                }
                            } else {
+[DYYYUtils showToast:@"downmedia中的else失败 无法连接网络"];
                                if (completion) {
                                    completion(NO);
                                }
@@ -1076,6 +1137,62 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
     });
 }
 
++ (void)showQualityOptions:(NSArray *)qualityURLPairs audioURL:(NSURL *)audioURL
+ {
+    // 创建一个操作表视图实例
+    AWEUserActionSheetView *actionSheet = [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
+    NSMutableArray *actions = [NSMutableArray array];
+
+    // 遍历每个质量-URL 对
+    for (NSDictionary *pair in qualityURLPairs) {
+        NSString *qualityType = pair[@"qualityType"];
+        NSURL *url = pair[@"url"];
+        CGFloat sizeByte = [pair[@"sizeByte"] floatValue];
+        CGFloat imageWidth = [pair[@"imageWidth"] floatValue];
+        CGFloat imageHeight = [pair[@"imageHeight"] floatValue];
+
+        // 格式化文件大小
+        NSString *formattedSize;
+        if (sizeByte >= 1024 * 1024) {
+            formattedSize = [NSString stringWithFormat:@"%.2f MB", sizeByte / (1024 * 1024)];
+        } else {
+            formattedSize = [NSString stringWithFormat:@"%.2f KB", sizeByte / 1024];
+        }
+
+        // 生成操作条目的标题，包含质量类型、文件大小以及图像宽度和高度
+        NSString *title = [NSString stringWithFormat:@"类型：%@, 文件大小：%@, 图像尺寸：%.0fx%.0f", qualityType, formattedSize, imageWidth, imageHeight];
+       
+      //  NSLog(@"质量类型: %@, URL: %@", qualityType, url.absoluteString);
+
+        // 创建一个动作按钮
+        AWEUserSheetAction *qualityAction = [NSClassFromString(@"AWEUserSheetAction")
+            actionWithTitle:title
+                    imgName:nil
+                    handler:^{
+                    [self downloadMedia:url
+                              mediaType:MediaTypeVideo
+audio:audioURL
+                             completion:^(BOOL success) {
+                               if (!success) {
+                                   NSLog(@"下载失败: URL -> %@", url.absoluteString);
+                               } else {
+                                   NSLog(@"下载成功: URL -> %@", url.absoluteString);
+                               }
+                             }];
+                    }];
+        
+        // 将动作添加到数组中
+        [actions addObject:qualityAction];
+    }
+
+    // 显示操作表视图
+    if (actions.count > 0) {
+        [actionSheet setActions:actions];
+        [actionSheet show];
+    }
+}
+
+
 // 取消所有下载
 + (void)cancelAllDownloads {
     NSArray *downloadIDs = [[DYYYManager shared].downloadTasks allKeys];
@@ -1147,6 +1264,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
       __block NSInteger completedCount = 0;
       __block NSInteger successCount = 0;
       NSInteger totalCount = imageURLs.count;
+allNumber=totalCount;
 
       progressView.cancelBlock = ^{
         [self cancelAllDownloads];
@@ -1338,6 +1456,63 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
         mediaType = (MediaType)[mediaTypeNumber integerValue];
     }
 
+  // 用于跟踪序号
+static NSInteger index = 0;
+
+  // 处理下载的文件
+  NSString *fileName = [downloadTask.originalRequest.URL lastPathComponent];
+
+NSString *extension;
+
+// 根据是否已有扩展名决定如何设置 fileName 和 extension
+if (!fileName.pathExtension.length) {
+[DYYYUtils showToast:@"无媒体格式后缀"];
+  switch (mediaType) {
+    case MediaTypeVideo:
+        extension = @"mp4";
+        break;
+    case MediaTypeImage:
+        extension = @"jpg";
+        break;
+    case MediaTypeAudio:
+        extension = @"mp3";
+        break;
+    case MediaTypeHeic:
+        extension = @"heic";
+        break;
+  }
+} else {
+  extension = fileName.pathExtension;
+}
+
+// 初始化文件名为 globalNameMeta
+fileName = globalNameMeta;
+
+// 检查是否需要加后缀
+if (allNumber > 1) {
+  index++;
+  // 在基础名称后加上序号和扩展名
+  fileName = [NSString stringWithFormat:@"%@_%ld.%@", fileName, index, extension];
+  // 在这里可以对新名称进行操作，例如打印出来或赋值回去
+  //NSLog(@"Updated Name: %@", fileName);
+  
+  // 检查是否需要重置序号
+  if (index == allNumber) {
+    index = 0;
+    allNumber=1;
+  }
+} else {
+  // 如果不需要序号后缀，只需正常添加扩展名
+  fileName = [NSString stringWithFormat:@"%@.%@", fileName, extension];
+}
+
+finalName=fileName;
+
+//[DYYYUtils showToast:finalName];
+
+
+
+/*
     // 处理下载的文件
     NSString *fileName = [downloadTask.originalRequest.URL lastPathComponent];
 
@@ -1357,6 +1532,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
                 break;
         }
     }
+*/
 
     NSURL *tempDir = [NSURL fileURLWithPath:NSTemporaryDirectory()];
     NSURL *destinationURL = [tempDir URLByAppendingPathComponent:fileName];
