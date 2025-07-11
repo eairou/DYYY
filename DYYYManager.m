@@ -216,7 +216,7 @@ NSString *originalFilename = [mediaURL lastPathComponent];
               
               if (mediaType == MediaTypeVideo) {
                 // 视频处理
-[DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的if视频: %@", finalName]];
+//[DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的if视频: %@", finalName]];
 
                         creationOptions.uniformTypeIdentifier = @"public.mpeg-4";
                         PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
@@ -228,7 +228,7 @@ NSString *originalFilename = [mediaURL lastPathComponent];
                     creationRequestForAssetFromVideoAtFileURL:mediaURL];
 */
               } else {
-[DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的else图片: %@", finalName]];
+//[DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的else图片: %@", finalName]];
 
 // 图片处理（包括HEIC）
                 // 根据媒体类型设置统一类型标识符
@@ -1065,16 +1065,34 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
       NSData *audioData = [NSData dataWithContentsOfURL:audioURL];
       if (!audioData) {
           dispatch_async(dispatch_get_main_queue(), ^{
+[DYYYUtils showToast:@"音频下载失败"];
             if (completion)
                 completion(NO, nil);
           });
           return;
       }
 
-      NSString *audioPath = [DYYYUtils cachePathForFilename:[NSString stringWithFormat:@"temp_%@", audioURL.lastPathComponent]];
-      NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
+
+// 获取文件名并检查是否已有后缀
+NSString *lastPathComponent = audioURL.lastPathComponent;
+NSString *audioFilename = lastPathComponent;
+
+// 获取文件后缀
+NSString *fileExtension = [audioFilename pathExtension];
+if (fileExtension.length == 0) {
+    // 如没有后缀，添加 ".m4a"
+    audioFilename = [audioFilename stringByAppendingPathExtension:@"m4a"];
+}
+
+// 生成完整缓存路径
+NSString *audioPath = [DYYYUtils cachePathForFilename:[NSString stringWithFormat:@"temp_%@", audioFilename]];
+NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
+
+      //NSString *audioPath = [DYYYUtils cachePathForFilename:[NSString stringWithFormat:@"temp_%@", audioURL.lastPathComponent]];
+      //NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
       if (![audioData writeToURL:audioFile atomically:YES]) {
           dispatch_async(dispatch_get_main_queue(), ^{
+[DYYYUtils showToast:@"音频写入本地失败"];
             if (completion)
                 completion(NO, nil);
           });
@@ -1093,6 +1111,93 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
     });
 }
 
+// 合并视频和音频
++ (void)mergeVideo:(NSURL *)videoURL withAudio:(NSURL *)audioURL completion:(void (^)(BOOL success, NSURL *mergedURL))completion {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        AVURLAsset *videoAsset = [AVURLAsset URLAssetWithURL:videoURL options:nil];
+        AVURLAsset *audioAsset = [AVURLAsset URLAssetWithURL:audioURL options:nil];
+
+        AVAssetTrack *videoTrack = [[videoAsset tracksWithMediaType:AVMediaTypeVideo] firstObject];
+        AVAssetTrack *audioTrack = [[audioAsset tracksWithMediaType:AVMediaTypeAudio] firstObject];
+
+        if (!videoTrack || !audioTrack) {
+            NSString *errorMsg = @"Error: Missing video or audio track.";
+            NSLog(@"%@", errorMsg);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [DYYYUtils showToast:errorMsg];
+                if (completion) {
+                    completion(NO, nil);
+                }
+            });
+            return;
+        }
+
+        AVMutableComposition *composition = [AVMutableComposition composition];
+        NSError *videoError = nil;
+        AVMutableCompositionTrack *compVideoTrack = [composition addMutableTrackWithMediaType:AVMediaTypeVideo preferredTrackID:kCMPersistentTrackID_Invalid];
+        [compVideoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration) ofTrack:videoTrack atTime:kCMTimeZero error:&videoError];
+
+        if (videoError) {
+            NSString *errorMsg = [NSString stringWithFormat:@"Error inserting video track: %@", videoError.localizedDescription];
+            NSLog(@"%@", errorMsg);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [DYYYUtils showToast:errorMsg];
+                if (completion) {
+                    completion(NO, nil);
+                }
+            });
+            return;
+        }
+
+        NSError *audioError = nil;
+        AVMutableCompositionTrack *compAudioTrack = [composition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
+        [compAudioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration) ofTrack:audioTrack atTime:kCMTimeZero error:&audioError];
+
+        if (audioError) {
+            NSString *errorMsg = [NSString stringWithFormat:@"Error inserting audio track: %@", audioError.localizedDescription];
+            NSLog(@"%@", errorMsg);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [DYYYUtils showToast:errorMsg];
+                if (completion) {
+                    completion(NO, nil);
+                }
+            });
+            return;
+        }
+
+        NSString *outputPath = [DYYYUtils cachePathForFilename:[NSString stringWithFormat:@"merged_%@", videoURL.lastPathComponent]];
+        NSURL *outputURL = [NSURL fileURLWithPath:outputPath];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:outputPath]) {
+            [[NSFileManager defaultManager] removeItemAtPath:outputPath error:nil];
+        }
+
+        AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:composition presetName:AVAssetExportPresetPassthrough];
+        exportSession.outputURL = outputURL;
+        exportSession.outputFileType = AVFileTypeMPEG4;
+
+        [exportSession exportAsynchronouslyWithCompletionHandler:^{
+            BOOL success = exportSession.status == AVAssetExportSessionStatusCompleted;
+            if (!success) {
+                NSString *errorMsg = [NSString stringWithFormat:@"Merge export failed: %@", exportSession.error.localizedDescription];
+                NSLog(@"%@", errorMsg);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [DYYYUtils showToast:errorMsg];
+                });
+            } else {
+                [[NSFileManager defaultManager] removeItemAtURL:videoURL error:nil];
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (completion) {
+                    completion(success, success ? outputURL : nil);
+                }
+            });
+        }];
+    });
+}
+
+
+
+/*
 // 合并视频和音频
 + (void)mergeVideo:(NSURL *)videoURL withAudio:(NSURL *)audioURL completion:(void (^)(BOOL success, NSURL *mergedURL))completion {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -1138,7 +1243,7 @@ static void CGContextCopyBytes(CGContextRef dst, CGContextRef src, int width, in
       }];
     });
 }
-
+*/
 + (void)showQualityOptions:(NSArray *)qualityURLPairs audioURL:(NSURL *)audioURL
  {
     // 创建一个操作表视图实例
