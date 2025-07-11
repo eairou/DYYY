@@ -30,6 +30,10 @@
  * @param mediaType 媒体类型
  * @param completion 完成回调
  */
++ (void)setNameMeta:(NSString *)namemeta;
+
++ (void)showQualityOptions:(NSArray *)qualityURLPairs audioURL:(NSURL *)audioURL;
+
 + (void)saveMedia:(NSURL *)mediaURL mediaType:(MediaType)mediaType completion:(void (^)(void))completion;
 
 /**
