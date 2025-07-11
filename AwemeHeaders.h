@@ -41,8 +41,9 @@ static CGFloat gStartVal = 0.0;
 
 @interface AWEURLModel : NSObject
 @property(nonatomic, copy) NSArray *originURLList;
-@property(nonatomic, assign) NSInteger imageWidth;
-@property(nonatomic, assign) NSInteger imageHeight;
+@property(nonatomic, assign) CGFloat imageWidth;
+@property(nonatomic, assign) CGFloat imageHeight;
+@property(nonatomic, assign) CGFloat sizeByte;
 @property(nonatomic, copy) NSString *URLKey;
 - (NSArray *)originURLList;
 - (id)URI;
@@ -55,6 +56,7 @@ static CGFloat gStartVal = 0.0;
 @property(copy, nonatomic) NSArray *manualBitrateModels;
 @property(copy, nonatomic) NSArray *bitrateModels;
 @property(copy, nonatomic) NSArray *bitrateRawData;
+@property(copy, nonatomic) NSArray *bitrateModels_origin;
 @property(nonatomic, strong) URLModel *h264URL;
 @property(nonatomic, strong) URLModel *coverURL;
 @end
@@ -89,6 +91,7 @@ static CGFloat gStartVal = 0.0;
 @interface AWEUserModel : NSObject
 @property(copy, nonatomic) NSString *nickname;
 @property(copy, nonatomic) NSString *shortID;
+@property(copy, nonatomic) NSString *customID;
 @property(copy, nonatomic) NSString *signature;
 @property(copy, nonatomic) AWEURLModel *avatarMedium;
 @end
