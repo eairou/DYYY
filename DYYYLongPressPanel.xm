@@ -187,15 +187,21 @@ if (musicModel && musicModel.playURL && musicModel.playURL.originURLList.count >
     audioURL = [NSURL URLWithString:musicModel.playURL.originURLList.firstObject];
 }
 */
-if (videoModel && videoModel.audioBSModels && videoModel.audioBSModels.count > 0) {
-    // 从模型中获取音频 URL
-    audioURL = [NSURL URLWithString:videoModel.audioBSModels.firstObject.urlList.firstObject];
-    
-    // 将 NSURL 转换为 NSString
- //   NSString *audioURLString = [audioURL absoluteString];
-    
-    // 显示 toast 消息，包含音频 URL
-    //[DYYYUtils showToast:[NSString stringWithFormat:@"audioUrl: %@", audioURLString]];
+
+// 检查 audioBSModels 是否存在并且有至少一个条目
+if (videoModel.audioBSModels && videoModel.audioBSModels.count > 0) {
+        // 获取 audioBSModels 中的第一个条目
+        AWEAudioBSModel *firstAudioBSModel = videoModel.audioBSModels.firstObject;
+        
+        // 检查 AWEAudioBSModel 的 urlList 是否存在并且有至少一个条目
+        if (firstAudioBSModel.urlList && firstAudioBSModel.urlList.count > 0) {
+            // 获取 urlList 中的第一个条目
+            audioURL = [NSURL URLWithString:firstAudioBSModel.urlList.firstObject];
+        } else {
+            [DYYYUtils showToast:@"有音频链接 但获取失败"];
+        }
+} else {
+    [DYYYUtils showToast:@"无音频链接或视频小于4分钟"];
 }
 
 NSMutableArray *qualityURLPairs = [NSMutableArray array];
