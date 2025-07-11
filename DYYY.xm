@@ -1782,7 +1782,7 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 }
 
 %end
-
+/*
 %hook _TtC33AWECommentLongPressPanelSwiftImpl32CommentLongPressPanelCopyElement
 
 - (void)elementTapped {
@@ -1799,7 +1799,7 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
     }
 }
 %end
-
+*/
 // 启用自动勾选原图
 %hook AWEIMPhotoPickerFunctionModel
 
