@@ -159,8 +159,8 @@
               audioURL = [NSURL URLWithString:musicModel.playURL.originURLList.firstObject];
           }
 
-                  if (videoModel.h264URL && videoModel.h264URL.originURLList.count > 0) {
-                      NSURL *url = [NSURL URLWithString:videoModel.h264URL.originURLList.firstObject];
+                  if (videoModel.playURL && videoModel.playURL.originURLList.count > 0) {
+                      NSURL *url = [NSURL URLWithString:videoModel.playURL.originURLList.firstObject];
                       [DYYYManager downloadMedia:url
                                        mediaType:MediaTypeVideo
                                            audio:audioURL
