@@ -159,7 +159,7 @@ NSString *idType = author.customID.length > 0 ? @"Id" : @"shortId";
 NSString *filemeta = [NSString stringWithFormat:@"Name-%@_%@-%@_Date%@", nickname, idType, identifier, dateString];
 
 // 使用封装的方法
-[DYYYUtils showToast:filemeta];
+//[DYYYUtils showToast:filemeta];
 [DYYYManager setNameMeta:filemeta];
 			
 // 输出结果
@@ -247,8 +247,8 @@ void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, 
 };
 
 // 用于标识视频类型的字符串
-NSString *noAudioCategory = @"长视频无音频";
-NSString *withAudioCategory = @"长视频有音频";
+NSString *noAudioCategory = @"可能无声";
+NSString *withAudioCategory = @"一定有声";
 
 // 判断并处理每个 bitrateModels 列表（长视频无音频）
 if (videoModel.bitrateModels && videoModel.bitrateModels.count > 0) {
