@@ -181,21 +181,21 @@ NSString *filemeta = [NSString stringWithFormat:@"Name-%@_%@-%@_Date%@", nicknam
 AWEAwemeModel *awemeModel = self.awemeModel;
 AWEVideoModel *videoModel = awemeModel.video;
 AWEMusicModel *musicModel = awemeModel.music;
-/*
 NSURL *audioURL = nil;
+/*
 if (musicModel && musicModel.playURL && musicModel.playURL.originURLList.count > 0) {
     audioURL = [NSURL URLWithString:musicModel.playURL.originURLList.firstObject];
 }
 */
 if (videoModel && videoModel.audioBSModels && videoModel.audioBSModels.count > 0) {
     // 从模型中获取音频 URL
-    NSURL *audioURL = [NSURL URLWithString:videoModel.audioBSModels.firstObject.urlList.firstObject];
+    audioURL = [NSURL URLWithString:videoModel.audioBSModels.firstObject.urlList.firstObject];
     
     // 将 NSURL 转换为 NSString
-    NSString *audioURLString = [audioURL absoluteString];
+ //   NSString *audioURLString = [audioURL absoluteString];
     
     // 显示 toast 消息，包含音频 URL
-    [DYYYUtils showToast:[NSString stringWithFormat:@"audioUrl: %@", audioURLString]];
+    //[DYYYUtils showToast:[NSString stringWithFormat:@"audioUrl: %@", audioURLString]];
 }
 
 NSMutableArray *qualityURLPairs = [NSMutableArray array];
