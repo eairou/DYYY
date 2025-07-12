@@ -1259,9 +1259,9 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
         CGFloat imageHeight = [pair[@"imageHeight"] floatValue];
 
 // 提取 extraInfo 参数
-    NSNumber *isH265 = pair[@"isH265"];
+  //  NSNumber *isH265 = pair[@"isH265"];
     NSString *hdrType = pair[@"hdrType"];
-    NSNumber *videoFPS = pair[@"videoFPS"];
+    NSInteger videoFPS = [pair[@"videoFPS"] integerValue];
   
         // 格式化文件大小
         NSString *formattedSize;
@@ -1272,12 +1272,15 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
         }
 
 NSString *title;
-// 在使用之前进行判断
-    if (videoFPS) {
-        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@],HDR: %@,H265: %@",qualityType, imageWidth, imageHeight, formattedSize, hdrType, isH265.boolValue ? @"Yes" : @"No"];
-    }else{
+    // 在使用之前进行判断
+    if ([hdrType isEqualToString:@"1"]) {
+        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]-[%ldFPS]-[HDR]",qualityType, imageWidth, imageHeight, formattedSize, (long)videoFPS];
+    } else if (videoFPS > 0) {
+        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]-[%ldFPS]",qualityType, imageWidth, imageHeight, formattedSize, (long)videoFPS];
+    } else {
         title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]",qualityType, imageWidth, imageHeight, formattedSize];
     }
+
         // 生成操作条目的标题，包含质量类型、文件大小以及图像宽度和高度
         //NSString *title = [NSString stringWithFormat:@"%@, 大小：%@, 尺寸：%.0fx%.0f", qualityType, formattedSize, imageWidth, imageHeight];
        
