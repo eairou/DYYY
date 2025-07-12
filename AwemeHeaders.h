@@ -44,6 +44,7 @@ static CGFloat gStartVal = 0.0;
 @property(nonatomic, assign) CGFloat imageWidth;
 @property(nonatomic, assign) CGFloat imageHeight;
 @property(nonatomic, assign) CGFloat sizeByte;
+@property (nonatomic, copy) NSString *fileHash;
 @property(nonatomic, copy) NSString *URLKey;
 - (NSArray *)originURLList;
 - (id)URI;
