@@ -204,6 +204,87 @@ if (videoModel.audioBSModels && videoModel.audioBSModels.count > 0) {
     [DYYYUtils showToast:@"无音频链接或视频小于4分钟"];
 }
 
+
+NSMutableArray *combinedDataList = [NSMutableArray array];
+
+// 定义一个处理 AWEURLModel 的通用功能
+void (^processURLModel)(AWEURLModel *, NSDictionary *, NSString *) = ^(AWEURLModel *urlModel, NSDictionary *extraInfo, NSString *qualityType) {
+    NSArray *urlList = urlModel.originURLList;
+
+    if (urlList.count > 0) {
+        NSURL *url = [NSURL URLWithString:urlList.firstObject];
+        CGFloat imageWidth = urlModel.imageWidth;
+        CGFloat imageHeight = urlModel.imageHeight;
+        CGFloat sizeByte = urlModel.sizeByte;
+        NSString *fileHash = urlModel.fileHash ?: @"";  // 确保不为空
+
+        NSMutableDictionary *pair = [@{
+            @"qualityType": qualityType,
+            @"url": url ?: [NSNull null],
+            @"imageWidth": @(imageWidth),
+            @"imageHeight": @(imageHeight),
+            @"sizeByte": @(sizeByte),
+            @"fileHash": fileHash
+        } mutableCopy];
+
+        if (extraInfo) {
+            [pair addEntriesFromDictionary:extraInfo];
+        }
+
+        NSPredicate *duplicatePredicate = [NSPredicate predicateWithFormat:@"fileHash == %@", fileHash];
+        if (![combinedDataList filteredArrayUsingPredicate:duplicatePredicate].count) {
+            @synchronized (combinedDataList) {  // 串行处理以保证线程安全
+                [combinedDataList addObject:pair];
+            }
+        }
+    }
+};
+
+// 定义一个处理 bitrateModels 的通用方法
+void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, NSString *qualityType) {
+    for (AWEVideoBSModel *bitrateModel in bitrateModels) {
+        NSNumber *isH265 = [bitrateModel valueForKey:@"isH265"] ?: @(NO);
+        NSString *hdrType = [bitrateModel valueForKey:@"hdrType"] ?: @"";
+        NSInteger videoFPS = [[bitrateModel valueForKey:@"videoFPS"] integerValue];
+
+        NSDictionary *extraInfo = @{
+            @"isH265": isH265,
+            @"hdrType": hdrType,
+            @"videoFPS": @(videoFPS)
+        };
+
+        processURLModel(bitrateModel.playAddr, extraInfo, qualityType);
+    }
+};
+
+// 用于标识视频类型的字符串
+NSString *noAudioCategory = @"可能无声";
+NSString *withAudioCategory = @"一定有声";
+
+// 处理 bitrateModels 列表
+NSArray *bitrateModelsList = @[videoModel.bitrateModels, videoModel.bitrateModels_origin, videoModel.manualBitrateModels];
+for (NSArray *bitrateModels in bitrateModelsList) {
+    if (bitrateModels.count) {
+        processBitrateModels(bitrateModels, noAudioCategory);
+    }
+}
+
+// 判断并处理 playURL 和 h264URL
+NSArray *urlModelsList = @[videoModel.playURL, videoModel.h264URL];
+for (AWEURLModel *urlModel in urlModelsList) {
+    if (urlModel) {
+        processURLModel(urlModel, nil, withAudioCategory);
+    }
+}
+
+// 对 combinedDataList 按文件大小由大到小排序
+[combinedDataList sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"sizeByte" ascending:NO]]];
+
+// 显示数据
+[DYYYManager showQualityOptions:combinedDataList audioURL:audioURL];
+
+
+/*
 NSMutableArray *qualityURLPairs = [NSMutableArray array];
 
 // 定义一个处理 AWEURLModel 的通用功能
@@ -279,8 +360,7 @@ if (videoModel.playURL) {
 //[DYYYManager showQualityOptions:qualityURLPairs];
 
 [DYYYManager showQualityOptions:qualityURLPairs audioURL:audioURL];
-
-
+*/
               
           
           AWELongPressPanelManager *panelManager = [%c(AWELongPressPanelManager) shareInstance];
