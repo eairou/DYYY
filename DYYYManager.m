@@ -1274,7 +1274,7 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
 NSString *title;
 // 在使用之前进行判断
     if (videoFPS) {
-        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]-[%ldFPS],HDR: %@,H265: %@",qualityType, imageWidth, imageHeight, formattedSize, (long)videoFPS, hdrType, isH265.boolValue ? @"Yes" : @"No"];
+        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@],HDR: %@,H265: %@",qualityType, imageWidth, imageHeight, formattedSize, hdrType, isH265.boolValue ? @"Yes" : @"No"];
     }else{
         title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]",qualityType, imageWidth, imageHeight, formattedSize];
     }
