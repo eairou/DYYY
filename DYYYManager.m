@@ -1271,11 +1271,12 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
             formattedSize = [NSString stringWithFormat:@"%.2f KB", sizeByte / 1024];
         }
 
+NSString *title;
 // 在使用之前进行判断
     if (videoFPS) {
-        NSString *title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]-[%ldFPS],HDR: %@,H265: %@",qualityType, imageWidth, imageHeight, formattedSize, (long)videoFPS, hdrType, isH265.boolValue ? @"Yes" : @"No"];
+        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]-[%ldFPS],HDR: %@,H265: %@",qualityType, imageWidth, imageHeight, formattedSize, (long)videoFPS, hdrType, isH265.boolValue ? @"Yes" : @"No"];
     }else{
-        NSString *title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]",qualityType, imageWidth, imageHeight, formattedSize];
+        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]",qualityType, imageWidth, imageHeight, formattedSize];
     }
         // 生成操作条目的标题，包含质量类型、文件大小以及图像宽度和高度
         //NSString *title = [NSString stringWithFormat:@"%@, 大小：%@, 尺寸：%.0fx%.0f", qualityType, formattedSize, imageWidth, imageHeight];
