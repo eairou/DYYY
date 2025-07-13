@@ -52,15 +52,16 @@ static CGFloat gStartVal = 0.0;
 @end
 
 @interface AWEVideoModel : NSObject
-@property(nonatomic, assign) AWEURLModel *playLowBitURL;
-@property(nonatomic, strong) AWEURLModel *playURL;
-@property(copy, nonatomic) NSArray *manualBitrateModels;
-@property(copy, nonatomic) NSArray *bitrateModels;
-@property(copy, nonatomic) NSArray *bitrateRawData;
-@property(copy, nonatomic) NSArray *bitrateModels_origin;
-@property(nonatomic, copy) NSArray *audioBSModels;
 @property(nonatomic, assign) AWEURLModel *h264URL;
 @property(nonatomic, strong) AWEURLModel *coverURL;
+@property(nonatomic, assign) AWEURLModel *playLowBitURL;
+@property(nonatomic, strong) AWEURLModel *playURL;
+@property(nonatomic, copy) NSArray *bitrateModels;
+@property(nonatomic, copy) NSArray *bitrateRawData;
+@property(nonatomic, copy) NSArray *bitrateModels_origin;
+@property(nonatomic, copy) NSArray *manualBitrateModels;
+@property(nonatomic, copy) NSArray *audioBSModels;
+@property(nonatomic, copy) NSArray *audioBitrateModels;
 @end
 
 @interface AWEVideoBSModel : NSObject
