@@ -64,6 +64,8 @@ static CGFloat gStartVal = 0.0;
 @end
 
 @interface AWEVideoBSModel : NSObject
+@property (nonatomic, strong) NSNumber *bitrate;
+@property (nonatomic, strong) AWEURLModel *playAddr;
 @property (nonatomic, strong) NSNumber *isH265;
 @property (nonatomic, copy) NSString *hdrType;
 @property (nonatomic, assign) NSInteger videoFPS;
@@ -1254,11 +1256,6 @@ static CGFloat gStartVal = 0.0;
 @end
 
 @interface AWEAwemeDetailNaviBarContainerView : UIView
-@end
-
-@interface AWEVideoBSModel : NSObject
-@property(nonatomic) NSNumber *bitrate;
-@property(nonatomic) AWEURLModel *playAddr;
 @end
 
 @interface AWENormalModeTabBarGeneralPlusButton : UIView
