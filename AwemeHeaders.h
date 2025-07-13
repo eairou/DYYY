@@ -63,6 +63,12 @@ static CGFloat gStartVal = 0.0;
 @property(nonatomic, strong) AWEURLModel *coverURL;
 @end
 
+@interface AWEVideoBSModel : NSObject
+@property (nonatomic, strong) NSNumber *isH265;
+@property (nonatomic, copy) NSString *hdrType;
+@property (nonatomic, assign) NSInteger videoFPS;
+@end
+
 @interface AWEAudioBSModel : NSObject
 @property (nonatomic, copy) NSArray *urlList;
 @end
