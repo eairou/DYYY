@@ -216,11 +216,11 @@ AWEAwemeModel *awemeModel = self.awemeModel;
 AWEVideoModel *videoModel = awemeModel.video;
 AWEMusicModel *musicModel = awemeModel.music;
 NSURL *audioURL = nil;
-/*
+
 if (musicModel && musicModel.playURL && musicModel.playURL.originURLList.count > 0) {
     audioURL = [NSURL URLWithString:musicModel.playURL.originURLList.firstObject];
 }
-*/
+
 
 // 检查 audioBSModels 是否存在并且有至少一个条目
 if (videoModel.audioBSModels && videoModel.audioBSModels.count > 0) {
