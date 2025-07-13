@@ -248,7 +248,7 @@ if (![combinedDataList filteredArrayUsingPredicate:duplicatePredicate].count) {
 */
     }
 };
-
+/*
 // 定义一个处理 bitrateModels 的通用方法
 void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, NSString *qualityType) {
     for (AWEVideoBSModel *bitrateModel in bitrateModels) {
@@ -269,8 +269,8 @@ void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, 
         }
     }
 };
+*/
 
-/*
 // 定义一个处理 bitrateModels 的通用方法
 void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, NSString *qualityType) {
     for (AWEVideoBSModel *bitrateModel in bitrateModels) {
@@ -287,12 +287,25 @@ void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, 
         processURLModel(bitrateModel.playAddr, extraInfo, qualityType);
     }
 };
-*/
+
 
 // 用于标识视频类型的字符串
 NSString *noAudioCategory = @"可能无声";
 NSString *withAudioCategory = @"一定有声";
 
+NSMutableArray *bitrateModelsList = [NSMutableArray arrayWithObjects:
+    videoModel.bitrateModels ?: @[],
+    videoModel.bitrateModels_origin ?: @[],
+    videoModel.manualBitrateModels ?: @[],
+    nil];
+
+for (NSArray *bitrateModels in bitrateModelsList) {
+    if (bitrateModels.count > 0) {
+        processBitrateModels(bitrateModels, noAudioCategory);
+    }
+}
+
+/*
 // 处理 bitrateModels 列表
 NSArray *bitrateModelsList = @[videoModel.bitrateModels, videoModel.bitrateModels_origin, videoModel.manualBitrateModels];
 for (NSArray *bitrateModels in bitrateModelsList) {
@@ -300,6 +313,7 @@ for (NSArray *bitrateModels in bitrateModelsList) {
         processBitrateModels(bitrateModels, noAudioCategory);
     }
 }
+*/
 
 // 判断并处理 playURL 和 h264URL
 NSArray *urlModelsList = @[videoModel.playURL, videoModel.h264URL];
