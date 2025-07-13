@@ -216,14 +216,14 @@ void (^processURLModel)(AWEURLModel *, NSDictionary *, NSString *) = ^(AWEURLMod
         CGFloat imageWidth = urlModel.imageWidth;
         CGFloat imageHeight = urlModel.imageHeight;
         CGFloat sizeByte = urlModel.sizeByte;
-        NSString *fileHash = urlModel.fileHash ?: @"";  // 确保不为空
+      //  NSString *fileHash = urlModel.fileHash ?: @"";  // 确保不为空
 
         NSMutableDictionary *pair = [@{
             @"qualityType": qualityType,
             @"url": url ?: [NSNull null],
             @"imageWidth": @(imageWidth),
             @"imageHeight": @(imageHeight),
-            @"sizeByte": @(sizeByte),
+            @"sizeByte": @(sizeByte)
            // @"fileHash": fileHash
         } mutableCopy];
 
