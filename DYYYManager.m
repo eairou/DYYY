@@ -1244,6 +1244,92 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
     });
 }
 */
+
++ (void)showQualityOptions:(NSArray *)qualityURLPairs audioURL:(NSURL *)audioURL
+{
+    // 创建一个操作表视图实例
+    AWEUserActionSheetView *actionSheet = [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
+    NSMutableArray *actions = [NSMutableArray array];
+
+    // 遍历每个质量-URL 对
+    for (NSDictionary *pair in qualityURLPairs) {
+        NSString *qualityType = pair[@"qualityType"];
+        NSURL *url = pair[@"url"];
+        CGFloat sizeByte = [pair[@"sizeByte"] floatValue];
+        CGFloat imageWidth = [pair[@"imageWidth"] floatValue];
+        CGFloat imageHeight = [pair[@"imageHeight"] floatValue];
+        NSString *hdrType = pair[@"hdrType"];
+        NSInteger videoFPS = [pair[@"videoFPS"] integerValue];
+
+        // 计算分辨率
+        CGFloat maxResolution = MAX(imageWidth, imageHeight);
+        NSString *resolution;
+
+        if (maxResolution == 3840) {
+            resolution = @" 4K ";
+        } else if (maxResolution == 2560) {
+            resolution = @"2.5K";
+        } else if (maxResolution == 1920) {
+            resolution = @" 2k ";
+        } else if (maxResolution == 1280) {
+            resolution = @"720p";
+        } else if (maxResolution == 1024) {
+            resolution = @"576p";
+        } else if (maxResolution == 960) {
+            resolution = @"540p";
+        } else if (maxResolution == 720) {
+            resolution = @"480p";
+        } else {
+            resolution = [NSString stringWithFormat:@"%.0fx%.0f", imageWidth, imageHeight]; // 自定义低分辨率
+        }
+
+        // 格式化文件大小
+        NSString *formattedSize;
+        if (sizeByte >= 1024 * 1024) {
+            formattedSize = [NSString stringWithFormat:@"%.2f MB", sizeByte / (1024 * 1024)];
+        } else {
+            formattedSize = [NSString stringWithFormat:@"%.2f KB", sizeByte / 1024];
+        }
+
+        // 构造标题
+        NSString *title;
+        if ([hdrType isEqualToString:@"1"]) {
+            title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]-[HDR]", qualityType, resolution, formattedSize, (long)videoFPS];
+        } else if (videoFPS > 0) {
+            title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]------", qualityType, resolution, formattedSize, (long)videoFPS];
+        } else {
+            title = [NSString stringWithFormat:@"%@-[%@]-[%@]---------------", qualityType, resolution, formattedSize];
+        }
+
+        // 创建一个动作按钮
+        AWEUserSheetAction *qualityAction = [NSClassFromString(@"AWEUserSheetAction")
+            actionWithTitle:title
+                    imgName:nil
+                    handler:^{
+                    [self downloadMedia:url
+                              mediaType:MediaTypeVideo
+                                  audio:audioURL
+                             completion:^(BOOL success) {
+                               if (!success) {
+                                   NSLog(@"下载失败: URL -> %@", url.absoluteString);
+                               } else {
+                                   NSLog(@"下载成功: URL -> %@", url.absoluteString);
+                               }
+                             }];
+                    }];
+        
+        // 将动作添加到数组中
+        [actions addObject:qualityAction];
+    }
+
+    // 显示操作表视图
+    if (actions.count > 0) {
+        [actionSheet setActions:actions];
+        [actionSheet show];
+    }
+}
+
+/*
 + (void)showQualityOptions:(NSArray *)qualityURLPairs audioURL:(NSURL *)audioURL
  {
     // 创建一个操作表视图实例
@@ -1313,7 +1399,7 @@ audio:audioURL
         [actionSheet show];
     }
 }
-
+*/
 
 // 取消所有下载
 + (void)cancelAllDownloads {
