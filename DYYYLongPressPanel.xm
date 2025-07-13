@@ -180,6 +180,40 @@ NSString *filemeta = [NSString stringWithFormat:@"Name-%@_%@-%@_Date%@", nicknam
 		downloadViewModel.action = ^{
 AWEAwemeModel *awemeModel = self.awemeModel;
 AWEVideoModel *videoModel = awemeModel.video;
+
+NSString *bothAudioCategory;
+NSString *withAudioCategory;
+NSURL *audioURL = nil;
+
+// 检查 audioBSModels 是否存在并且有至少一个条目
+if (videoModel.audioBSModels && videoModel.audioBitrateModels && videoModel.audioBSModels.count > 0) {
+    // 获取 audioBSModels 中的第一个条目
+    AWEAudioBSModel *firstAudioBSModel = videoModel.audioBSModels.firstObject;
+        
+    // 检查 AWEAudioBSModel 的 urlList 是否存在并且有至少一个条目
+    if (firstAudioBSModel.urlList && firstAudioBSModel.urlList.count > 0) {
+        // 获取 urlList 中的第一个条目
+        audioURL = [NSURL URLWithString:firstAudioBSModel.urlList.firstObject];
+    }
+        
+    // 无声视频情况下 不同类别处理
+    bothAudioCategory = @"需合成";
+    withAudioCategory = @"自带声";
+    [DYYYUtils showToast:@"无声视频⚠️注意选项"];
+    
+    // 如果音频 URL 未能成功获取，显示失败信息
+    if (!audioURL) {
+        [DYYYUtils showToast:@"音频url获取失败"];
+    }
+} else {
+    // 有声时，设定默认类别
+    bothAudioCategory = @"首选";
+    withAudioCategory = @"次要";
+}
+
+/*
+AWEAwemeModel *awemeModel = self.awemeModel;
+AWEVideoModel *videoModel = awemeModel.video;
 AWEMusicModel *musicModel = awemeModel.music;
 NSURL *audioURL = nil;
 /*
@@ -203,7 +237,7 @@ if (videoModel.audioBSModels && videoModel.audioBSModels.count > 0) {
 } else {
     [DYYYUtils showToast:@"无音频链接或视频小于4分钟"];
 }
-
+*/
 
 NSMutableArray *combinedDataList = [NSMutableArray array];
 
@@ -290,8 +324,8 @@ void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, 
 
 
 // 用于标识视频类型的字符串
-NSString *noAudioCategory = @"可能无声";
-NSString *withAudioCategory = @"一定有声";
+//NSString *noAudioCategory = @"可能无声";
+//NSString *withAudioCategory = @"一定有声";
 
 NSMutableArray *bitrateModelsList = [NSMutableArray arrayWithObjects:
     videoModel.bitrateModels ?: @[],
@@ -301,7 +335,7 @@ NSMutableArray *bitrateModelsList = [NSMutableArray arrayWithObjects:
 
 for (NSArray *bitrateModels in bitrateModelsList) {
     if (bitrateModels.count > 0) {
-        processBitrateModels(bitrateModels, noAudioCategory);
+        processBitrateModels(bitrateModels, bothAudioCategory);
     }
 }
 
@@ -310,7 +344,7 @@ for (NSArray *bitrateModels in bitrateModelsList) {
 NSArray *bitrateModelsList = @[videoModel.bitrateModels, videoModel.bitrateModels_origin, videoModel.manualBitrateModels];
 for (NSArray *bitrateModels in bitrateModelsList) {
     if (bitrateModels.count) {
-        processBitrateModels(bitrateModels, noAudioCategory);
+        processBitrateModels(bitrateModels, bothAudioCategory);
     }
 }
 */
