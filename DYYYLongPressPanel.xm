@@ -224,19 +224,28 @@ void (^processURLModel)(AWEURLModel *, NSDictionary *, NSString *) = ^(AWEURLMod
             @"imageWidth": @(imageWidth),
             @"imageHeight": @(imageHeight),
             @"sizeByte": @(sizeByte),
-            @"fileHash": fileHash
+           // @"fileHash": fileHash
         } mutableCopy];
 
         if (extraInfo) {
             [pair addEntriesFromDictionary:extraInfo];
         }
 
+NSPredicate *duplicatePredicate = [NSPredicate predicateWithFormat:@"url == %@ AND sizeByte == %@", url, @(sizeByte)];
+if (![combinedDataList filteredArrayUsingPredicate:duplicatePredicate].count) {
+    @synchronized (combinedDataList) {  // 串行处理以保证线程安全
+        [combinedDataList addObject:pair];
+    }
+}
+
+/*
         NSPredicate *duplicatePredicate = [NSPredicate predicateWithFormat:@"fileHash == %@", fileHash];
         if (![combinedDataList filteredArrayUsingPredicate:duplicatePredicate].count) {
             @synchronized (combinedDataList) {  // 串行处理以保证线程安全
                 [combinedDataList addObject:pair];
             }
         }
+*/
     }
 };
 
