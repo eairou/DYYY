@@ -1266,9 +1266,9 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
         NSString *resolution;
 
         if (maxResolution == 3840) {
-            resolution = @" 4 K ";
+            resolution = @"4  K";
         } else if (maxResolution == 2560) {
-            resolution = @" 2.5K";
+            resolution = @"2.5K";
         } else if (maxResolution == 1920) {
             resolution = @"1080P";
         } else if (maxResolution == 1280) {
