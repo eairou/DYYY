@@ -1266,19 +1266,19 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
         NSString *resolution;
 
         if (maxResolution == 3840) {
-            resolution = @"4  K";
+            resolution = @" 4 K ";
         } else if (maxResolution == 2560) {
-            resolution = @"2.5K";
+            resolution = @" 2.5K";
         } else if (maxResolution == 1920) {
-            resolution = @"2  k";
+            resolution = @"1080P";
         } else if (maxResolution == 1280) {
-            resolution = @"720p";
+            resolution = @"720P";
         } else if (maxResolution == 1024) {
-            resolution = @"576p";
+            resolution = @"576P";
         } else if (maxResolution == 960) {
-            resolution = @"540p";
+            resolution = @"540P";
         } else if (maxResolution == 720) {
-            resolution = @"480p";
+            resolution = @"480P";
         } else {
             resolution = [NSString stringWithFormat:@"%.0fx%.0f", imageWidth, imageHeight]; // 自定义低分辨率
         }
