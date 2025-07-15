@@ -1266,11 +1266,11 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
         NSString *resolution;
 
         if (maxResolution == 3840) {
-            resolution = @" 4K ";
+            resolution = @"4  K";
         } else if (maxResolution == 2560) {
             resolution = @"2.5K";
         } else if (maxResolution == 1920) {
-            resolution = @" 2k ";
+            resolution = @"2  k";
         } else if (maxResolution == 1280) {
             resolution = @"720p";
         } else if (maxResolution == 1024) {
@@ -1298,7 +1298,7 @@ NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
         } else if (videoFPS > 0) {
             title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]------", qualityType, resolution, formattedSize, (long)videoFPS];
         } else {
-            title = [NSString stringWithFormat:@"%@-[%@]-[%@]---------------", qualityType, resolution, formattedSize];
+            title = [NSString stringWithFormat:@"---[%@]-[%@]-%@---", resolution, formattedSize, qualityType];
         }
 
         // 创建一个动作按钮
