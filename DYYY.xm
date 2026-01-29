@@ -7384,24 +7384,8 @@ static Class TagViewClass = nil;
 %hook AWEStoryProgressContainerView
 - (void)setCenter:(CGPoint)center {
     UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
-    BOOL shouldAdjust = [vc isKindOfClass:NSClassFromString(@"AWEFeedPlayControlImpl.PureModePageCellViewController")] && DYYYGetBool(@"DYYYEnableFullScreen");
-    if (shouldAdjust) {
-        NSString *currentVersion = nil;
-        Class managerClass = %c(AWEVersionUpdateManager);
-        if (managerClass && [managerClass respondsToSelector:@selector(sharedInstance)]) {
-            id manager = [managerClass sharedInstance];
-            if ([manager respondsToSelector:@selector(currentVersion)]) {
-                currentVersion = [manager currentVersion];
-            }
-        }
-        
-        BOOL shouldApply = YES;
-        if (currentVersion && [DYYYUtils compareVersion:currentVersion toVersion:@"37.2.0"] != NSOrderedAscending) {
-            shouldApply = NO;
-        }
-        if (shouldApply) {
-            center.y -= gCurrentTabBarHeight;
-        }
+    if ([vc isKindOfClass:NSClassFromString(@"AWEFeedPlayControlImpl.PureModePageCellViewController")] && DYYYGetBool(@"DYYYEnableFullScreen")) {
+        center.y -= gCurrentTabBarHeight;
     }
     %orig(center);
 }
