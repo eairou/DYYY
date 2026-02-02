@@ -59,70 +59,125 @@ static void DYYYRemoveRemoteConfigObserver(void) {
 }
 %end
 
+// 隐藏掉天气Label
 %hook AWELeftSideBarWeatherLabel
 - (id)initWithFrame:(CGRect)frame {
     id orig = %orig;
-    self.userInteractionEnabled = YES;
-    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:[UIView class] action:@selector(openDYYYSettingsFromSender:)];
-    objc_setAssociatedObject(tapGesture, "targetView", self, OBJC_ASSOCIATION_ASSIGN);
-    [self addGestureRecognizer:tapGesture];
+    self.hidden = YES;
     return orig;
 }
 
 - (void)drawTextInRect:(CGRect)rect {
-    NSString *originalText = self.text;
-    self.text = @" ";
-    %orig;
-    self.text = originalText;
-
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextClearRect(context, rect);
-
-    UIFont *font = self.font ?: [UIFont systemFontOfSize:16.0];
-    if (self.font) {
-        font = [self.font fontWithSize:16.0];
-    }
-
-    NSDictionary *attributes = @{NSFontAttributeName : font, NSForegroundColorAttributeName : self.textColor ?: [UIColor blackColor]};
-
-    NSString *displayText = @"DYYY";
-    CGSize textSize = [displayText sizeWithAttributes:attributes];
-    CGFloat centerY = (rect.size.height - textSize.height) / 2.0;
-    CGRect centeredRect = CGRectMake(0, centerY, rect.size.width, textSize.height);
-
-    [displayText drawInRect:centeredRect withAttributes:attributes];
+    // 不做任何绘制，彻底隐藏
 }
 %end
 
 %hook AWELeftSideBarWeatherView
 - (void)layoutSubviews {
     %orig;
-    self.userInteractionEnabled = YES;
-    if (!objc_getAssociatedObject(self, &kDYYYWeatherViewGestureInstalledKey)) {
-        UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:[UIView class] action:@selector(openDYYYSettingsFromSender:)];
-        objc_setAssociatedObject(tapGesture, "targetView", self, OBJC_ASSOCIATION_ASSIGN);
-        [self addGestureRecognizer:tapGesture];
-        objc_setAssociatedObject(self, &kDYYYWeatherViewGestureInstalledKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    }
+    self.hidden = YES;
+}
+%end
 
-    for (UIView *subview in self.subviews) {
-        subview.userInteractionEnabled = YES;
-        if (!objc_getAssociatedObject(subview, &kDYYYWeatherSubviewGestureInstalledKey)) {
-            UITapGestureRecognizer *subTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:[UIView class] action:@selector(openDYYYSettingsFromSender:)];
-            objc_setAssociatedObject(subTapGesture, "targetView", self, OBJC_ASSOCIATION_ASSIGN);
-            [subview addGestureRecognizer:subTapGesture];
-            objc_setAssociatedObject(subview, &kDYYYWeatherSubviewGestureInstalledKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+@interface AWELeftSideBarTopIconHorizontalView : UIView
+@end
+
+%hook AWELeftSideBarTopIconHorizontalView
+
+- (void)didMoveToSuperview {
+    %orig;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        NSString *accessibilityLabel = self.accessibilityLabel;
+        if (![accessibilityLabel isEqualToString:@"设置"]) {
+            return;
         }
+        UIView *targetSuperView = self.superview.superview.superview ?: self;
+        UIButton *oldBtn = (UIButton *)[targetSuperView viewWithTag:232323];
+        if (oldBtn) {
+            [oldBtn removeFromSuperview];
+        }
+        UIButton *dyyyBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+        dyyyBtn.tag = 232323;
+        dyyyBtn.accessibilityLabel = @"DYYYSettingsButton";
+        [dyyyBtn setTitle:@"DYYY" forState:UIControlStateNormal];
 
-        [subview.subviews enumerateObjectsUsingBlock:^(UIView *childView, NSUInteger idx, BOOL *stop) {
-          if (![childView isKindOfClass:%c(AWELeftSideBarWeatherLabel)]) {
-              [childView removeFromSuperview];
-          } else {
-              CGRect parentFrame = childView.superview.bounds;
-              childView.frame = parentFrame;
-          }
-        }];
+        UIColor *titleColor = [DYYYUtils isDarkMode] ? [UIColor whiteColor] : [UIColor blackColor];
+        [dyyyBtn setTitleColor:titleColor forState:UIControlStateNormal];
+
+        dyyyBtn.titleLabel.font = [UIFont boldSystemFontOfSize:15];
+        CGRect frame = self.frame;
+        dyyyBtn.frame = CGRectMake(frame.origin.x + frame.size.width - 40 - 2, 8, 60, 32);
+        dyyyBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+        dyyyBtn.layer.cornerRadius = 8;
+        dyyyBtn.clipsToBounds = YES;
+        [dyyyBtn addTarget:self action:@selector(dyyyButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+        [targetSuperView addSubview:dyyyBtn];
+    });
+}
+
+%new
+- (void)dyyyButtonTapped {
+    UIViewController *targetVC = [DYYYSettingsHelper findViewController:self];
+    if (!targetVC) {
+        UIWindow *activeWindow = [DYYYUtils getActiveWindow];
+        targetVC = activeWindow.rootViewController ?: [DYYYUtils topView];
+        while (targetVC.presentedViewController) {
+            targetVC = targetVC.presentedViewController;
+        }
     }
+    BOOL hasAgreed = [DYYYSettingsHelper getUserDefaults:@"DYYYUserAgreementAccepted"];
+    showDYYYSettingsVC(targetVC, hasAgreed);
+}
+%end
+
+@interface AWELeftSideBarTopRightLayoutView : UIView
+@end
+
+%hook AWELeftSideBarTopRightLayoutView
+
+- (void)didMoveToSuperview {
+    %orig;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        NSString *accessibilityLabel = self.accessibilityLabel;
+        if (![accessibilityLabel isEqualToString:@"设置"]) {
+            return;
+        }
+        UIView *targetSuperView = self.superview.superview.superview ?: self;
+        UIButton *oldBtn = (UIButton *)[targetSuperView viewWithTag:232323];
+        if (oldBtn) {
+            [oldBtn removeFromSuperview];
+        }
+        UIButton *dyyyBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+        dyyyBtn.tag = 232323;
+        dyyyBtn.accessibilityLabel = @"DYYYSettingsButton";
+        [dyyyBtn setTitle:@"DYYY" forState:UIControlStateNormal];
+
+        UIColor *titleColor = [DYYYUtils isDarkMode] ? [UIColor whiteColor] : [UIColor blackColor];
+        [dyyyBtn setTitleColor:titleColor forState:UIControlStateNormal];
+
+        dyyyBtn.titleLabel.font = [UIFont boldSystemFontOfSize:15];
+        CGRect frame = self.frame;
+        dyyyBtn.frame = CGRectMake(frame.origin.x + frame.size.width - 60 - 10 - 2, 8, 60, 32);
+        dyyyBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+        dyyyBtn.layer.cornerRadius = 8;
+        dyyyBtn.clipsToBounds = YES;
+        [dyyyBtn addTarget:self action:@selector(dyyyButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+        [targetSuperView addSubview:dyyyBtn];
+    });
+}
+
+%new
+- (void)dyyyButtonTapped {
+    UIViewController *targetVC = [DYYYSettingsHelper findViewController:self];
+    if (!targetVC) {
+        UIWindow *activeWindow = [DYYYUtils getActiveWindow];
+        targetVC = activeWindow.rootViewController ?: [DYYYUtils topView];
+        while (targetVC.presentedViewController) {
+            targetVC = targetVC.presentedViewController;
+        }
+    }
+    BOOL hasAgreed = [DYYYSettingsHelper getUserDefaults:@"DYYYUserAgreementAccepted"];
+    showDYYYSettingsVC(targetVC, hasAgreed);
 }
 %end
 
@@ -299,6 +354,14 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
               @"cellType" : @37,
               @"imageName" : @"ic_play_outlined_12"
           },
+          @{
+              @"identifier" : @"DYYYDisableCastVPNCheck",
+              @"title" : @"忽略投屏 VPN 检测",
+              @"subTitle" : @"开启后在连接 VPN 时也可以正常投屏",
+              @"detail" : @"",
+              @"cellType" : @37,
+              @"imageName" : @"ic_tv_outlined_20"
+          },
           @{@"identifier" : @"DYYYDefaultSpeed",
             @"title" : @"设置默认倍速",
             @"detail" : @"",
@@ -309,6 +372,14 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
             @"detail" : @"",
             @"cellType" : @26,
             @"imageName" : @"ic_speed_outlined_20"},
+          @{
+              @"identifier" : @"DYYYEnableLongPressSpeedGesture",
+              @"title" : @"上下控制倍速",
+              @"subTitle" : @"长按时可通过上下滑动调整倍速",
+              @"detail" : @"",
+              @"cellType" : @37,
+              @"imageName" : @"ic_speed_outlined_20"
+          },
           @{@"identifier" : @"DYYYEnableArea",
             @"title" : @"时间属地显示",
             @"detail" : @"",
@@ -944,6 +1015,11 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
             @"imageName" : @"ic_eyeslash_outlined_16"},
           @{@"identifier" : @"DYYYHideHotSearch",
             @"title" : @"隐藏底栏热榜",
+            @"detail" : @"",
+            @"cellType" : @6,
+            @"imageName" : @"ic_eyeslash_outlined_16"},
+          @{@"identifier" : @"DYYYHidePadTabBarElements",
+            @"title" : @"精简平板底栏",
             @"detail" : @"",
             @"cellType" : @6,
             @"imageName" : @"ic_eyeslash_outlined_16"},
@@ -2018,7 +2094,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
           [downloadItems addObject:item];
       }
 
-      // 【热更新】分类
+      // 【ABTest】分类
       NSMutableArray<AWESettingItemModel *> *hotUpdateItems = [NSMutableArray array];
       NSArray *hotUpdateSettings = @[
           @{@"identifier" : @"DYYYABTestBlockEnabled",
@@ -2195,7 +2271,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
                 BOOL newValue = !item.isSwitchOn;
 
                 if (newValue) {
-                    [DYYYBottomAlertView showAlertWithTitle:@"禁止热更新下发配置"
+                    [DYYYBottomAlertView showAlertWithTitle:@"禁止ABTest下发配置"
                         message:@"这将暂停接收测试新功能的推送。确定要继续吗？"
                         avatarURL:nil
                         cancelButtonText:@"取消"
@@ -2214,7 +2290,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
                 } else {
                     item.isSwitchOn = newValue;
                     [DYYYSettingsHelper setUserDefaults:@(newValue) forKey:@"DYYYABTestBlockEnabled"];
-                    [DYYYUtils showToast:@"已允许热更新下发配置，重启后生效。"];
+                    [DYYYUtils showToast:@"已允许ABTest下发配置，重启后生效。"];
                 }
               };
           } else if ([item.identifier isEqualToString:@"DYYYABTestModeString"]) {
@@ -2833,7 +2909,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
       [sections addObject:[DYYYSettingsHelper createSectionWithTitle:@"长按面板设置" items:longPressItems]];
       [sections addObject:[DYYYSettingsHelper createSectionWithTitle:@"媒体保存" items:downloadItems]];
       [sections addObject:[DYYYSettingsHelper createSectionWithTitle:@"交互增强" items:interactionItems]];
-      [sections addObject:[DYYYSettingsHelper createSectionWithTitle:@"热更新"
+      [sections addObject:[DYYYSettingsHelper createSectionWithTitle:@"ABTest"
                                                          footerTitle:@"允许用户导出或导入抖音的ABTest配置。远程配置由 Nathalie 维护，在应用启动时自动更新远程配置。"
                                                                items:hotUpdateItems]];
       // 创建并推入二级设置页面

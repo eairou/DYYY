@@ -153,6 +153,7 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @end
 
 @interface AWEABTestManager : NSObject
++ (id)sharedManager;
 @property(retain, nonatomic) NSMutableDictionary *consistentABTestDic;
 @property(copy, nonatomic) NSDictionary *abTestData;
 @property(copy, nonatomic) NSDictionary *performanceReversalDic;
@@ -376,6 +377,9 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @end
 
 @interface AWETabBarSkinContainerView : UIView
+@end
+
+@interface AWETabBarElementContainerView : UIView
 @end
 
 @interface AWENormalModeTabBar : UIView
@@ -1177,6 +1181,11 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 - (void)setVideoControllerPlaybackRate:(double)arg0;
 @end
 
+@interface AWEDPlayerViewController_Merge : UIViewController
+@property(nonatomic) UIView *contentView;
+- (void)setVideoControllerPlaybackRate:(double)arg0;
+@end
+
 @interface AWEPlayInteractionElementMaskView : UIView
 @end
 @interface AWEGradientView : UIView
@@ -1377,6 +1386,10 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 - (void)adjustPlaybackSpeed:(float)speed;
 @end
 
+@interface AWEDPlayerViewController_Merge (SpeedControl)
+- (void)adjustPlaybackSpeed:(float)speed;
+@end
+
 @interface AWELeftSideBarModel : NSObject
 @property(nonatomic, copy) NSArray *moduleModels;
 @property(nonatomic, retain) NSArray *bottomModuleModels;
@@ -1407,4 +1420,37 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @end
 
 @interface TTPlayerView : UIView
+@end
+
+// 开屏广告
+@interface BDASplashManager : NSObject
+- (void)showSplashControllerViewOnKeyWindow:(id)keyWindow model:(id)model;
+- (void)splashViewShowFinished;
+@end
+
+// 投屏 VPN 检测
+@interface BDByteCastUtils : NSObject
++ (BOOL)netVPNStatus;
+@end
+
+@interface BDByteCastNetUtilities : NSObject
+- (BOOL)getVPNStatus;
+@end
+
+@interface BDByteCastMonitorManager : NSObject
+- (BOOL)netVPNStatus;
+- (void)setNetVPNStatus:(BOOL)netVPNStatus;
+@end
+
+@interface BDByteCastEnvInfo : NSObject
+- (BOOL)isVPNActive;
+- (void)setIsVPNActive:(BOOL)isVPNActive;
+@end
+
+@interface BDByteScreenCastContext : NSObject
+- (BOOL)isVPNActive;
+- (void)setIsVPNActive:(BOOL)isVPNActive;
+@end
+
+@interface AWEDPlayerProgressContainerView : UIView
 @end
