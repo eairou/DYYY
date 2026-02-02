@@ -3359,7 +3359,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
     BOOL hideFeedAnchor = DYYYGetBool(@"DYYYHideFeedAnchorContainer");
     BOOL hideLocation = DYYYGetBool(@"DYYYHideLocation");
     if (hideFeedAnchor && hideLocation) {
-        self.hidden = YES;
+        [self removeFromSuperview];
         return;
     } else if (hideFeedAnchor || hideLocation) {
         BOOL isLocation = NO;
@@ -3370,7 +3370,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
             }
         }
         if ((isLocation && hideLocation) || (!isLocation && hideFeedAnchor)) {
-            self.hidden = YES;
+            [self removeFromSuperview];
             return;
         }
     }
@@ -4355,6 +4355,17 @@ static NSHashTable *processedParentViews = nil;
 }
 %end
 
+// 会员进场特效: 高版本启用swift类名
+%hook _TtC18IESLiveRevenueImpl32IESLiveSwiftDynamicUserEnterView
+- (void)layoutSubviews {
+    if (DYYYGetBool(@"DYYYHideLivePopup")) {
+        self.hidden = YES;
+        return;
+    }
+    %orig;
+}
+%end
+
 // 隐藏特殊进场特效
 %hook PlatformCanvasView
 - (void)layoutSubviews {
@@ -4372,6 +4383,17 @@ static NSHashTable *processedParentViews = nil;
         }
     }
     return;
+}
+%end
+
+// 特殊视频进场特效:高版本启用swift类名
+%hook _TtC18IESLiveRevenueImpl35IESLiveSwiftVideoLayerUserEnterView
+- (void)layoutSubviews {
+    if (DYYYGetBool(@"DYYYHideLivePopup")) {
+        self.hidden = YES;
+        return;
+    }
+    %orig;
 }
 %end
 

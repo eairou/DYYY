@@ -887,6 +887,8 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 
 @interface AWEVideoPlayDanmakuContainerView : UIView
 @end
+@interface AWEDanmakuContainerView : UIView
+@end
 
 // 应用内推送容器
 @interface AWEInnerNotificationWindow : UIWindow
@@ -1122,6 +1124,10 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @interface IESLivePreAnnouncementPanelViewNew : UIView
 @end
 @interface IESLiveDynamicUserEnterView : UIView
+@end
+@interface _TtC18IESLiveRevenueImpl32IESLiveSwiftDynamicUserEnterView : UIView
+@end
+@interface _TtC18IESLiveRevenueImpl35IESLiveSwiftVideoLayerUserEnterView : UIView
 @end
 @interface IESLiveDynamicRankListEntranceView : UIView
 @end
