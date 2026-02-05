@@ -8218,11 +8218,9 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
             }
         }
         
-        long long createTime = comment.createTime;
-        
         [DYYYManager downloadAndShareCommentAudio:audioContent
                                          userName:userName
-                                       createTime:createTime];
+                                       createTime:comment.createTime];
         return;
     }
     
