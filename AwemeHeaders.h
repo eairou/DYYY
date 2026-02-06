@@ -543,6 +543,7 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @class AWECommentLongPressPanelParam;
 @class AWEIMStickerModel;
 @class AWEURLModel;
+@class AWECommentAudioModel;
 
 @interface AWECommentLongPressPanelContext : NSObject
 - (AWECommentModel *)selectdComment;
@@ -555,6 +556,9 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @end
 
 @interface AWECommentModel : NSObject
+@property (nonatomic, strong, readwrite) AWECommentAudioModel *audioModel;
+@property (nonatomic, strong, readwrite) AWEUserModel *author;
+@property (nonatomic, strong, readwrite) NSNumber *createTime;
 - (AWEIMStickerModel *)sticker;
 - (NSString *)content;
 - (NSArray<AWECommentImageModel *> *)imageList;
@@ -562,6 +566,10 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 
 @interface AWEIMStickerModel : NSObject
 - (AWEURLModel *)staticURLModel;
+@end
+
+@interface AWECommentAudioModel : NSObject
+@property (nonatomic, copy, readwrite) NSString *content;
 @end
 
 @interface _TtC33AWECommentLongPressPanelSwiftImpl37CommentLongPressPanelSaveImageElement : NSObject

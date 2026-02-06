@@ -2135,7 +2135,7 @@ static BOOL dyyyShouldUseLastStickerURL = NO;
 
 - (BOOL)elementShouldShow {
     BOOL shouldShow = %orig;
-    if (!DYYYGetBool(@"DYYYForceDownloadEmotion")) {
+    if (!DYYYGetBool(@"DYYYForceDownloadEmotion") && !DYYYGetBool(@"DYYYForceDownloadCommentAudio")) {
         return shouldShow;
     }
     AWECommentLongPressPanelContext *context = [self commentPageContext];
@@ -2143,6 +2143,10 @@ static BOOL dyyyShouldUseLastStickerURL = NO;
     AWEIMStickerModel *sticker = [selected sticker];
     NSArray *originURLList = sticker.staticURLModel.originURLList;
     if (originURLList.count > 0) {
+        return YES;
+    }
+    AWECommentAudioModel *audio = [selected audioModel];
+    if (audio && audio.content) {
         return YES;
     }
     return shouldShow;
@@ -2153,10 +2157,13 @@ static BOOL dyyyShouldUseLastStickerURL = NO;
     AWECommentLongPressPanelParam *params = [context params];
     AWECommentModel *comment = [context selectdComment] ?: [params selectdComment];
     
-    // 判断是表情包还是图片
+    // 判断保存类型(表情包/音频/图片)
     AWEIMStickerModel *sticker = [comment sticker];
     NSArray *stickerURLList = sticker.staticURLModel.originURLList;
     BOOL hasSticker = (stickerURLList.count > 0);
+
+    AWECommentAudioModel *audio = [comment audioModel];
+    BOOL hasAudio = (audio && audio.content);
     
     NSArray *imageList = nil;
     if ([comment respondsToSelector:@selector(imageList)]) {
@@ -2182,7 +2189,25 @@ static BOOL dyyyShouldUseLastStickerURL = NO;
             return;
         }
     }
-    
+
+    // 音频保存逻辑
+    if (hasAudio && DYYYGetBool(@"DYYYForceDownloadCommentAudio")) {
+        NSString *audioContent = audio.content;
+        
+        NSString *userName = @"未知用户";
+        if (comment.author && [comment.author respondsToSelector:@selector(nickname)]) {
+            NSString *nickname = [comment.author performSelector:@selector(nickname)];
+            if (nickname && nickname.length > 0) {
+                userName = nickname;
+            }
+        }
+        
+        [DYYYManager downloadAndShareCommentAudio:audioContent
+                                         userName:userName
+                                       createTime:comment.createTime];
+        return;
+    }
+
     // 图片保存逻辑
     if (hasImages && DYYYGetBool(@"DYYYForceDownloadCommentImage")) {
         // 检查 is_pic_inflow 判断是保存全部还是单张
