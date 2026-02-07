@@ -35,7 +35,6 @@ static CGFloat gCurrentTabBarHeight = kInvalidHeight;
 static CGFloat originalTabBarHeight = kInvalidHeight;
 static NSString *const kDYYYGlobalTransparencyKey = @"DYYYGlobalTransparency";
 static NSString *const kDYYYGlobalTransparencyDidChangeNotification = @"DYYYGlobalTransparencyDidChangeNotification";
-static NSString *const kDYYYTabBarHeightKey = @"DYYYTabBarHeight";
 static char kDYYYGlobalTransparencyBaseAlphaKey;
 static NSInteger dyyyGlobalTransparencyMutationDepth = 0;
 
@@ -5301,7 +5300,6 @@ static Class barBackgroundClass = nil;
 static Class generalButtonClass = nil;
 static Class plusButtonClass = nil;
 static Class tabBarButtonClass = nil;
-static void *DYYYTabBarHeightContext = &DYYYTabBarHeightContext;
 
 + (void)initialize {
     if (self == [%c(AWENormalModeTabBar) class]) {
@@ -5315,7 +5313,10 @@ static void *DYYYTabBarHeightContext = &DYYYTabBarHeightContext;
 %new
 - (void)initializeOriginalTabBarHeight {
     if (originalTabBarHeight != kInvalidHeight) {
-        NSLog(@"[DYYY] initializeOriginalTabBarHeight: Skipped! originalTabBarHeight already initialized.");
+        if (gCurrentTabBarHeight == kInvalidHeight) {
+            gCurrentTabBarHeight = originalTabBarHeight;
+        }
+        NSLog(@"[DYYY] initializeOriginalTabBarHeight: Skipped! originalTabBarHeight already initialized as %.1f.", originalTabBarHeight);
         return;
     }
 
@@ -5330,91 +5331,9 @@ static void *DYYYTabBarHeightContext = &DYYYTabBarHeightContext;
     } else {
         NSLog(@"[DYYY] initializeOriginalTabBarHeight: Failed! No window available.");
     }
-}
-
-%new
-- (void)calculateTabBarHeight {
-    if (originalTabBarHeight == kInvalidHeight) {
-        NSLog(@"[DYYY] calculateTabBarHeight: Skipped! originalTabBarHeight not initialized yet.");
-        return;
-    }
-
-    CGFloat newHeight = originalTabBarHeight;
-    NSString *tabBarHeightStr = [[NSUserDefaults standardUserDefaults] stringForKey:kDYYYTabBarHeightKey];
-
-    if (tabBarHeightStr.length > 0) {
-        float tabBarHeightValue;
-        NSScanner *scanner = [NSScanner scannerWithString:tabBarHeightStr];
-        if ([scanner scanFloat:&tabBarHeightValue]) {
-            newHeight = MAX(tabBarHeightValue, 0.0);
-        } else {
-            NSLog(@"[DYYY] calculateTabBarHeight: Failed! Could not parse float value for key %@: '%@'", kDYYYTabBarHeightKey, tabBarHeightStr);
-        }
-    }
-
-    if (fabs(gCurrentTabBarHeight - newHeight) > 0.1) {
-        NSLog(@"[DYYY] calculateTabBarHeight: Success! gCurrentTabBarHeight updated from %.1f to %.1f", gCurrentTabBarHeight, newHeight);
-        gCurrentTabBarHeight = newHeight;
-    }
-}
-
-%new
-- (BOOL)applyTabBarHeight {
-    if (gCurrentTabBarHeight == kInvalidHeight) {
-        NSLog(@"[DYYY] applyTabBarHeight: Skipped! gCurrentTabBarHeight not calculated yet.");
-        return NO;
-    }
-
-    CGRect frame = self.frame;
-    if (fabs(frame.size.height - gCurrentTabBarHeight) < 0.1) {
-        NSLog(@"[DYYY] applyTabBarHeight: Skipped! Frame height already applied.");
-        return NO;
-    }
-
-    if ([self respondsToSelector:@selector(setDesiredHeight:)]) {
-        ((void (*)(id, SEL, double))objc_msgSend)(self, @selector(setDesiredHeight:), gCurrentTabBarHeight);
-    }
-
-    frame.size.height = gCurrentTabBarHeight;
-    if (self.superview) {
-        frame.origin.y = self.superview.bounds.size.height - gCurrentTabBarHeight;
-    }
-    self.frame = frame;
-    NSLog(@"[DYYY] applyTabBarHeight: Success! Frame height applied to %.1f", gCurrentTabBarHeight);
-    return YES;
-}
-
-- (instancetype)initWithFrame:(CGRect)frame {
-    self = %orig;
-    if (self) {
-        [[NSUserDefaults standardUserDefaults] addObserver:self forKeyPath:kDYYYTabBarHeightKey options:NSKeyValueObservingOptionNew context:DYYYTabBarHeightContext];
-    }
-    return self;
-}
-
-- (void)dealloc {
-    @try {
-        [[NSUserDefaults standardUserDefaults] removeObserver:self forKeyPath:kDYYYTabBarHeightKey context:DYYYTabBarHeightContext];
-    } @catch (NSException *exception) {
-        NSLog(@"[DYYY] KVO removeObserver failed: %@", exception);
-    } 
-    %orig;
-}
-
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey, id> *)change context:(void *)context {
-    if (context == DYYYTabBarHeightContext) {
-        __weak __typeof(self) weakSelf = self;
-        dispatch_async(dispatch_get_main_queue(), ^{
-          __strong __typeof(weakSelf) strongSelf = weakSelf;
-          if (strongSelf) {
-              NSLog(@"[DYYY] observeValueForKeyPath: %@ has new value: '%@'", kDYYYTabBarHeightKey, change[NSKeyValueChangeNewKey]);
-              if (originalTabBarHeight == kInvalidHeight) {
-                  [strongSelf initializeOriginalTabBarHeight];
-              }
-              [strongSelf calculateTabBarHeight];
-              [strongSelf applyTabBarHeight];
-          }
-        });
+    if (originalTabBarHeight != kInvalidHeight) {
+        gCurrentTabBarHeight = originalTabBarHeight;
+        NSLog(@"[DYYY] initializeOriginalTabBarHeight: gCurrentTabBarHeight synced to %.1f.", gCurrentTabBarHeight);
     }
 }
 
@@ -5422,7 +5341,6 @@ static void *DYYYTabBarHeightContext = &DYYYTabBarHeightContext;
     %orig;
     if (self.window) {
         [self initializeOriginalTabBarHeight];
-        [self calculateTabBarHeight];
     }
 }
 
@@ -5435,12 +5353,9 @@ static void *DYYYTabBarHeightContext = &DYYYTabBarHeightContext;
     }
 
     if (gCurrentTabBarHeight == kInvalidHeight) {
-        NSLog(@"[DYYY] layoutSubviews: Fallback! gCurrentTabBarHeight calculation triggered.");
-        [self calculateTabBarHeight];
+        gCurrentTabBarHeight = originalTabBarHeight;
+        NSLog(@"[DYYY] layoutSubviews: gCurrentTabBarHeight fallback synced to %.1f.", gCurrentTabBarHeight);
     }
-
-    if ([self applyTabBarHeight])
-        return;
 
     BOOL hideShop = DYYYGetBool(@"DYYYHideShopButton");
     BOOL hideMsg = DYYYGetBool(@"DYYYHideMessageButton");

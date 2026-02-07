@@ -385,8 +385,6 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @property(nonatomic, assign, readonly) UITabBarController *yy_viewController;
 @property(retain, nonatomic) AWETabBarSkinContainerView *skinContainerView;
 - (void)initializeOriginalTabBarHeight;
-- (void)calculateTabBarHeight;
-- (BOOL)applyTabBarHeight;
 @end
 
 @interface AWEPlayInteractionListenFeedView : UIView
