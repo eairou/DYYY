@@ -6,7 +6,6 @@
  */
 #import "DYYYFloatSpeedButton.h"
 #import "DYYYFloatClearButton.h"
-#import "DYYYManager.h"
 #import "DYYYUtils.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -350,10 +349,10 @@ void initTargetClassNames(void) {
     NSArray<UIImage *> *frames = nil;
     CGFloat totalDuration = 0.0;
     BOOL hasFrames = gifData.length > 0 &&
-                     [DYYYManager framesFromAnimatedData:gifData
-                                                  scale:[UIScreen mainScreen].scale
-                                                 images:&frames
-                                          totalDuration:&totalDuration];
+                     [DYYYUtils framesFromAnimatedData:gifData
+                                                scale:[UIScreen mainScreen].scale
+                                               images:&frames
+                                        totalDuration:&totalDuration];
 
     if (hasFrames && frames.count > 0) {
         UIImageView *animatedImageView = [[UIImageView alloc] initWithFrame:self.bounds];
