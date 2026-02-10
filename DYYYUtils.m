@@ -828,6 +828,12 @@ static void DYYYApplyDisplayLocationToLabel(UILabel *label, NSString *displayLoc
         return NO;
     }
 
+    SEL isLightThemeSEL = NSSelectorFromString(@"isLightTheme");
+    if ([themeManagerClass respondsToSelector:isLightThemeSEL]) {
+        BOOL isLightTheme = ((BOOL (*)(id, SEL))objc_msgSend)(themeManagerClass, isLightThemeSEL);
+        return !isLightTheme;
+    }
+
     id themeManager = nil;
     SEL sharedManagerSEL = NSSelectorFromString(@"sharedManager");
     SEL sharedInstanceSEL = NSSelectorFromString(@"sharedInstance");
@@ -837,16 +843,19 @@ static void DYYYApplyDisplayLocationToLabel(UILabel *label, NSString *displayLoc
         themeManager = [themeManagerClass performSelector:sharedInstanceSEL];
     }
 
-    if (!themeManager) {
-        return NO;
-    }
-
-    @try {
-        id lightThemeValue = [themeManager valueForKey:@"isLightTheme"];
-        if ([lightThemeValue respondsToSelector:@selector(boolValue)]) {
-            return ![lightThemeValue boolValue];
+    if (themeManager) {
+        if ([themeManager respondsToSelector:isLightThemeSEL]) {
+            BOOL isLightTheme = ((BOOL (*)(id, SEL))objc_msgSend)(themeManager, isLightThemeSEL);
+            return !isLightTheme;
         }
-    } @catch (NSException *exception) {
+
+        @try {
+            id lightThemeValue = [themeManager valueForKey:@"isLightTheme"];
+            if ([lightThemeValue respondsToSelector:@selector(boolValue)]) {
+                return ![lightThemeValue boolValue];
+            }
+        } @catch (NSException *exception) {
+        }
     }
 
     return NO;
