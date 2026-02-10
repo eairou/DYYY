@@ -2279,7 +2279,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
                 BOOL newValue = !item.isSwitchOn;
 
                 if (newValue) {
-                    [DYYYBottomAlertView showAlertWithTitle:@"禁止ABTest下发配置"
+                    [DYYYBottomAlertView showAlertWithTitle:@"禁止 ABTest 下发配置"
                         message:@"这将暂停接收测试新功能的推送。确定要继续吗？"
                         avatarURL:nil
                         cancelButtonText:@"取消"
@@ -2298,7 +2298,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
                 } else {
                     item.isSwitchOn = newValue;
                     [DYYYSettingsHelper setUserDefaults:@(newValue) forKey:@"DYYYABTestBlockEnabled"];
-                    [DYYYUtils showToast:@"已允许ABTest下发配置，重启后生效。"];
+                    [DYYYUtils showToast:@"已允许 ABTest 下发配置，重启后生效。"];
                 }
               };
           } else if ([item.identifier isEqualToString:@"DYYYABTestModeString"]) {
@@ -2421,7 +2421,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
                 NSDictionary *currentData = [DYYYABTestHook getCurrentABTestData];
 
                 if (!currentData) {
-                    [DYYYUtils showToast:@"ABTest配置获取失败"];
+                    [DYYYUtils showToast:@"ABTest 配置获取失败"];
                     return;
                 }
 
@@ -2429,7 +2429,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
                 NSData *sortedJsonData = [NSJSONSerialization dataWithJSONObject:currentData options:NSJSONWritingPrettyPrinted | NSJSONWritingSortedKeys error:&error];
 
                 if (error) {
-                    [DYYYUtils showToast:@"ABTest配置序列化失败"];
+                    [DYYYUtils showToast:@"ABTest 配置序列化失败"];
                     return;
                 }
 
@@ -2452,7 +2452,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
                 DYYYBackupPickerDelegate *pickerDelegate = [[DYYYBackupPickerDelegate alloc] init];
                 pickerDelegate.tempFilePath = tempFilePath;
                 pickerDelegate.completionBlock = ^(NSURL *url) {
-                  [DYYYUtils showToast:@"ABTest配置已保存"];
+                  [DYYYUtils showToast:@"ABTest 配置已保存"];
                 };
 
                 static char kABTestPickerDelegateKey;
@@ -2918,7 +2918,7 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
       [sections addObject:[DYYYSettingsHelper createSectionWithTitle:@"媒体保存" items:downloadItems]];
       [sections addObject:[DYYYSettingsHelper createSectionWithTitle:@"交互增强" items:interactionItems]];
       [sections addObject:[DYYYSettingsHelper createSectionWithTitle:@"ABTest"
-                                                         footerTitle:@"允许用户导出或导入抖音的ABTest配置。远程配置由 Nathalie 维护，在应用启动时自动更新远程配置。"
+                                                         footerTitle:@"允许用户导出或导入抖音的 ABTest 配置。远程配置由 Nathalie 维护，在应用启动时自动更新远程配置。"
                                                                items:hotUpdateItems]];
       // 创建并推入二级设置页面
       AWESettingBaseViewController *subVC = [DYYYSettingsHelper createSubSettingsViewController:@"增强设置" sections:sections];
