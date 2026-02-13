@@ -106,7 +106,7 @@
                         shouldHide = YES;
                     } else if (([descString isEqualToString:@"听抖音"] || [descString isEqualToString:@"后台听"] || [descString isEqualToString:@"听视频"]) && hideListenDouyin) {
                         shouldHide = YES;
-                    } else if ([descString isEqualToString:@"后台播放设置"] && hideBackgroundPlay) {
+                    } else if (([descString isEqualToString:@"后台播放设置"] || [descString isEqualToString:@"后台音频设置"]) && hideBackgroundPlay) {
                         shouldHide = YES;
                     } else if ([descString isEqualToString:@"首页双列快捷入口"] && hideBiserial) {
                         shouldHide = YES;
@@ -896,7 +896,7 @@
                         shouldHide = YES;
                     } else if (([descString isEqualToString:@"听抖音"] || [descString isEqualToString:@"后台听"] || [descString isEqualToString:@"听视频"]) && hideListenDouyin) {
                         shouldHide = YES;
-                    } else if ([descString isEqualToString:@"后台播放设置"] && hideBackgroundPlay) {
+                    } else if (([descString isEqualToString:@"后台播放设置"] || [descString isEqualToString:@"后台音频设置"]) && hideBackgroundPlay) {
                         shouldHide = YES;
                     } else if ([descString isEqualToString:@"首页双列快捷入口"] && hideBiserial) {
                         shouldHide = YES;

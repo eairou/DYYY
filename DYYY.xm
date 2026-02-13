@@ -3654,6 +3654,16 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 }
 %end
 
+%hook _TtC18IESLiveRevenueImpl34IESLiveDynamicRankListEntranceView
+- (void)layoutSubviews {
+    %orig;
+    if (DYYYGetBool(@"DYYYHideLiveDetail")) {
+        self.hidden = YES;
+        return;
+    }
+}
+%end
+
 %hook IESLiveMatrixEntranceView
 - (void)layoutSubviews {
     %orig;

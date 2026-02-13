@@ -1135,6 +1135,8 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @end
 @interface _TtC18IESLiveRevenueImpl35IESLiveSwiftVideoLayerUserEnterView : UIView
 @end
+@interface _TtC18IESLiveRevenueImpl34IESLiveDynamicRankListEntranceView : UIView
+@end
 @interface IESLiveDynamicRankListEntranceView : UIView
 @end
 @interface IESLiveShortTouchActionView : UIView
