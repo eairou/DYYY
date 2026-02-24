@@ -113,6 +113,7 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 
 @interface AWEAwemeModel : NSObject
 @property(nonatomic, strong, readwrite) NSNumber *createTime;
+@property(nonatomic, strong, readwrite) NSNumber *recommendShareRate; // 推荐视频专有属性 
 @property(nonatomic, assign, readwrite) CGFloat videoDuration;
 @property(nonatomic, strong) AWEVideoModel *video;
 @property(nonatomic, strong) AWEMusicModel *music;
@@ -132,7 +133,7 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @property(nonatomic, strong) id hotSpotLynxCardModel;
 @property(nonatomic, strong) AWELiveFollowFeedCellModel *cellRoom;
 @property(nonatomic, strong) NSString *videoFeedTag;
-@property(nonatomic, strong) id shareRecExtra;  // 推荐视频专有属性
+@property(nonatomic, strong) id shareRecExtra;  // 收藏/喜欢以外的视频专有属性
 @property(nonatomic, strong) NSArray<AWEAwemeTextExtraModel *> *textExtras;
 @property(nonatomic, copy) NSString *itemTitle;
 @property(nonatomic, copy) NSString *descriptionSimpleString;

@@ -4556,9 +4556,9 @@ static NSHashTable *processedParentViews = nil;
     BOOL shouldFilterHotSpot = skipHotSpot && self.hotSpotLynxCardModel;
     BOOL shouldFilterRecLive = skipLive && (self.cellRoom != nil);
     BOOL shouldFilterAllLive = skipAllLive && [self.videoFeedTag isEqualToString:@"直播中"];
-    BOOL shouldskipPhoto = skipPhoto && (self.awemeType == 68) && self.shareRecExtra;
-    BOOL shouldskipPhotoText = skipPhotoText && self.isNewTextMode && self.shareRecExtra;
-    BOOL shouldFilterMusic = skipMusic && self.musicCard && self.shareRecExtra; // or self.awemeType == 155
+    BOOL shouldskipPhoto = skipPhoto && (self.awemeType == 68) && self.recommendShareRate;
+    BOOL shouldskipPhotoText = skipPhotoText && self.isNewTextMode && self.recommendShareRate;
+    BOOL shouldFilterMusic = skipMusic && self.musicCard && self.recommendShareRate; // or self.awemeType == 155
     BOOL shouldFilterAIInteraction = skipAIInteraction && (self.awemeType == 162);
     BOOL shouldFilterHDR = NO;
     BOOL shouldFilterLowLikes = NO;
@@ -4587,7 +4587,7 @@ static NSHashTable *processedParentViews = nil;
     NSString *filterUsers = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYFilterUsers"];
 
     // 检查是否需要过滤特定用户
-    if (self.shareRecExtra && ![self.shareRecExtra isEqual:@""] && filterUsers.length > 0 && self.author) {
+    if (self.shareRecExtra && self.recommendShareRate && filterUsers.length > 0 && self.author) {
         NSArray *usersList = [filterUsers componentsSeparatedByString:@","];
         NSString *currentShortID = self.author.shortID;
         NSString *currentNickname = self.author.nickname;
@@ -4609,8 +4609,8 @@ static NSHashTable *processedParentViews = nil;
         }
     }
 
-    // 只有当shareRecExtra不为空时才过滤点赞量低的视频和关键词
-    if (self.shareRecExtra && ![self.shareRecExtra isEqual:@""]) {
+    // 只有在推荐页(recommendShareRate存在)才过滤点赞量低的视频和关键词
+    if (self.recommendShareRate) {
         NSInteger filterLowLikesThreshold = DYYYGetInteger(@"DYYYFilterLowLikes");
         // 过滤低点赞量视频
         if (filterLowLikesThreshold > 0) {
