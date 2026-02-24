@@ -4548,6 +4548,7 @@ static NSHashTable *processedParentViews = nil;
     BOOL skipHotSpot = DYYYGetBool(@"DYYYSkipHotSpot");
     BOOL skipPhoto = DYYYGetBool(@"DYYYSkipPhoto");
     BOOL skipPhotoText = DYYYGetBool(@"DYYYSkipPhotoText");
+    BOOL skipMusic = DYYYGetBool(@"DYYYSkipMusic");
     BOOL skipAIInteraction = DYYYGetBool(@"DYYYSkipAIInteraction");
     BOOL filterHDR = DYYYGetBool(@"DYYYFilterFeedHDR");
 
@@ -4557,6 +4558,7 @@ static NSHashTable *processedParentViews = nil;
     BOOL shouldFilterAllLive = skipAllLive && [self.videoFeedTag isEqualToString:@"直播中"];
     BOOL shouldskipPhoto = skipPhoto && (self.awemeType == 68) && self.shareRecExtra;
     BOOL shouldskipPhotoText = skipPhotoText && self.isNewTextMode && self.shareRecExtra;
+    BOOL shouldFilterMusic = skipMusic && self.musicCard && self.shareRecExtra; // or self.awemeType == 155
     BOOL shouldFilterAIInteraction = skipAIInteraction && (self.awemeType == 162);
     BOOL shouldFilterHDR = NO;
     BOOL shouldFilterLowLikes = NO;
@@ -4676,7 +4678,7 @@ static NSHashTable *processedParentViews = nil;
             }
         }
     }
-    return shouldFilterAds || shouldFilterRecLive || shouldFilterAllLive || shouldFilterHotSpot || shouldskipPhoto || shouldskipPhotoText || shouldFilterAIInteraction || shouldFilterHDR || shouldFilterLowLikes || shouldFilterKeywords || shouldFilterProp ||
+    return shouldFilterAds || shouldFilterRecLive || shouldFilterAllLive || shouldFilterHotSpot || shouldskipPhoto || shouldskipPhotoText || shouldFilterMusic || shouldFilterAIInteraction || shouldFilterHDR || shouldFilterLowLikes || shouldFilterKeywords || shouldFilterProp ||
            shouldFilterTime || shouldFilterUser;
 }
 
