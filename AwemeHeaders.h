@@ -134,6 +134,7 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @property(nonatomic, strong) AWELiveFollowFeedCellModel *cellRoom;
 @property(nonatomic, strong) NSString *videoFeedTag;
 @property(nonatomic, strong) id shareRecExtra;  // 收藏/喜欢以外的视频专有属性
+@property(nonatomic, copy) NSString *referString; // 推荐页为 homepage_hot
 @property(nonatomic, strong) NSArray<AWEAwemeTextExtraModel *> *textExtras;
 @property(nonatomic, copy) NSString *itemTitle;
 @property(nonatomic, copy) NSString *descriptionSimpleString;
