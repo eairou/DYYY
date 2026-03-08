@@ -3723,13 +3723,10 @@ static NSHashTable *processedParentViews = nil;
 // 隐藏顶栏关注下的提示线
 %hook AWEFeedMultiTabSelectedContainerView
 
-- (void)setHidden:(BOOL)hidden {
-    BOOL forceHide = DYYYGetBool(@"DYYYHideTopBarLine");
-
-    if (forceHide) {
-        %orig(YES);
-    } else {
-        %orig(hidden);
+- (void)layoutSubviews {
+    %orig;
+    if (DYYYGetBool(@"DYYYHideTopBarLine")) {
+        self.hidden = YES;
     }
 }
 
@@ -3820,15 +3817,25 @@ static NSHashTable *processedParentViews = nil;
 %end
 
 // 隐藏关注直播
-%hook AWEConcernSkylightCapsuleView
-- (void)setHidden:(BOOL)hidden {
-    if (DYYYGetBool(@"DYYYHideConcernCapsuleView")) {
-        %orig(YES);
-        return;
-    }
+%hook AWELiveSkylightViewModel
 
-    %orig(hidden);
+- (id)dataSource {
+	BOOL DYYYHideConcernCapsuleView = DYYYGetBool(@"DYYYHideConcernCapsuleView");
+	if (DYYYHideConcernCapsuleView) {
+		return nil;
+	}
+	return %orig;
 }
+
+- (void)setDataSource:(id)dataSource {
+	BOOL DYYYHideConcernCapsuleView = DYYYGetBool(@"DYYYHideConcernCapsuleView");
+	if (DYYYHideConcernCapsuleView) {
+		%orig(nil);
+		return;
+	}
+	%orig;
+}
+
 %end
 
 %hook AWELiveAutoEnterStyleAView
@@ -3876,17 +3883,22 @@ static NSHashTable *processedParentViews = nil;
 
 %end
 
-// 隐藏话题
-%hook AWEPlayInteractionTemplateButtonGroup
-- (void)layoutSubviews {
-    if (DYYYGetBool(@"DYYYHideTemplateGroup")) {
-        UIView *parentView = self.superview;
-        if (parentView) {
-            [parentView removeFromSuperview];
-        }
-        return;
-    }
-    %orig;
+// 屏蔽模板按钮组件（底部互动）- hook button 方法返回 nil
+%hook AWEPlayInteractionTemplateButton
+- (id)button {
+	BOOL DYYYHideBottomInteraction = DYYYGetBool(@"DYYYHideBottomInteraction");
+	if (DYYYHideBottomInteraction) {
+		return nil;
+	}
+	return %orig;
+}
+
+- (void)setButton:(id)button {
+	BOOL DYYYHideBottomInteraction = DYYYGetBool(@"DYYYHideBottomInteraction");
+	if (DYYYHideBottomInteraction) {
+		return;  // 不设置按钮
+	}
+	%orig;
 }
 %end
 
@@ -3978,15 +3990,13 @@ static NSHashTable *processedParentViews = nil;
 
 // 隐藏首页直播胶囊
 %hook AWEHPTopTabItemBadgeContentView
-
 - (void)layoutSubviews {
-    %orig;
-    if (DYYYGetBool(@"DYYYHideLiveCapsuleView")) {
+    if (DYYYGetBool(@"DYYYHideConcernCapsuleView")) {
         self.hidden = YES;
         return;
     }
+    %orig;
 }
-
 %end
 
 // 隐藏群商店
@@ -4106,19 +4116,6 @@ static NSHashTable *processedParentViews = nil;
     }
 }
 
-%end
-
-// 隐藏顶栏红点
-%hook AWEHPTopTabItemBadgeContentView
-- (id)showBadgeWithBadgeStyle:(NSUInteger)style badgeConfig:(id)config count:(NSInteger)count text:(id)text {
-    BOOL hideEnabled = DYYYGetBool(@"DYYYHideTopBarBadge");
-
-    if (hideEnabled) {
-        return nil;
-    } else {
-        return %orig(style, config, count, text);
-    }
-}
 %end
 
 // 隐藏直播退出清屏、投屏按钮
@@ -4383,6 +4380,77 @@ static NSHashTable *processedParentViews = nil;
 }
 %end
 
+// 推荐页过滤视频发布时间（数组级别过滤，属性已完整初始化）
+%hook AWEHotListDataController
+
+- (id)transferAwemeListIfNeededWithArray:(id)arg1 isInitFetch:(BOOL)arg2 {
+    NSArray *orig = %orig;
+    if (!orig || orig.count == 0) return orig;
+
+    // --- 配置读取 ---
+    NSInteger daysThreshold = DYYYGetInteger(@"DYYYFilterTimeLimit");
+    BOOL skipLive = DYYYGetBool(@"DYYYSkipLive"); // 读取直播过滤开关
+    NSInteger minLikesThreshold = DYYYGetInteger(@"DYYYFilterLowLikes"); // 读取低赞过滤阈值 (例如: 1000)
+    
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+    NSTimeInterval thresholdInSeconds = daysThreshold * 86400.0;
+
+    NSMutableArray *filtered = [NSMutableArray arrayWithCapacity:orig.count];
+
+    for (id obj in orig) {
+        if (![obj isKindOfClass:%c(AWEAwemeModel)]) {
+            [filtered addObject:obj];
+            continue;
+        }
+
+        AWEAwemeModel *m = (AWEAwemeModel *)obj;
+
+        // 1. 广告白名单
+        // 使用 respondsToSelector 确保安全，防止属性变更
+        if ([m respondsToSelector:@selector(isAds)] && m.isAds) {
+            [filtered addObject:obj];
+            continue;
+        }
+
+        // 2. 直播过滤逻辑 (仅依赖 cellRoom)
+        if (skipLive && [m respondsToSelector:@selector(cellRoom)] && m.cellRoom != nil) {
+            continue; // 命中直播过滤，跳过
+        }
+
+        // 3. 时间限制过滤
+        if (daysThreshold > 0 && [m respondsToSelector:@selector(createTime)]) {
+            NSTimeInterval vTs = [m.createTime doubleValue];
+            if (vTs > 1e12) vTs /= 1000.0; // 毫秒转秒
+
+            if (vTs > 0 && (now - vTs) > thresholdInSeconds) {
+                continue; // 超过设定时限，跳过
+            }
+        }
+
+        // 4. 低赞过滤逻辑
+        if (minLikesThreshold > 0) {
+            NSInteger diggCount = 0;
+            // 抖音的点赞数通常在 statistics 模型中的 diggCount 属性里
+            if ([m respondsToSelector:@selector(statistics)]) {
+                id stats = [m valueForKey:@"statistics"];
+                if (stats && [stats respondsToSelector:@selector(diggCount)]) {
+                    diggCount = [[stats valueForKey:@"diggCount"] integerValue];
+                }
+            }
+            
+            if (diggCount < minLikesThreshold) {
+                continue; // 点赞数低于设定的阈值，跳过
+            }
+        }
+
+        [filtered addObject:obj];
+    }
+
+    return [filtered copy];
+}
+
+%end
+
 %hook AWEAwemeModel
 
 - (id)initWithDictionary:(id)arg1 error:(id *)arg2 {
@@ -4395,7 +4463,6 @@ static NSHashTable *processedParentViews = nil;
 %new
 - (BOOL)contentFilter {
     BOOL noAds = DYYYGetBool(@"DYYYNoAds");
-    BOOL skipLive = DYYYGetBool(@"DYYYSkipLive");
     BOOL skipAllLive = DYYYGetBool(@"DYYYSkipAllLive");
     BOOL skipHotSpot = DYYYGetBool(@"DYYYSkipHotSpot");
     BOOL skipPhoto = DYYYGetBool(@"DYYYSkipPhoto");
@@ -4406,7 +4473,6 @@ static NSHashTable *processedParentViews = nil;
 
     BOOL shouldFilterAds = noAds && (self.isAds);
     BOOL shouldFilterHotSpot = skipHotSpot && self.hotSpotLynxCardModel;
-    BOOL shouldFilterRecLive = skipLive && (self.cellRoom != nil);
     BOOL shouldFilterAllLive = skipAllLive && [self.videoFeedTag isEqualToString:@"直播中"];
     BOOL isRecommendFeed = [self.referString isEqualToString:@"homepage_hot"];
     BOOL shouldskipPhoto = skipPhoto && (self.awemeType == 68) && isRecommendFeed;
@@ -4462,20 +4528,8 @@ static NSHashTable *processedParentViews = nil;
         }
     }
 
-    // 仅在推荐页过滤点赞量低、关键词和道具
+    // 仅在推荐页过滤关键词和道具
     if (isRecommendFeed) {
-        NSInteger filterLowLikesThreshold = DYYYGetInteger(@"DYYYFilterLowLikes");
-        // 过滤低点赞量视频
-        if (filterLowLikesThreshold > 0) {
-            AWESearchAwemeExtraModel *searchExtraModel = [self searchExtraModel];
-            if (!searchExtraModel) {
-                AWEAwemeStatisticsModel *statistics = self.statistics;
-                if (statistics && statistics.diggCount) {
-                    shouldFilterLowLikes = statistics.diggCount.integerValue < filterLowLikesThreshold;
-                }
-            }
-        }
-
         // 过滤包含特定关键词的视频
         if (keywordsList.count > 0) {
             // 检查视频标题
@@ -4503,20 +4557,8 @@ static NSHashTable *processedParentViews = nil;
                 }
             }
         }
-
-        // 过滤视频发布时间
-        long long currentTimestamp = (long long)[[NSDate date] timeIntervalSince1970];
-        NSInteger daysThreshold = DYYYGetInteger(@"DYYYFilterTimeLimit");
-        if (daysThreshold > 0) {
-            NSTimeInterval videoTimestamp = [self.createTime doubleValue];
-            if (videoTimestamp > 0) {
-                NSTimeInterval threshold = daysThreshold * 86400.0;
-                NSTimeInterval current = (NSTimeInterval)currentTimestamp;
-                NSTimeInterval timeDifference = current - videoTimestamp;
-                shouldFilterTime = (timeDifference > threshold);
-            }
-        }
     }
+
 
     // 检查是否为HDR视频
     if (filterHDR && self.video && self.video.bitrateModels) {
@@ -4531,7 +4573,7 @@ static NSHashTable *processedParentViews = nil;
             }
         }
     }
-    return shouldFilterAds || shouldFilterRecLive || shouldFilterAllLive || shouldFilterHotSpot || shouldskipPhoto || shouldskipPhotoText || shouldFilterMusic || shouldFilterAIInteraction || shouldFilterHDR || shouldFilterLowLikes || shouldFilterKeywords || shouldFilterProp ||
+    return shouldFilterAds || shouldFilterAllLive || shouldFilterHotSpot || shouldskipPhoto || shouldskipPhotoText || shouldFilterMusic || shouldFilterAIInteraction || shouldFilterHDR || shouldFilterKeywords || shouldFilterProp ||
            shouldFilterTime || shouldFilterUser;
 }
 
@@ -4540,6 +4582,14 @@ static NSHashTable *processedParentViews = nil;
         return nil;
     }
     return %orig;
+}
+
+- (void)setEcommerceBelowLabel:(id)label {
+	if (DYYYGetBool(@"DYYYHideHisShop")) {
+		%orig(nil);
+		return;
+	}
+	%orig;
 }
 
 - (void)setDescriptionString:(NSString *)desc {
@@ -4891,6 +4941,20 @@ static NSHashTable *processedParentViews = nil;
 
 
 //以下部分为新增
+// 屏蔽头像直播
+%hook AWEUserModel
+
+- (NSNumber *)roomID {
+	BOOL DYYYHideAvatarLive = DYYYGetBool(@"DYYYHideAvatarLive");
+	if (DYYYHideAvatarLive) {
+		return @(0);
+	}
+	return %orig;
+}
+
+%end
+
+
 // 屏蔽头像光圈
 %hook AWEUserModel
 
@@ -4972,20 +5036,18 @@ static NSHashTable *processedParentViews = nil;
 
 %end
 
-// 屏蔽互动贴纸（复用挑战贴纸开关）
+// 屏蔽互动贴纸
 %hook AWEInteractionEditTagStickerModel
 
 - (id)editTagInfo {
-	BOOL DYYYHideChallengeStickers = DYYYGetBool(@"DYYYHideChallengeStickers");
-	if (DYYYHideChallengeStickers) {
+	if (DYYYGetBool(@"DYYYHideEditTag")) {
 		return nil;
 	}
 	return %orig;
 }
 
 - (void)setEditTagInfo:(id)info {
-	BOOL DYYYHideChallengeStickers = DYYYGetBool(@"DYYYHideChallengeStickers");
-	if (DYYYHideChallengeStickers) {
+	if (DYYYGetBool(@"DYYYHideEditTag")) {
 		%orig(nil);
 		return;
 	}
@@ -5076,6 +5138,39 @@ static NSHashTable *processedParentViews = nil;
 		return @{};
 	}
 	return %orig;
+}
+
+%end
+
+// 屏蔽精选标签
+%hook AWETemplateStaticLabelInfoModel
+
+- (NSArray *)containers {
+	if (DYYYGetBool(@"DYYYHideTemplateLabel")) {
+		return @[];
+	}
+	return %orig;
+}
+
+- (void)setContainers:(NSArray *)containers {
+	if (DYYYGetBool(@"DYYYHideTemplateLabel")) {
+		%orig(@[]);
+		return;
+	}
+	%orig;
+}
+
+%end
+
+// 隐藏好友推荐
+%hook AFDFriendRecommendTagView
+
+- (void)layoutSubviews {
+	if (DYYYGetBool(@"DYYYHideFriendRecommend")) {
+		self.hidden = YES;
+		return;
+	}
+	%orig;
 }
 
 %end

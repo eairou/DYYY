@@ -1484,3 +1484,16 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 
 @interface AWEDPlayerProgressContainerView : UIView
 @end
+
+// 精选标签
+@interface AWETemplateStaticLabelInfoModel : NSObject
+@property (nonatomic, copy) NSArray *containers;
+@end
+
+// 好友推荐
+@interface AFDFriendRecommendTagView : UIView
+@end
+
+// 顶栏选中指示线
+@interface AWEFeedMultiTabSelectedContainerView : UIView
+@end
