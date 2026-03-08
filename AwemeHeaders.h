@@ -576,10 +576,6 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 - (AWEURLModel *)staticURLModel;
 @end
 
-@interface AWECommentAudioModel : NSObject
-@property (nonatomic, copy, readwrite) NSString *content;
-@end
-
 @interface _TtC33AWECommentLongPressPanelSwiftImpl37CommentLongPressPanelSaveImageElement : NSObject
 - (AWECommentLongPressPanelContext *)commentPageContext;
 @end
