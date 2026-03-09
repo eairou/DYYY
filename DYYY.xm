@@ -10,6 +10,7 @@
 #import <float.h>
 #import <math.h>
 #import <objc/runtime.h>
+#import <substrate.h>
 
 #import "AwemeHeaders.h"
 #import "CityManager.h"
@@ -360,6 +361,104 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
     return originalModels;
 }
 
+%end
+
+// 直播间真实人数
+
+static NSString *(*orig_displayShort)(id, SEL);
+static NSString *my_displayShort(id self, SEL _cmd) {
+    if (!DYYYGetBool(@"DYYYEnableLiveRealCount")) return orig_displayShort(self, _cmd);
+    if ([self respondsToSelector:@selector(displayValue)]) {
+        NSInteger count = (NSInteger)[self performSelector:@selector(displayValue)];
+        if (count > 0) return [NSString stringWithFormat:@"%ld", (long)count];
+    }
+    return orig_displayShort(self, _cmd);
+}
+
+static NSString *(*orig_displayMiddle)(id, SEL);
+static NSString *my_displayMiddle(id self, SEL _cmd) {
+    if (!DYYYGetBool(@"DYYYEnableLiveRealCount")) return orig_displayMiddle(self, _cmd);
+    if ([self respondsToSelector:@selector(displayValue)]) {
+        NSInteger count = (NSInteger)[self performSelector:@selector(displayValue)];
+        if (count > 0) return [NSString stringWithFormat:@"%ld", (long)count];
+    }
+    return orig_displayMiddle(self, _cmd);
+}
+
+static NSString *(*orig_displayLong)(id, SEL);
+static NSString *my_displayLong(id self, SEL _cmd) {
+    if (!DYYYGetBool(@"DYYYEnableLiveRealCount")) return orig_displayLong(self, _cmd);
+    if ([self respondsToSelector:@selector(displayValue)]) {
+        NSInteger count = (NSInteger)[self performSelector:@selector(displayValue)];
+        if (count > 0) return [NSString stringWithFormat:@"%ld在线观众", (long)count];
+    }
+    return orig_displayLong(self, _cmd);
+}
+
+// 评论具体时间
+%hook AWEDateTimeFormatter
+
++ (id)formattedDateForTimestamp:(double)timestamp {
+    if (!DYYYGetBool(@"DYYYCommentExactTime")) return %orig(timestamp);
+    return [NSString stringWithFormat:@"%.0f ", timestamp];
+}
+
+%end
+
+%hook AWERLVirtualLabel
+
+- (void)setText:(NSString *)text {
+    if (!DYYYGetBool(@"DYYYCommentExactTime") || !text || text.length == 0) {
+        %orig(text);
+        return;
+    }
+
+    NSError *error = nil;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^(\\d{10,13})([\\s\\S]*)" options:0 error:&error];
+    
+    NSTextCheckingResult *match = [regex firstMatchInString:text options:0 range:NSMakeRange(0, text.length)];
+
+    if (match) {
+        NSString *rawTs = [text substringWithRange:[match rangeAtIndex:1]];
+        NSString *suffix = [text substringWithRange:[match rangeAtIndex:2]];
+        
+        long long ts = [rawTs longLongValue];
+        
+        if (ts > 100000000000) {
+            ts = ts / 1000;
+        }
+        
+        NSDate *date = [NSDate dateWithTimeIntervalSince1970:ts];
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        [formatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+        NSString *formattedDate = [formatter stringFromDate:date];
+        
+        NSString *newText = [NSString stringWithFormat:@"%@%@", formattedDate, suffix];
+        %orig(newText);
+    } else {
+        %orig(text);
+    }
+}
+
+%end
+
+%group DYYYCommentExactTimeGroup
+%hook AWECommentSwiftBizUI_CommentInteractionBaseLabel
+
+- (void)setFrame:(CGRect)frame {
+    if (!DYYYGetBool(@"DYYYCommentExactTime")) {
+        %orig(frame);
+        return;
+    }
+    frame.size.width = 800.0;
+    
+    UIView *labelView = (UIView *)self;
+    labelView.clipsToBounds = NO;
+
+    %orig(frame);
+}
+
+%end
 %end
 
 // 禁用自动进入直播间
@@ -8508,6 +8607,18 @@ static void findTargetViewInView(UIView *view) {
 }
 
 %ctor {
+    Class interactionBaseLabelClass = objc_getClass("AWECommentSwiftBizUI.CommentInteractionBaseLabel");
+    if (interactionBaseLabelClass) {
+        %init(DYYYCommentExactTimeGroup, AWECommentSwiftBizUI_CommentInteractionBaseLabel = interactionBaseLabelClass);
+    }
+    
+    Class statsMessageClass = objc_getClass("HTSLiveRoomStatsMessage");
+    if (statsMessageClass) {
+        MSHookMessageEx(statsMessageClass, @selector(displayShort), (IMP)&my_displayShort, (IMP *)&orig_displayShort);
+        MSHookMessageEx(statsMessageClass, @selector(displayMiddle), (IMP)&my_displayMiddle, (IMP *)&orig_displayMiddle);
+        MSHookMessageEx(statsMessageClass, @selector(displayLong), (IMP)&my_displayLong, (IMP *)&orig_displayLong);
+    }
+
     Class imMenuComponentClass = objc_getClass("AWEIMCustomMenuComponent");
     if (imMenuComponentClass) {
         SEL legacySelector = NSSelectorFromString(@"msg_showMenuForBubbleFrameInScreen:tapLocationInScreen:menuItemList:moreEmoticon:onCell:extra:");
