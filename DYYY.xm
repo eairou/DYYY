@@ -413,6 +413,11 @@ static NSString *my_displayLong(id self, SEL _cmd) {
         return;
     }
 
+    if ([text isEqualToString:@"回复"]) {
+        %orig(@"");
+        return;
+    }
+
     NSError *error = nil;
     NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^(\\d{10,13})([\\s\\S]*)" options:0 error:&error];
     
@@ -446,14 +451,18 @@ static NSString *my_displayLong(id self, SEL _cmd) {
 %hook AWECommentSwiftBizUI_CommentInteractionBaseLabel
 
 - (void)setFrame:(CGRect)frame {
-    if (!DYYYGetBool(@"DYYYCommentExactTime")) {
+    if (!DYYYGetBool(@"DYYYCommentExactTime") || ![self respondsToSelector:@selector(text)]) {
         %orig(frame);
         return;
     }
-    frame.size.width = 800.0;
-    
-    UIView *labelView = (UIView *)self;
-    labelView.clipsToBounds = NO;
+
+    if (ABS(frame.size.width - 115.0) <= 5.0 && ABS(frame.size.height - 16.0) <= 1) {
+        
+        frame.size.width = 800.0;
+        
+        UIView *labelView = (UIView *)self;
+        labelView.clipsToBounds = NO;
+    }
 
     %orig(frame);
 }
