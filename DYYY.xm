@@ -450,24 +450,113 @@ static NSString *my_displayLong(id self, SEL _cmd) {
 %group DYYYCommentExactTimeGroup
 %hook AWECommentSwiftBizUI_CommentInteractionBaseLabel
 
+- (void)setText:(NSString *)text {
+    %orig(text); // 先让系统把文本赋上去
+    
+    if (!DYYYGetBool(@"DYYYCommentExactTime")) {
+        return;
+    }
+
+    UILabel *label = (UILabel *)self;
+    if (!text || text.length == 0) return;
+
+    // --- 1. 拦截翻译文本，将其绝对定位在屏幕右侧 100 像素 ---
+    if ([text isEqualToString:@"翻译"] || [text isEqualToString:@"隐藏翻译"]) {
+        CGRect currentFrame = label.frame;
+        CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
+        // 重新计算 X 坐标：屏幕宽度 - 100 - 标签自身宽度
+        currentFrame.origin.x = screenWidth - 100.0 - currentFrame.size.width;
+        label.frame = currentFrame;
+        return;
+    }
+
+    // --- 2. 拦截时间文本，如果不够宽则扩充宽度 ---
+    UIFont *font = label.font;
+    if (font) {
+        CGFloat expectedWidth = ceilf([text sizeWithAttributes:@{NSFontAttributeName: font}].width);
+        CGRect currentFrame = label.frame;
+        
+        // 如果当前宽度不够，并且不是尚未初始化的状态（>0），则强行修改并重新赋值
+        if (currentFrame.size.width < expectedWidth && currentFrame.size.width > 0) {
+            currentFrame.size.width = expectedWidth;
+            label.frame = currentFrame; 
+            label.clipsToBounds = NO;
+        }
+    }
+}
+
 - (void)setFrame:(CGRect)frame {
     if (!DYYYGetBool(@"DYYYCommentExactTime") || ![self respondsToSelector:@selector(text)]) {
         %orig(frame);
         return;
     }
 
-    if (ABS(frame.size.width - 115.0) <= 5.0 && ABS(frame.size.height - 16.0) <= 1) {
-        
-        frame.size.width = 800.0;
-        
-        UIView *labelView = (UIView *)self;
-        labelView.clipsToBounds = NO;
+    UILabel *label = (UILabel *)self;
+    NSString *text = label.text;
+
+    if (text && text.length > 0) {
+        // --- 1. 拦截翻译文本，将其绝对定位在屏幕右侧 100 像素 ---
+        if ([text isEqualToString:@"翻译"] || [text isEqualToString:@"隐藏翻译"]) {
+            CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
+            frame.origin.x = screenWidth - 100.0 - frame.size.width;
+        } 
+        // --- 2. 拦截时间文本，如果不够宽则扩充宽度 ---
+        else if ([self respondsToSelector:@selector(font)]) {
+            UIFont *font = label.font;
+            if (font) {
+                CGFloat expectedWidth = ceilf([text sizeWithAttributes:@{NSFontAttributeName: font}].width);
+                if (frame.size.width < expectedWidth && frame.size.width > 0) {
+                    frame.size.width = expectedWidth;
+                    label.clipsToBounds = NO;
+                }
+            }
+        }
     }
 
     %orig(frame);
 }
 
 %end
+%end
+
+// 前面的AWEDateTimeFormatter会导致图文视频展开时间文本变成时间戳，这里处理下
+%hook YYLabel
+
+// 1. Hook 富文本赋值方法 (核心)
+- (void)setAttributedText:(NSAttributedString *)attributedText {
+    if (!DYYYGetBool(@"DYYYCommentExactTime") || !attributedText || attributedText.length == 0) {
+        %orig(attributedText);
+        return;
+    }
+
+    NSString *plainText = [attributedText string];
+
+    NSError *error = nil;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^(\\d{10,13})" options:0 error:&error];
+    NSTextCheckingResult *match = [regex firstMatchInString:plainText options:0 range:NSMakeRange(0, plainText.length)];
+
+    if (match) {
+        NSString *rawTs = [plainText substringWithRange:[match rangeAtIndex:1]];
+        long long ts = [rawTs longLongValue];
+        
+        if (ts > 100000000000) {
+            ts = ts / 1000;
+        }
+        
+        NSDate *date = [NSDate dateWithTimeIntervalSince1970:ts];
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        [formatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+        NSString *formattedDate = [formatter stringFromDate:date];
+        
+        NSMutableAttributedString *newAttrStr = [attributedText mutableCopy];
+        [newAttrStr replaceCharactersInRange:[match rangeAtIndex:1] withString:formattedDate];
+        
+        %orig(newAttrStr);
+    } else {
+        %orig(attributedText);
+    }
+}
+
 %end
 
 // 禁用自动进入直播间
