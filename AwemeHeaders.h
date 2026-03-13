@@ -378,6 +378,10 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 - (NSString *)convertSecondsToTimeString:(NSInteger)totalSeconds;
 @end
 
+@interface AWEDProgressCoreContainer : NSObject
+@property(retain, nonatomic) id progressSlider;
+@end
+
 @interface AWEAdAvatarView : UIView
 @end
 
