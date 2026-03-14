@@ -332,10 +332,6 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 - (void)buttonTouchUp:(id)sender;
 @end
 
-@interface HTSLiveRoomStatsMessage : NSObject
-- (NSInteger)displayValue;
-@end
-
 @interface AWEFeedVideoButton : UIButton
 @end
 
