@@ -1258,6 +1258,10 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @interface IESLiveRoomComponent : NSObject
 @end
 
+@interface IESLiveUserSeqlistFragment : NSObject
+- (void)refreshVerticalUserCount:(id)arg1 horizontalUserCount:(id)arg2 trueValue:(NSInteger)arg3;
+@end
+
 @interface HTSLiveStreamQualityFragment : IESLiveRoomComponent
 @property(nonatomic, strong) NSArray *streamQualityArray;
 - (NSArray *)getQualities;
