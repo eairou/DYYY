@@ -8645,6 +8645,15 @@ static Class TagViewClass = nil;
 }
 %end
 
+%hook _TtC21AWEIncentiveSwiftImpl29IncentivePendantContainerView
+- (void)layoutSubviews {
+    %orig;
+    if (DYYYGetBool(@"DYYYHidePendantGroup")) {
+        [self removeFromSuperview];
+    }
+}
+%end
+
 %hook UIImageView
 - (void)layoutSubviews {
     %orig;
