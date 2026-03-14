@@ -151,6 +151,11 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 - (AWESearchAwemeExtraModel *)searchExtraModel;
 @end
 
+@interface AWEHotListDataController : NSObject
+- (NSNumber *)dyyy_numberValueForLowLikesFilter:(id)rawValue;
+- (NSNumber *)dyyy_resolvedDiggCountForAweme:(AWEAwemeModel *)aweme;
+@end
+
 @interface AWEFeedCommentConfigModel : NSObject
 - (void)setCommentInputConfigText:(NSString *)text;
 @end

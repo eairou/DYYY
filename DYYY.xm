@@ -4637,35 +4637,107 @@ static NSHashTable *processedParentViews = nil;
 }
 %end
 
-// 推荐页过滤视频发布时间（数组级别过滤，属性已完整初始化）
+// 推荐页数组级过滤（直播 / 时间 / 低赞）
 %hook AWEHotListDataController
+
+%new
+- (NSNumber *)dyyy_numberValueForLowLikesFilter:(id)rawValue {
+    if (!rawValue || rawValue == [NSNull null]) {
+        return nil;
+    }
+
+    if ([rawValue isKindOfClass:[NSNumber class]]) {
+        return (NSNumber *)rawValue;
+    }
+
+    if ([rawValue isKindOfClass:[NSString class]]) {
+        NSString *trimmed = [(NSString *)rawValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        if (trimmed.length == 0) {
+            return nil;
+        }
+
+        NSScanner *integerScanner = [NSScanner scannerWithString:trimmed];
+        long long integerValue = 0;
+        if ([integerScanner scanLongLong:&integerValue] && integerScanner.isAtEnd) {
+            return @(integerValue);
+        }
+
+        NSScanner *doubleScanner = [NSScanner scannerWithString:trimmed];
+        double doubleValue = 0.0;
+        if ([doubleScanner scanDouble:&doubleValue] && doubleScanner.isAtEnd) {
+            return @((long long)llround(doubleValue));
+        }
+    }
+
+    return nil;
+}
+
+%new
+- (NSNumber *)dyyy_resolvedDiggCountForAweme:(AWEAwemeModel *)aweme {
+    if (!aweme) {
+        return nil;
+    }
+
+    static NSArray<NSString *> *diggKeyPaths = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+      diggKeyPaths = @[
+          @"statistics.diggCount",
+          @"statistics.digg_count",
+          @"diggCount",
+          @"digg_count",
+          @"feedSequenceExtendFeature.digg_count",
+          @"feedSequenceExtendFeature.diggCount",
+          @"recommendFeedExtendFeature.digg_count",
+          @"recommendFeedExtendFeature.diggCount"
+      ];
+    });
+
+    for (NSString *keyPath in diggKeyPaths) {
+        id rawValue = nil;
+        @try {
+            rawValue = [aweme valueForKeyPath:keyPath];
+        } @catch (__unused NSException *exception) {
+            rawValue = nil;
+        }
+
+        NSNumber *resolved = [self dyyy_numberValueForLowLikesFilter:rawValue];
+        if (resolved) {
+            return resolved;
+        }
+    }
+
+    return nil;
+}
 
 - (id)transferAwemeListIfNeededWithArray:(id)arg1 isInitFetch:(BOOL)arg2 {
     NSArray *orig = %orig;
-    if (!orig || orig.count == 0) return orig;
+    if (![orig isKindOfClass:[NSArray class]] || orig.count == 0) {
+        return orig;
+    }
 
     // --- 配置读取 ---
     NSInteger daysThreshold = DYYYGetInteger(@"DYYYFilterTimeLimit");
     BOOL skipLive = DYYYGetBool(@"DYYYSkipLive"); // 读取直播过滤开关
     NSInteger minLikesThreshold = DYYYGetInteger(@"DYYYFilterLowLikes"); // 读取低赞过滤阈值 (例如: 1000)
-    
-    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
-    NSTimeInterval thresholdInSeconds = daysThreshold * 86400.0;
 
-    NSMutableArray *filtered = [NSMutableArray arrayWithCapacity:orig.count];
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+    NSTimeInterval thresholdInSeconds = MAX(daysThreshold, 0) * 86400.0;
+
+    // 第一阶段：先做稳定字段过滤（直播/时间）
+    NSMutableArray *baseFiltered = [NSMutableArray arrayWithCapacity:orig.count];
 
     for (id obj in orig) {
         if (![obj isKindOfClass:%c(AWEAwemeModel)]) {
-            [filtered addObject:obj];
+            [baseFiltered addObject:obj];
             continue;
         }
 
         AWEAwemeModel *m = (AWEAwemeModel *)obj;
 
         // 1. 广告白名单
-        // 使用 respondsToSelector 确保安全，防止属性变更
         if ([m respondsToSelector:@selector(isAds)] && m.isAds) {
-            [filtered addObject:obj];
+            [baseFiltered addObject:obj];
             continue;
         }
 
@@ -4677,33 +4749,69 @@ static NSHashTable *processedParentViews = nil;
         // 3. 时间限制过滤
         if (daysThreshold > 0 && [m respondsToSelector:@selector(createTime)]) {
             NSTimeInterval vTs = [m.createTime doubleValue];
-            if (vTs > 1e12) vTs /= 1000.0; // 毫秒转秒
+            if (vTs > 1e12) {
+                vTs /= 1000.0; // 毫秒转秒
+            }
 
             if (vTs > 0 && (now - vTs) > thresholdInSeconds) {
                 continue; // 超过设定时限，跳过
             }
         }
 
-        // 4. 低赞过滤逻辑
-        if (minLikesThreshold > 0) {
-            NSInteger diggCount = 0;
-            // 抖音的点赞数通常在 statistics 模型中的 diggCount 属性里
-            if ([m respondsToSelector:@selector(statistics)]) {
-                id stats = [m valueForKey:@"statistics"];
-                if (stats && [stats respondsToSelector:@selector(diggCount)]) {
-                    diggCount = [[stats valueForKey:@"diggCount"] integerValue];
-                }
-            }
-            
-            if (diggCount < minLikesThreshold) {
-                continue; // 点赞数低于设定的阈值，跳过
-            }
-        }
-
-        [filtered addObject:obj];
+        [baseFiltered addObject:obj];
     }
 
-    return [filtered copy];
+    if (minLikesThreshold <= 0 || baseFiltered.count == 0) {
+        return [baseFiltered copy];
+    }
+
+    // 第二阶段：低赞过滤（字段缺失时放行，避免误杀）
+    NSMutableArray *lowLikesFiltered = [NSMutableArray arrayWithCapacity:baseFiltered.count];
+    NSInteger awemeCount = 0;
+    NSInteger unresolvedLikesCount = 0;
+    NSInteger filteredByLowLikesCount = 0;
+
+    for (id obj in baseFiltered) {
+        if (![obj isKindOfClass:%c(AWEAwemeModel)]) {
+            [lowLikesFiltered addObject:obj];
+            continue;
+        }
+
+        awemeCount++;
+        AWEAwemeModel *m = (AWEAwemeModel *)obj;
+        NSNumber *diggCountValue = [self dyyy_resolvedDiggCountForAweme:m];
+        NSInteger diggCount = diggCountValue.integerValue;
+
+        // 新版部分链路点赞字段会短暂缺失/回填为0，这里按未知放行，避免整批误过滤
+        if (!diggCountValue || diggCount <= 0) {
+            unresolvedLikesCount++;
+            [lowLikesFiltered addObject:obj];
+            continue;
+        }
+
+        if (diggCount < minLikesThreshold) {
+            filteredByLowLikesCount++;
+            continue;
+        }
+
+        [lowLikesFiltered addObject:obj];
+    }
+
+    CGFloat unresolvedRatio = awemeCount > 0 ? ((CGFloat)unresolvedLikesCount / (CGFloat)awemeCount) : 0.0f;
+    BOOL shouldRollbackLowLikes = (awemeCount >= 3 && lowLikesFiltered.count <= 1 && unresolvedRatio >= 0.5f);
+    BOOL shouldPreventEmptyBatch = (awemeCount >= 3 && lowLikesFiltered.count == 0 && filteredByLowLikesCount > 0);
+
+    if (shouldRollbackLowLikes || shouldPreventEmptyBatch) {
+        NSLog(@"[DYYY] 低赞过滤回退: total=%ld kept=%ld unresolved=%ld lowLikesFiltered=%ld threshold=%ld",
+              (long)awemeCount,
+              (long)lowLikesFiltered.count,
+              (long)unresolvedLikesCount,
+              (long)filteredByLowLikesCount,
+              (long)minLikesThreshold);
+        return [baseFiltered copy];
+    }
+
+    return [lowLikesFiltered copy];
 }
 
 %end
