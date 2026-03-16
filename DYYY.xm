@@ -4829,7 +4829,7 @@ static NSHashTable *processedParentViews = nil;
     }
 
     if ([rawValue isKindOfClass:[NSString class]]) {
-        NSString *trimmed = [(NSString *)rawValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndnewlineCharacterSet]];
+        NSString *trimmed = [(NSString *)rawValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
         if (trimmed.length == 0) {
             return nil;
         }
@@ -4896,14 +4896,15 @@ static NSHashTable *processedParentViews = nil;
 
     // --- 配置读取 ---
     NSInteger daysThreshold = DYYYGetInteger(@"DYYYFilterTimeLimit");
-    BOOL skipLive = DYYYGetBool(@"DYYYSkipLive"); 
-    NSInteger minLikesThreshold = DYYYGetInteger(@"DYYYFilterLowLikes"); 
-    BOOL skipPhotoText = DYYYGetBool(@"DYYYSkipPhotoText"); 
-    BOOL skipPhoto = DYYYGetBool(@"DYYYSkipPhoto"); 
+    BOOL skipLive = DYYYGetBool(@"DYYYSkipLive"); // 读取直播过滤开关
+    NSInteger minLikesThreshold = DYYYGetInteger(@"DYYYFilterLowLikes"); // 读取低赞过滤阈值 (例如: 1000)
+    BOOL skipPhotoText = DYYYGetBool(@"DYYYSkipPhotoText"); // 图文过滤
+    BOOL skipPhoto = DYYYGetBool(@"DYYYSkipPhoto"); // 图集过滤
 
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     NSTimeInterval thresholdInSeconds = MAX(daysThreshold, 0) * 86400.0;
 
+    // 第一阶段：先做稳定字段过滤（直播/时间/类型）
     NSMutableArray *baseFiltered = [NSMutableArray arrayWithCapacity:orig.count];
 
     for (id obj in orig) {
@@ -4914,37 +4915,44 @@ static NSHashTable *processedParentViews = nil;
 
         AWEAwemeModel *m = (AWEAwemeModel *)obj;
 
+        // 1. 广告白名单
         if ([m respondsToSelector:@selector(isAds)] && m.isAds) {
             [baseFiltered addObject:obj];
             continue;
         }
 
+        // 2. 直播过滤逻辑 (仅依赖 cellRoom)
         if (skipLive && [m respondsToSelector:@selector(cellRoom)] && m.cellRoom != nil) {
-            continue; 
+            continue; // 命中直播过滤，跳过
         }
 
+        // 2.1 图文模式过滤逻辑（推荐页）
         if (skipPhotoText &&
             [m respondsToSelector:@selector(isNewTextMode)] &&
             m.isNewTextMode &&
-            [m respondsToSelector:@selector(referString)]) {
-            continue; 
+            [m respondsToSelector:@selector(referString)] &&
+            [m.referString isEqualToString:@"homepage_hot"]) {
+            continue; // 图文模式且来自推荐页，跳过
         }
 
+        // 2.2 图集过滤逻辑（推荐页）
         if (skipPhoto &&
             [m respondsToSelector:@selector(awemeType)] &&
             m.awemeType == 68 &&
-            [m respondsToSelector:@selector(referString)]) {
-            continue; 
+            [m respondsToSelector:@selector(referString)] &&
+            [m.referString isEqualToString:@"homepage_hot"]) {
+            continue; // 图集且来自推荐页，跳过
         }
 
+        // 3. 时间限制过滤
         if (daysThreshold > 0 && [m respondsToSelector:@selector(createTime)]) {
             NSTimeInterval vTs = [m.createTime doubleValue];
             if (vTs > 1e12) {
-                vTs /= 1000.0;
+                vTs /= 1000.0; // 毫秒转秒
             }
 
             if (vTs > 0 && (now - vTs) > thresholdInSeconds) {
-                continue;
+                continue; // 超过设定时限，跳过
             }
         }
 
@@ -4955,6 +4963,7 @@ static NSHashTable *processedParentViews = nil;
         return [baseFiltered copy];
     }
 
+    // 第二阶段：低赞过滤（字段缺失时放行，避免误杀）
     NSMutableArray *lowLikesFiltered = [NSMutableArray arrayWithCapacity:baseFiltered.count];
     NSInteger awemeCount = 0;
     NSInteger unresolvedLikesCount = 0;
@@ -4971,6 +4980,7 @@ static NSHashTable *processedParentViews = nil;
         NSNumber *diggCountValue = [self dyyy_resolvedDiggCountForAweme:m];
         NSInteger diggCount = diggCountValue.integerValue;
 
+        // 新版部分链路点赞字段会短暂缺失/回填为0，这里按未知放行，避免整批误过滤
         if (!diggCountValue || diggCount <= 0) {
             unresolvedLikesCount++;
             [lowLikesFiltered addObject:obj];
