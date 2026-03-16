@@ -4816,7 +4816,6 @@ static NSHashTable *processedParentViews = nil;
 }
 %end
 
-// 推荐页数组级过滤（直播 / 时间 / 低赞）
 %hook AWEHotListDataController
 
 %new
@@ -4830,7 +4829,7 @@ static NSHashTable *processedParentViews = nil;
     }
 
     if ([rawValue isKindOfClass:[NSString class]]) {
-        NSString *trimmed = [(NSString *)rawValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        NSString *trimmed = [(NSString *)rawValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndnewlineCharacterSet]];
         if (trimmed.length == 0) {
             return nil;
         }
@@ -4860,16 +4859,16 @@ static NSHashTable *processedParentViews = nil;
     static NSArray<NSString *> *diggKeyPaths = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-      diggKeyPaths = @[
-          @"statistics.diggCount",
-          @"statistics.digg_count",
-          @"diggCount",
-          @"digg_count",
-          @"feedSequenceExtendFeature.digg_count",
-          @"feedSequenceExtendFeature.diggCount",
-          @"recommendFeedExtendFeature.digg_count",
-          @"recommendFeedExtendFeature.diggCount"
-      ];
+        diggKeyPaths = @[
+            @"statistics.diggCount",
+            @"statistics.digg_count",
+            @"diggCount",
+            @"digg_count",
+            @"feedSequenceExtendFeature.digg_count",
+            @"feedSequenceExtendFeature.diggCount",
+            @"recommendFeedExtendFeature.digg_count",
+            @"recommendFeedExtendFeature.diggCount"
+        ];
     });
 
     for (NSString *keyPath in diggKeyPaths) {
@@ -4897,13 +4896,14 @@ static NSHashTable *processedParentViews = nil;
 
     // --- 配置读取 ---
     NSInteger daysThreshold = DYYYGetInteger(@"DYYYFilterTimeLimit");
-    BOOL skipLive = DYYYGetBool(@"DYYYSkipLive"); // 读取直播过滤开关
-    NSInteger minLikesThreshold = DYYYGetInteger(@"DYYYFilterLowLikes"); // 读取低赞过滤阈值 (例如: 1000)
+    BOOL skipLive = DYYYGetBool(@"DYYYSkipLive"); 
+    NSInteger minLikesThreshold = DYYYGetInteger(@"DYYYFilterLowLikes"); 
+    BOOL skipPhotoText = DYYYGetBool(@"DYYYSkipPhotoText"); 
+    BOOL skipPhoto = DYYYGetBool(@"DYYYSkipPhoto"); 
 
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     NSTimeInterval thresholdInSeconds = MAX(daysThreshold, 0) * 86400.0;
 
-    // 第一阶段：先做稳定字段过滤（直播/时间）
     NSMutableArray *baseFiltered = [NSMutableArray arrayWithCapacity:orig.count];
 
     for (id obj in orig) {
@@ -4914,26 +4914,37 @@ static NSHashTable *processedParentViews = nil;
 
         AWEAwemeModel *m = (AWEAwemeModel *)obj;
 
-        // 1. 广告白名单
         if ([m respondsToSelector:@selector(isAds)] && m.isAds) {
             [baseFiltered addObject:obj];
             continue;
         }
 
-        // 2. 直播过滤逻辑 (仅依赖 cellRoom)
         if (skipLive && [m respondsToSelector:@selector(cellRoom)] && m.cellRoom != nil) {
-            continue; // 命中直播过滤，跳过
+            continue; 
         }
 
-        // 3. 时间限制过滤
+        if (skipPhotoText &&
+            [m respondsToSelector:@selector(isNewTextMode)] &&
+            m.isNewTextMode &&
+            [m respondsToSelector:@selector(referString)]) {
+            continue; 
+        }
+
+        if (skipPhoto &&
+            [m respondsToSelector:@selector(awemeType)] &&
+            m.awemeType == 68 &&
+            [m respondsToSelector:@selector(referString)]) {
+            continue; 
+        }
+
         if (daysThreshold > 0 && [m respondsToSelector:@selector(createTime)]) {
             NSTimeInterval vTs = [m.createTime doubleValue];
             if (vTs > 1e12) {
-                vTs /= 1000.0; // 毫秒转秒
+                vTs /= 1000.0;
             }
 
             if (vTs > 0 && (now - vTs) > thresholdInSeconds) {
-                continue; // 超过设定时限，跳过
+                continue;
             }
         }
 
@@ -4944,7 +4955,6 @@ static NSHashTable *processedParentViews = nil;
         return [baseFiltered copy];
     }
 
-    // 第二阶段：低赞过滤（字段缺失时放行，避免误杀）
     NSMutableArray *lowLikesFiltered = [NSMutableArray arrayWithCapacity:baseFiltered.count];
     NSInteger awemeCount = 0;
     NSInteger unresolvedLikesCount = 0;
@@ -4961,7 +4971,6 @@ static NSHashTable *processedParentViews = nil;
         NSNumber *diggCountValue = [self dyyy_resolvedDiggCountForAweme:m];
         NSInteger diggCount = diggCountValue.integerValue;
 
-        // 新版部分链路点赞字段会短暂缺失/回填为0，这里按未知放行，避免整批误过滤
         if (!diggCountValue || diggCount <= 0) {
             unresolvedLikesCount++;
             [lowLikesFiltered addObject:obj];
@@ -5117,7 +5126,7 @@ static NSHashTable *processedParentViews = nil;
             }
         }
     }
-    return shouldFilterAds || shouldFilterAllLive || shouldFilterHotSpot || shouldskipPhoto || shouldskipPhotoText || shouldFilterMusic || shouldFilterAIInteraction || shouldFilterHDR || shouldFilterKeywords || shouldFilterProp ||
+    return shouldFilterAds || shouldFilterAllLive || shouldFilterHotSpot || shouldFilterHDR || shouldFilterKeywords || shouldFilterProp ||
            shouldFilterTime || shouldFilterUser;
 }
 
