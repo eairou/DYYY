@@ -1406,6 +1406,7 @@ static void DYYYApplyDisplayLocationToLabel(UILabel *label, NSString *displayLoc
       NSData *audioData = [NSData dataWithContentsOfURL:audioURL];
       if (!audioData) {
           dispatch_async(dispatch_get_main_queue(), ^{
+[DYYYUtils showToast:@"音频下载失败"];
             if (completion) {
                 completion(NO, nil);
             }
@@ -1413,10 +1414,27 @@ static void DYYYApplyDisplayLocationToLabel(UILabel *label, NSString *displayLoc
           return;
       }
 
-      NSString *audioPath = [DYYYUtils cachePathForFilename:[NSString stringWithFormat:@"temp_%@", audioURL.lastPathComponent]];
-      NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
+// 获取文件名并检查是否已有后缀
+NSString *lastPathComponent = audioURL.lastPathComponent;
+NSString *audioFilename = lastPathComponent;
+
+// 获取文件后缀
+NSString *fileExtension = [audioFilename pathExtension];
+if (fileExtension.length == 0) {
+    // 如没有后缀，添加 ".m4a"
+    audioFilename = [audioFilename stringByAppendingPathExtension:@"m4a"];
+}
+
+// 生成完整缓存路径
+NSString *audioPath = [DYYYUtils cachePathForFilename:[NSString stringWithFormat:@"temp_%@", audioFilename]];
+NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
+
+
+      //NSString *audioPath = [DYYYUtils cachePathForFilename:[NSString stringWithFormat:@"temp_%@", audioURL.lastPathComponent]];
+      //NSURL *audioFile = [NSURL fileURLWithPath:audioPath];
       if (![audioData writeToURL:audioFile atomically:YES]) {
           dispatch_async(dispatch_get_main_queue(), ^{
+[DYYYUtils showToast:@"音频写入本地失败"];
             if (completion) {
                 completion(NO, nil);
             }
