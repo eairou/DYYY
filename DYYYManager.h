@@ -32,6 +32,10 @@
  */
 + (void)saveMedia:(NSURL *)mediaURL mediaType:(MediaType)mediaType completion:(void (^)(BOOL success))completion;
 
++ (void)setNameMeta:(NSString *)namemeta;
++ (void)showQualityOptions:(NSArray *)qualityURLPairs audioURL:(NSURL *)audioURL;
+
+
 /**
  * 保存实况照片
  * @param imageSourcePath 图片源路径
