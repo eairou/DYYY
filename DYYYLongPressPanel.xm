@@ -123,35 +123,167 @@
         return originalArray;
     }
 
-    // 创建自定义功能按钮
-    NSMutableArray *viewModels = [NSMutableArray array];
+    // 获取视频创建时间并转换为日期字符串
+NSTimeInterval timestampInterval = [self.awemeModel.createTime doubleValue];
+NSDate *date = [NSDate dateWithTimeIntervalSince1970:timestampInterval];
 
-    BOOL isNewLivePhoto = (self.awemeModel.video && self.awemeModel.animatedImageVideoInfo != nil);
+NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+[dateFormatter setDateFormat:@"yyyyMMdd-HHmm"];
+NSTimeZone *shanghaiTimeZone = [NSTimeZone timeZoneWithName:@"Asia/Shanghai"];
+[dateFormatter setTimeZone:shanghaiTimeZone];
 
-    // 视频下载功能 (非实况照片才显示)
-    if (enableSaveVideo && self.awemeModel.awemeType != 68 && !isNewLivePhoto) {
-        AWELongPressPanelBaseViewModel *downloadViewModel = [[%c(AWELongPressPanelBaseViewModel) alloc] init];
-        downloadViewModel.awemeModel = self.awemeModel;
-        downloadViewModel.actionType = 666;
-        downloadViewModel.duxIconName = @"ic_boxarrowdownhigh_outlined";
-        downloadViewModel.describeString = @"保存视频";
-        downloadViewModel.action = ^{
-          AWEAwemeModel *awemeModel = self.awemeModel;
-          AWEVideoModel *videoModel = awemeModel.video;
-          AWEMusicModel *musicModel = awemeModel.music;
-          NSURL *audioURL = nil;
+NSString *dateString = [dateFormatter stringFromDate:date];
+
+// 获取当前视频作者信息
+AWEUserModel *author = self.awemeModel.author;
+NSString *nickname = author.nickname ?: @"未知用户";
+NSString *identifier = author.customID.length > 0 ? author.customID : author.shortID ?: @"无";
+
+// 优化后的文件名格式化
+NSString *idType = author.customID.length > 0 ? @"Id" : @"shortId";
+NSString *filemeta = [NSString stringWithFormat:@"Name-%@_%@-%@_Date%@", nickname, idType, identifier, dateString];
+
+// 使用封装的方法
+//[DYYYUtils showToast:filemeta];
+[DYYYManager setNameMeta:filemeta];
+			
+// 输出结果
+//NSLog(@"Shanghai time: %@", dateString);
+
+	// 创建自定义功能按钮
+	NSMutableArray *viewModels = [NSMutableArray array];
+
+	BOOL isNewLivePhoto = (self.awemeModel.video && self.awemeModel.animatedImageVideoInfo != nil);
+
+	// 视频下载功能 (非实况照片才显示)
+	if (enableSaveVideo && self.awemeModel.awemeType != 68 && !isNewLivePhoto) {
+		AWELongPressPanelBaseViewModel *downloadViewModel = [[%c(AWELongPressPanelBaseViewModel) alloc] init];
+		downloadViewModel.awemeModel = self.awemeModel;
+		downloadViewModel.actionType = 666;
+		downloadViewModel.duxIconName = @"ic_boxarrowdownhigh_outlined";
+		downloadViewModel.describeString = @"保存视频";
+		downloadViewModel.action = ^{
+AWEAwemeModel *awemeModel = self.awemeModel;
+AWEVideoModel *videoModel = awemeModel.video;
+AWEMusicModel *musicModel = awemeModel.music;
+
+// 用于标识视频类型的字符串
+NSString *bothAudioCategory;
+NSString *withAudioCategory;
+NSURL *audioURL = nil;
+
+          
           if (musicModel && musicModel.playURL && musicModel.playURL.originURLList.count > 0) {
               audioURL = [NSURL URLWithString:musicModel.playURL.originURLList.firstObject];
           }
 
-                  if (videoModel.h264URL && videoModel.h264URL.originURLList.count > 0) {
-                      NSURL *url = [NSURL URLWithString:videoModel.h264URL.originURLList.firstObject];
-                      [DYYYManager downloadMedia:url
-                                       mediaType:MediaTypeVideo
-                                           audio:audioURL
-                                      completion:^(BOOL success){
-                                      }];
-                  }
+
+// 检查 audioBSModels 是否存在并且有至少一个条目
+if (videoModel.audioBSModels && videoModel.audioBitrateModels && videoModel.audioBSModels.count > 0) {
+    // 获取 audioBSModels 中的第一个条目
+    AWEAudioBSModel *firstAudioBSModel = videoModel.audioBSModels.firstObject;
+        
+    // 检查 AWEAudioBSModel 的 urlList 是否存在并且有至少一个条目
+    if (firstAudioBSModel.urlList && firstAudioBSModel.urlList.count > 0) {
+        // 获取 urlList 中的第一个条目
+        audioURL = [NSURL URLWithString:firstAudioBSModel.urlList.firstObject];
+    }
+        
+    // 无声视频情况下 不同类别处理
+    bothAudioCategory = @"需合成";
+    withAudioCategory = @"自带声";
+    [DYYYUtils showToast:@"无声视频⚠️注意选项"];
+    
+    // 如果音频 URL 未能成功获取，显示失败信息
+    if (!audioURL) {
+        [DYYYUtils showToast:@"音频url获取失败"];
+    }
+} else {
+    // 有声时，设定默认类别
+    bothAudioCategory = @"首选";
+    withAudioCategory = @"次要";
+}
+
+
+NSMutableArray *combinedDataList = [NSMutableArray array];
+
+// 定义一个处理 AWEURLModel 的通用功能
+void (^processURLModel)(AWEURLModel *, NSDictionary *, NSString *) = ^(AWEURLModel *urlModel, NSDictionary *extraInfo, NSString *qualityType) {
+    NSArray *urlList = urlModel.originURLList;
+
+    if (urlList.count > 0) {
+        NSURL *url = [NSURL URLWithString:urlList.firstObject];
+        CGFloat imageWidth = urlModel.imageWidth;
+        CGFloat imageHeight = urlModel.imageHeight;
+        CGFloat sizeByte = urlModel.sizeByte;
+      //  NSString *fileHash = urlModel.fileHash ?: @"";  // 确保不为空
+
+        NSMutableDictionary *pair = [@{
+            @"qualityType": qualityType,
+            @"url": url ?: [NSNull null],
+            @"imageWidth": @(imageWidth),
+            @"imageHeight": @(imageHeight),
+            @"sizeByte": @(sizeByte)
+           // @"fileHash": fileHash
+        } mutableCopy];
+
+        if (extraInfo) {
+            [pair addEntriesFromDictionary:extraInfo];
+        }
+
+NSPredicate *duplicatePredicate = [NSPredicate predicateWithFormat:@"url == %@ AND sizeByte == %@", url, @(sizeByte)];
+if (![combinedDataList filteredArrayUsingPredicate:duplicatePredicate].count) {
+    @synchronized (combinedDataList) {  // 串行处理以保证线程安全
+        [combinedDataList addObject:pair];
+    }
+}
+
+    }
+};
+
+// 定义一个处理 bitrateModels 的通用方法
+void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, NSString *qualityType) {
+    for (AWEVideoBSModel *bitrateModel in bitrateModels) {
+       // NSNumber *isH265 = [bitrateModel valueForKey:@"isH265"] ?: @(NO);
+        NSString *hdrType = [bitrateModel valueForKey:@"hdrType"] ?: @"";
+        NSInteger videoFPS = [[bitrateModel valueForKey:@"videoFPS"] integerValue];
+
+        NSDictionary *extraInfo = @{
+           // @"isH265": isH265,
+            @"hdrType": hdrType,
+            @"videoFPS": @(videoFPS)
+        };
+
+        processURLModel(bitrateModel.playAddr, extraInfo, qualityType);
+    }
+};
+
+// 处理 bitrateModels 列表
+NSMutableArray *bitrateModelsList = [NSMutableArray arrayWithObjects:
+    videoModel.bitrateModels ?: @[],
+    videoModel.bitrateModels_origin ?: @[],
+    videoModel.manualBitrateModels ?: @[],
+    nil];
+
+for (NSArray *bitrateModels in bitrateModelsList) {
+    if (bitrateModels.count > 0) {
+        processBitrateModels(bitrateModels, bothAudioCategory);
+    }
+}
+
+// 判断并处理 playURL 和 h264URL
+NSArray *urlModelsList = @[videoModel.playURL, videoModel.h264URL];
+for (AWEURLModel *urlModel in urlModelsList) {
+    if (urlModel) {
+        processURLModel(urlModel, nil, withAudioCategory);
+    }
+}
+
+// 对 combinedDataList 按文件大小由大到小排序
+[combinedDataList sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"sizeByte" ascending:NO]]];
+
+// 显示数据
+[DYYYManager showQualityOptions:combinedDataList audioURL:audioURL];
               
           
           AWELongPressPanelManager *panelManager = [%c(AWELongPressPanelManager) shareInstance];
@@ -396,10 +528,31 @@
         audioViewModel.action = ^{
           AWEAwemeModel *awemeModel = self.awemeModel;
           AWEMusicModel *musicModel = awemeModel.music;
-          if (musicModel && musicModel.playURL && musicModel.playURL.originURLList.count > 0) {
-              NSURL *url = [NSURL URLWithString:musicModel.playURL.originURLList.firstObject];
-              [DYYYManager downloadMedia:url mediaType:MediaTypeAudio audio:nil completion:nil];
-          }
+
+AWEVideoModel *videoModel = awemeModel.video;
+
+// 检查 audioBSModels 是否存在并且有至少一个条目
+if (videoModel.audioBSModels && videoModel.audioBitrateModels && videoModel.audioBSModels.count > 0) {
+    // 获取 audioBSModels 中的第一个条目
+    AWEAudioBSModel *firstAudioBSModel = videoModel.audioBSModels.firstObject;
+        
+    // 检查 AWEAudioBSModel 的 urlList 是否存在并且有至少一个条目
+    if (firstAudioBSModel.urlList && firstAudioBSModel.urlList.count > 0) {
+[DYYYUtils showToast:@"获取m4a格式"];
+        // 获取 urlList 中的第一个条目
+       NSURL *url = [NSURL URLWithString:firstAudioBSModel.urlList.firstObject];
+ [DYYYManager downloadMedia:url mediaType:MediaTypeAudio audio:nil completion:nil];
+    }
+      
+} else {
+
+		if (musicModel && musicModel.playURL && musicModel.playURL.originURLList.count > 0) {
+				[DYYYUtils showToast:@"获取mp3格式"];
+        NSURL *url = [NSURL URLWithString:musicModel.playURL.originURLList.firstObject];
+        [DYYYManager downloadMedia:url mediaType:MediaTypeAudio audio:nil completion:nil];
+    } 
+}
+          
           AWELongPressPanelManager *panelManager = [%c(AWELongPressPanelManager) shareInstance];
           [panelManager dismissWithAnimation:YES completion:nil];
         };
