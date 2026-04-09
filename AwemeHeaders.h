@@ -50,10 +50,14 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 + (void)showText:(NSString *)text;
 @end
 
+
+
 @interface AWEURLModel : NSObject
 @property(nonatomic, copy) NSArray *originURLList;
-@property(nonatomic, assign) NSInteger imageWidth;
-@property(nonatomic, assign) NSInteger imageHeight;
+@property(nonatomic, assign) CGFloat imageWidth;
+@property(nonatomic, assign) CGFloat imageHeight;
+@property(nonatomic, assign) CGFloat sizeByte;
+@property (nonatomic, copy) NSString *fileHash;
 @property(nonatomic, copy) NSString *URLKey;
 - (NSArray *)originURLList;
 - (id)URI;
@@ -61,18 +65,46 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @end
 
 @interface AWEVideoModel : NSObject
-@property(nonatomic, strong) AWEURLModel *playLowBitURL;
-@property(retain, nonatomic) AWEURLModel *playURL;
-@property(copy, nonatomic) NSArray *manualBitrateModels;
-@property(copy, nonatomic) NSArray *bitrateModels;
-@property(copy, nonatomic) NSArray *bitrateRawData;
-@property(nonatomic, strong) URLModel *h264URL;
-@property(nonatomic, strong) URLModel *coverURL;
+@property(nonatomic, assign) AWEURLModel *h264URL;
+@property(nonatomic, strong) AWEURLModel *coverURL;
+@property(nonatomic, assign) AWEURLModel *playLowBitURL;
+@property(nonatomic, strong) AWEURLModel *playURL;
+@property(nonatomic, copy) NSArray *bitrateModels;
+@property(nonatomic, copy) NSArray *bitrateRawData;
+@property(nonatomic, copy) NSArray *bitrateModels_origin;
+@property(nonatomic, copy) NSArray *manualBitrateModels;
+@property(nonatomic, copy) NSArray *audioBSModels;
+@property(nonatomic, copy) NSArray *audioBitrateModels;
+@end
+
+@interface AWEVideoBSModel : NSObject
+@property (nonatomic, strong) NSNumber *bitrate;
+@property (nonatomic, strong) AWEURLModel *playAddr;
+@property (nonatomic, strong) NSNumber *isH265;
+@property (nonatomic, copy) NSString *hdrType;
+@property (nonatomic, assign) NSInteger videoFPS;
+@end
+
+@interface AWEAudioBSModel : NSObject
+@property (nonatomic, copy) NSArray *urlList;
 @end
 
 @interface AWEMusicModel : NSObject
-@property(nonatomic, strong) URLModel *playURL;
+@property(nonatomic, strong) AWEURLModel *playURL;
 @end
+
+
+
+@interface AWEUserModel : NSObject
+@property(copy, nonatomic) NSString *nickname;
+@property(copy, nonatomic) NSString *shortID;
+@property(copy, nonatomic) NSString *customID;
+@property(copy, nonatomic) NSString *signature;
+@property(copy, nonatomic) AWEURLModel *avatarMedium;
+@end
+
+
+
 
 @interface AWEImageAlbumImageModel : NSObject
 @property(nonatomic, strong) NSArray *urlList;
@@ -97,12 +129,7 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @property(nonatomic, copy) NSString *secUid;
 @end
 
-@interface AWEUserModel : NSObject
-@property(copy, nonatomic) NSString *nickname;
-@property(copy, nonatomic) NSString *shortID;
-@property(copy, nonatomic) NSString *signature;
-@property(copy, nonatomic) AWEURLModel *avatarMedium;
-@end
+
 
 @interface AWEAnimatedImageVideoInfo : NSObject
 @end
