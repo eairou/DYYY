@@ -74,6 +74,14 @@
     return self;
 }
 
+static NSString *globalNameMeta; // 定义静态变量为 NSString 类型
+static NSInteger allNumber;
+static NSString *finalName;
+
++ (void)setNameMeta:(NSString *)namemeta {
+  globalNameMeta = namemeta; // 设置值，将传入的 NSString 数据赋给静态变量
+}
+
 + (void)saveMedia:(NSURL *)mediaURL mediaType:(MediaType)mediaType completion:(void (^)(BOOL success))completion {
     if (mediaType == MediaTypeAudio) {
         if (completion) {
@@ -105,6 +113,11 @@
             }
           });
       };
+
+// 获取原始文件名（不含路径）
+NSString *originalFilename = [mediaURL lastPathComponent];
+//[DYYYManager showToast:originalFilename];
+
 
       if (mediaType == MediaTypeHeic) {
           NSString *actualFormat = [DYYYUtils detectFileFormat:mediaURL];
@@ -176,6 +189,56 @@
           return;
       }
 
+//视频图片都经此处
+        // 非表情包类型的正常保存流程
+        [[PHPhotoLibrary sharedPhotoLibrary]
+            performChanges:^{
+							// 创建资源选项
+              PHAssetResourceCreationOptions *creationOptions = [PHAssetResourceCreationOptions new];
+              creationOptions.originalFilename = originalFilename; // 关键设置
+              
+              if (mediaType == MediaTypeVideo) {
+                // 视频处理
+//[DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的if视频: %@", finalName]];
+
+                        creationOptions.uniformTypeIdentifier = @"public.mpeg-4";
+                        PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
+                        [request addResourceWithType:PHAssetResourceTypeVideo
+                                           fileURL:mediaURL
+                                          options:creationOptions];
+/*
+                [PHAssetChangeRequest
+                    creationRequestForAssetFromVideoAtFileURL:mediaURL];
+*/
+              } else {
+//[DYYYUtils showToast:[NSString stringWithFormat:@"savemedia的else图片: %@", finalName]];
+
+// 图片处理（包括HEIC）
+                // 根据媒体类型设置统一类型标识符
+                if (mediaType == MediaTypeHeic) {
+                    creationOptions.uniformTypeIdentifier = @"public.heic";
+                } else {
+                    creationOptions.uniformTypeIdentifier = @"public.image";
+                }
+                        
+                PHAssetCreationRequest *request = [PHAssetCreationRequest creationRequestForAsset];
+                [request addResourceWithType:PHAssetResourceTypePhoto
+                                           fileURL:mediaURL
+                                          options:creationOptions];
+
+              }
+
+/*
+                UIImage *image =
+                    [UIImage imageWithContentsOfFile:mediaURL.path];
+                if (image) {
+                  [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+                }
+*/
+              
+            }
+
+/*
       [[PHPhotoLibrary sharedPhotoLibrary]
           performChanges:^{
             if (mediaType == MediaTypeVideo) {
@@ -187,6 +250,7 @@
                 }
             }
           }
+*/
           completionHandler:^(BOOL success, NSError *_Nullable error) {
             dispatch_async(dispatch_get_main_queue(), ^{
               if (!success) {
@@ -461,10 +525,12 @@
                                } else {
                                    if (mediaType == MediaTypeVideo && audioURL) {
                                        if (![DYYYUtils videoHasAudio:fileURL]) {
+[DYYYUtils showToast:@"视频无音频 准备下载音频"];
                                            [DYYYUtils downloadAudioAndMergeWithVideo:fileURL
                                                                             audioURL:audioURL
                                                                           completion:^(BOOL mergeSuccess, NSURL *mergedURL) {
                                                                        if (mergeSuccess) {
+[DYYYUtils showToast:@"音视频合成成功"];
                                                                            [[DYYYManager shared] replaceFileURL:fileURL withFileURL:mergedURL];
                                                                            [[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
                                                                            [self saveMedia:mergedURL
@@ -473,6 +539,7 @@
                                                                                   notifyCompletion(saveSuccess);
                                                                                 }];
                                                                        } else {
+[DYYYUtils showToast:@"音视频合成失败"];
                                                                            [self saveMedia:fileURL
                                                                                  mediaType:mediaType
                                                                                 completion:^(BOOL saveSuccess) {
@@ -576,6 +643,164 @@
     [[DYYYManager shared].progressViews removeAllObjects];
 }
 
++ (void)showQualityOptions:(NSArray *)qualityURLPairs audioURL:(NSURL *)audioURL
+{
+    // 创建一个操作表视图实例
+    AWEUserActionSheetView *actionSheet = [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
+    NSMutableArray *actions = [NSMutableArray array];
+
+    // 遍历每个质量-URL 对
+    for (NSDictionary *pair in qualityURLPairs) {
+        NSString *qualityType = pair[@"qualityType"];
+        NSURL *url = pair[@"url"];
+        CGFloat sizeByte = [pair[@"sizeByte"] floatValue];
+        CGFloat imageWidth = [pair[@"imageWidth"] floatValue];
+        CGFloat imageHeight = [pair[@"imageHeight"] floatValue];
+        NSString *hdrType = pair[@"hdrType"];
+        NSInteger videoFPS = [pair[@"videoFPS"] integerValue];
+
+        // 计算分辨率
+        CGFloat maxResolution = MAX(imageWidth, imageHeight);
+        NSString *resolution;
+
+        if (maxResolution == 3840) {
+            resolution = @"4  K";
+        } else if (maxResolution == 2560) {
+            resolution = @"2.5K";
+        } else if (maxResolution == 1920) {
+            resolution = @"1080P";
+        } else if (maxResolution == 1280) {
+            resolution = @"720P";
+        } else if (maxResolution == 1024) {
+            resolution = @"576P";
+        } else if (maxResolution == 960) {
+            resolution = @"540P";
+        } else if (maxResolution == 720) {
+            resolution = @"480P";
+        } else {
+            resolution = [NSString stringWithFormat:@"%.0fx%.0f", imageWidth, imageHeight]; // 自定义低分辨率
+        }
+
+        // 格式化文件大小
+        NSString *formattedSize;
+        if (sizeByte >= 1024 * 1024) {
+            formattedSize = [NSString stringWithFormat:@"%.2f MB", sizeByte / (1024 * 1024)];
+        } else {
+            formattedSize = [NSString stringWithFormat:@"%.2f KB", sizeByte / 1024];
+        }
+
+        // 构造标题
+        NSString *title;
+        if ([hdrType isEqualToString:@"1"]) {
+            title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]-[HDR]", qualityType, resolution, formattedSize, (long)videoFPS];
+        } else if (videoFPS > 0) {
+            title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]------", qualityType, resolution, formattedSize, (long)videoFPS];
+        } else {
+            title = [NSString stringWithFormat:@"---[%@]-[%@]-%@---", resolution, formattedSize, qualityType];
+        }
+
+        // 创建一个动作按钮
+        AWEUserSheetAction *qualityAction = [NSClassFromString(@"AWEUserSheetAction")
+            actionWithTitle:title
+                    imgName:nil
+                    handler:^{
+                    [self downloadMedia:url
+                              mediaType:MediaTypeVideo
+                                  audio:audioURL
+                             completion:^(BOOL success) {
+                               if (!success) {
+                                   NSLog(@"下载失败: URL -> %@", url.absoluteString);
+                               } else {
+                                   NSLog(@"下载成功: URL -> %@", url.absoluteString);
+                               }
+                             }];
+                    }];
+        
+        // 将动作添加到数组中
+        [actions addObject:qualityAction];
+    }
+
+    // 显示操作表视图
+    if (actions.count > 0) {
+        [actionSheet setActions:actions];
+        [actionSheet show];
+    }
+}
+
+/*
++ (void)showQualityOptions:(NSArray *)qualityURLPairs audioURL:(NSURL *)audioURL
+ {
+    // 创建一个操作表视图实例
+    AWEUserActionSheetView *actionSheet = [[NSClassFromString(@"AWEUserActionSheetView") alloc] init];
+    NSMutableArray *actions = [NSMutableArray array];
+
+    // 遍历每个质量-URL 对
+    for (NSDictionary *pair in qualityURLPairs) {
+        NSString *qualityType = pair[@"qualityType"];
+        NSURL *url = pair[@"url"];
+        CGFloat sizeByte = [pair[@"sizeByte"] floatValue];
+        CGFloat imageWidth = [pair[@"imageWidth"] floatValue];
+        CGFloat imageHeight = [pair[@"imageHeight"] floatValue];
+
+// 提取 extraInfo 参数
+  //  NSNumber *isH265 = pair[@"isH265"];
+    NSString *hdrType = pair[@"hdrType"];
+    NSInteger videoFPS = [pair[@"videoFPS"] integerValue];
+  
+        // 格式化文件大小
+        NSString *formattedSize;
+        if (sizeByte >= 1024 * 1024) {
+            formattedSize = [NSString stringWithFormat:@"%.2f MB", sizeByte / (1024 * 1024)];
+        } else {
+            formattedSize = [NSString stringWithFormat:@"%.2f KB", sizeByte / 1024];
+        }
+
+NSString *title;
+    // 在使用之前进行判断
+    if ([hdrType isEqualToString:@"1"]) {
+        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]-[%ldFPS]-[HDR]",qualityType, imageWidth, imageHeight, formattedSize, (long)videoFPS];
+    } else if (videoFPS > 0) {
+        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]-[%ldFPS]",qualityType, imageWidth, imageHeight, formattedSize, (long)videoFPS];
+    } else {
+        title = [NSString stringWithFormat:@"%@-[%.0fx%.0f]-[%@]",qualityType, imageWidth, imageHeight, formattedSize];
+    }
+
+        // 生成操作条目的标题，包含质量类型、文件大小以及图像宽度和高度
+        //NSString *title = [NSString stringWithFormat:@"%@, 大小：%@, 尺寸：%.0fx%.0f", qualityType, formattedSize, imageWidth, imageHeight];
+       
+      //  NSLog(@"质量类型: %@, URL: %@", qualityType, url.absoluteString);
+
+        // 创建一个动作按钮
+        AWEUserSheetAction *qualityAction = [NSClassFromString(@"AWEUserSheetAction")
+            actionWithTitle:title
+                    imgName:nil
+                    handler:^{
+                    [self downloadMedia:url
+                              mediaType:MediaTypeVideo
+audio:audioURL
+                             completion:^(BOOL success) {
+                               if (!success) {
+                                   NSLog(@"下载失败: URL -> %@", url.absoluteString);
+                               } else {
+                                   NSLog(@"下载成功: URL -> %@", url.absoluteString);
+                               }
+                             }];
+                    }];
+        
+        // 将动作添加到数组中
+        [actions addObject:qualityAction];
+    }
+
+    // 显示操作表视图
+    if (actions.count > 0) {
+        [actionSheet setActions:actions];
+        [actionSheet show];
+    }
+}
+*/
+
+
+
 + (void)downloadAllImages:(NSMutableArray *)imageURLs {
     if (imageURLs.count == 0) {
         return;
@@ -608,6 +833,7 @@
       __block NSInteger completedCount = 0;
       __block NSInteger successCount = 0;
       NSInteger totalCount = imageURLs.count;
+allNumber=totalCount;
 
       progressView.cancelBlock = ^{
         [self cancelAllDownloads];
@@ -897,17 +1123,63 @@
         return;
     }
 
-    // 检查是否属于批量下载
-    NSString *batchID = self.downloadToBatchMap[downloadIDForTask];
-    BOOL isBatchDownload = (batchID != nil);
+    // 用于跟踪序号
+static NSInteger index = 0;
 
-    // 获取该下载任务的mediaType
-    NSNumber *mediaTypeNumber = self.mediaTypeMap[downloadIDForTask];
-    MediaType mediaType = MediaTypeImage;  // 默认为图片
-    if (mediaTypeNumber) {
-        mediaType = (MediaType)[mediaTypeNumber integerValue];
-    }
+  // 处理下载的文件
+  NSString *fileName = [downloadTask.originalRequest.URL lastPathComponent];
 
+NSString *extension;
+
+// 根据是否已有扩展名决定如何设置 fileName 和 extension
+if (!fileName.pathExtension.length) {
+[DYYYUtils showToast:@"无媒体格式后缀"];
+  switch (mediaType) {
+    case MediaTypeVideo:
+        extension = @"mp4";
+        break;
+    case MediaTypeImage:
+        extension = @"jpg";
+        break;
+    case MediaTypeAudio:
+        extension = @"mp3";
+        break;
+    case MediaTypeHeic:
+        extension = @"heic";
+        break;
+  }
+} else {
+  extension = fileName.pathExtension;
+}
+
+// 初始化文件名为 globalNameMeta
+fileName = globalNameMeta;
+
+// 检查是否需要加后缀
+if (allNumber > 1) {
+  index++;
+  // 在基础名称后加上序号和扩展名
+  fileName = [NSString stringWithFormat:@"%@_%ld.%@", fileName, index, extension];
+  // 在这里可以对新名称进行操作，例如打印出来或赋值回去
+  //NSLog(@"Updated Name: %@", fileName);
+  
+  // 检查是否需要重置序号
+  if (index == allNumber) {
+    index = 0;
+    allNumber=1;
+  }
+} else {
+  // 如果不需要序号后缀，只需正常添加扩展名
+  fileName = [NSString stringWithFormat:@"%@.%@", fileName, extension];
+}
+
+finalName=fileName;
+
+//[DYYYUtils showToast:finalName];
+
+
+
+/*
     // 处理下载的文件
     NSString *fileName = [downloadTask.originalRequest.URL lastPathComponent];
 
@@ -927,6 +1199,7 @@
                 break;
         }
     }
+*/
 
     NSURL *tempDir = [NSURL fileURLWithPath:NSTemporaryDirectory()];
     NSURL *destinationURL = [tempDir URLByAppendingPathComponent:fileName];
