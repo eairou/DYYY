@@ -1397,10 +1397,7 @@ typedef NS_ENUM(NSUInteger, DYEdgeMode) {
 @interface AWEAwemeDetailNaviBarContainerView : UIView
 @end
 
-@interface AWEVideoBSModel : NSObject
-@property(nonatomic) NSNumber *bitrate;
-@property(nonatomic) AWEURLModel *playAddr;
-@end
+
 
 @interface AWENormalModeTabBarGeneralPlusButton : UIView
 @end
