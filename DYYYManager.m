@@ -1122,6 +1122,16 @@ allNumber=totalCount;
     if (!downloadIDForTask) {
         return;
     }
+ // 检查是否属于批量下载
+    NSString *batchID = self.downloadToBatchMap[downloadIDForTask];
+    BOOL isBatchDownload = (batchID != nil);
+
+    // 获取该下载任务的mediaType
+    NSNumber *mediaTypeNumber = self.mediaTypeMap[downloadIDForTask];
+    MediaType mediaType = MediaTypeImage;  // 默认为图片
+    if (mediaTypeNumber) {
+        mediaType = (MediaType)[mediaTypeNumber integerValue];
+    }
 
     // 用于跟踪序号
 static NSInteger index = 0;
