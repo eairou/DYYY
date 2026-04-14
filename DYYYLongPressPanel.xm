@@ -244,12 +244,12 @@ if (![combinedDataList filteredArrayUsingPredicate:duplicatePredicate].count) {
 // 定义一个处理 bitrateModels 的通用方法
 void (^processBitrateModels)(NSArray *, NSString *) = ^(NSArray *bitrateModels, NSString *qualityType) {
     for (AWEVideoBSModel *bitrateModel in bitrateModels) {
-       // NSNumber *isH265 = [bitrateModel valueForKey:@"isH265"] ?: @(NO);
+        NSNumber *isH265 = [bitrateModel valueForKey:@"isH265"] ?: @(NO);
         NSString *hdrType = [bitrateModel valueForKey:@"hdrType"] ?: @"";
         NSInteger videoFPS = [[bitrateModel valueForKey:@"videoFPS"] integerValue];
 
         NSDictionary *extraInfo = @{
-           // @"isH265": isH265,
+            @"isH265": isH265,
             @"hdrType": hdrType,
             @"videoFPS": @(videoFPS)
         };
