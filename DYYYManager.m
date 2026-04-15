@@ -658,6 +658,7 @@ NSString *originalFilename = [mediaURL lastPathComponent];
         CGFloat imageHeight = [pair[@"imageHeight"] floatValue];
         NSString *hdrType = pair[@"hdrType"];
         NSInteger videoFPS = [pair[@"videoFPS"] integerValue];
+NSInteger ish265 = [pair[@"isH265"] integerValue];
 
         // 计算分辨率
         CGFloat maxResolution = MAX(imageWidth, imageHeight);
@@ -692,9 +693,9 @@ NSString *originalFilename = [mediaURL lastPathComponent];
         // 构造标题
         NSString *title;
         if ([hdrType isEqualToString:@"1"]) {
-            title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]-[HDR]", qualityType, resolution, formattedSize, (long)videoFPS];
+            title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]-[%ld]-[HDR]", qualityType, resolution, formattedSize, (long)videoFPS,(long)ish265];
         } else if (videoFPS > 0) {
-            title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]------", qualityType, resolution, formattedSize, (long)videoFPS];
+            title = [NSString stringWithFormat:@"%@-[%@]-[%@]-[%ldFPS]-[%ld]------", qualityType, resolution, formattedSize, (long)videoFPS,(long)ish265];
         } else {
             title = [NSString stringWithFormat:@"---[%@]-[%@]-%@---", resolution, formattedSize, qualityType];
         }
