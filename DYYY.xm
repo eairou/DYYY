@@ -463,11 +463,13 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 - (void)layoutSubviews {
     %orig;
     
-    // 如果仍然有轻微溢出或偏紧，这里可以加轻微整体缩放（建议先测试不加）
-     self.transform = CGAffineTransformMakeScale(0.9, 0.9);
+    // 使用 setTransform: 方法代替直接 .transform =
+    [self setTransform:CGAffineTransformMakeScale(0.9, 0.9)];
 }
 
 %end
+    // 如果仍然有轻微溢出或偏紧，这里可以加轻微整体缩放（建议先测试不加）
+
 
 // ==================== 4. 额外保险：对所有 UIWindow 也处理 ====================
 %hook UIWindow
