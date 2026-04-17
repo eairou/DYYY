@@ -433,34 +433,19 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
     [self setTransform:CGAffineTransformMakeScale(0.9, 0.9)];
 }
 
-// 强制把窗口本身尺寸改成 Plus 大小（最重要！）
-- (void)setFrame:(CGRect)frame {
-    CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
-    %orig(plusFrame);
-}
-
-- (void)setBounds:(CGRect)bounds {
-    CGRect plusBounds = CGRectMake(0, 0, 414.0, 736.0);
-    %orig(plusBounds);
-}
-
-
-
 %end
     // 如果仍然有轻微溢出或偏紧，这里可以加轻微整体缩放（建议先测试不加）
 
-
-// ==================== 4. 额外保险：对所有 UIWindow 也处理 ====================
-%hook UIWindow
+// 可选：对根 UIWindow 也做类似处理
+%hook  AWEFeedViewCell
 - (void)setFrame:(CGRect)frame {
-    if (CGRectGetWidth(frame) < 400) {  // 只处理明显是小屏的情况
-        CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
-        %orig(plusFrame);
-    } else {
-        %orig;
-    }
+    CGRect newFrame = CGRectMake(0, 0, 414, 736);
+    %orig(newFrame);
 }
 %end
+
+// ==================== 4. 额外保险：对所有 UIWindow 也处理 ====================
+
 
 
 
