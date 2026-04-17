@@ -464,7 +464,7 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
     %orig;
     
     // 如果仍然有轻微溢出或偏紧，这里可以加轻微整体缩放（建议先测试不加）
-    // self.transform = CGAffineTransformMakeScale(0.92, 0.92);
+     self.transform = CGAffineTransformMakeScale(0.9, 0.9);
 }
 
 %end
