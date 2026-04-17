@@ -412,20 +412,22 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 
 
 // ==================== 核心：伪装成 iPhone 8 Plus ====================
+// Tweak.xm
+#import <UIKit/UIKit.h>
+
+// ==================== 1. 核心：伪装屏幕尺寸（保持你原来的） ====================
 %hook UIScreen
 
-// 返回 iPhone 8 Plus 的逻辑点尺寸 (414 x 736 pt)
 - (CGRect)bounds {
-    return CGRectMake(0, 0, 414.0, 736.0);
+    return CGRectMake(0, 0, 414.0, 736.0);   // iPhone 8 Plus 逻辑尺寸
 }
 
-// 返回 Plus 的原生像素尺寸
 - (CGRect)nativeBounds {
     return CGRectMake(0, 0, 1080.0, 1920.0);
 }
 
 - (CGFloat)scale {
-    return 3.0;           // Plus 是 @3x
+    return 3.0;
 }
 
 - (CGFloat)nativeScale {
@@ -433,6 +435,53 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 }
 
 %end
+
+// ==================== 2. 强制 traitCollection（让布局更宽松） ====================
+%hook UIViewController
+- (UITraitCollection *)traitCollection {
+    UITraitCollection *orig = %orig;
+    UITraitCollection *regular = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassRegular];
+    return [UITraitCollection traitCollectionWithTraitsFromCollections:@[orig, regular]];
+}
+%end
+
+// ==================== 3. 关键：针对根视图 AWEMaskWindow 强制修正尺寸 ====================
+%hook AWEMaskWindow
+
+// 强制把窗口本身尺寸改成 Plus 大小（最重要！）
+- (void)setFrame:(CGRect)frame {
+    CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
+    %orig(plusFrame);
+}
+
+- (void)setBounds:(CGRect)bounds {
+    CGRect plusBounds = CGRectMake(0, 0, 414.0, 736.0);
+    %orig(plusBounds);
+}
+
+// 每次布局时重新修正（防止子视图重置）
+- (void)layoutSubviews {
+    %orig;
+    
+    // 如果仍然有轻微溢出或偏紧，这里可以加轻微整体缩放（建议先测试不加）
+    // self.transform = CGAffineTransformMakeScale(0.92, 0.92);
+}
+
+%end
+
+// ==================== 4. 额外保险：对所有 UIWindow 也处理 ====================
+%hook UIWindow
+- (void)setFrame:(CGRect)frame {
+    if (CGRectGetWidth(frame) < 400) {  // 只处理明显是小屏的情况
+        CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
+        %orig(plusFrame);
+    } else {
+        %orig;
+    }
+}
+%end
+
+
 
 
 
