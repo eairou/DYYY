@@ -432,17 +432,6 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
     return 3.0;
 }
 
-// 额外保险：有些方法会调用 currentMode
-- (UIScreenMode *)currentMode {
-    UIScreenMode *mode = %orig;
-    if (mode) {
-        // 强制返回 Plus 的尺寸
-        CGRect fakeBounds = CGRectMake(0, 0, 1080, 1920);
-        object_setInstanceVariable(mode, "_size", (id)NSValue.valueWithCGSize(fakeBounds.size));
-    }
-    return %orig;  // 或者直接返回一个新创建的 mode（更彻底但风险稍高）
-}
-
 %end
 
 
