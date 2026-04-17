@@ -237,6 +237,11 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 - (void)dyyy_updateScheduleLabelsLegacyWithCurrentTime:(CGFloat)currentTime totalDuration:(CGFloat)totalDuration model:(id)model;
 @end
 
+@class AWEMaskWindow;
+
+@interface AWEMaskWindow : UIWindow
+@end
+
 @implementation UIView (DYYYProgressLabelLegacy)
 
 - (NSString *)dyyy_legacyFormatTimeFromSeconds:(CGFloat)seconds {
