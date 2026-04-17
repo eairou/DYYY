@@ -409,6 +409,46 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 
 @end
 
+
+
+// ==================== 核心：伪装成 iPhone 8 Plus ====================
+%hook UIScreen
+
+// 返回 iPhone 8 Plus 的逻辑点尺寸 (414 x 736 pt)
+- (CGRect)bounds {
+    return CGRectMake(0, 0, 414.0, 736.0);
+}
+
+// 返回 Plus 的原生像素尺寸
+- (CGRect)nativeBounds {
+    return CGRectMake(0, 0, 1080.0, 1920.0);
+}
+
+- (CGFloat)scale {
+    return 3.0;           // Plus 是 @3x
+}
+
+- (CGFloat)nativeScale {
+    return 3.0;
+}
+
+// 额外保险：有些方法会调用 currentMode
+- (UIScreenMode *)currentMode {
+    UIScreenMode *mode = %orig;
+    if (mode) {
+        // 强制返回 Plus 的尺寸
+        CGRect fakeBounds = CGRectMake(0, 0, 1080, 1920);
+        object_setInstanceVariable(mode, "_size", (id)NSValue.valueWithCGSize(fakeBounds.size));
+    }
+    return %orig;  // 或者直接返回一个新创建的 mode（更彻底但风险稍高）
+}
+
+%end
+
+
+
+
+
 // 关闭不可见水印
 %hook AWEHPChannelInvisibleWaterMarkModel
 
