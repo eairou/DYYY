@@ -424,15 +424,15 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 
 // Tweak.xm
 
+
 %hook UIScreen
 
-// 模拟 iPhone 8 Plus 的逻辑尺寸 (point)
 - (CGRect)bounds {
-    return CGRectMake(0, 0, 414, 736);
+    return CGRectMake(0, 0, 414.0, 736.0);     // Plus 逻辑点尺寸
 }
 
 - (CGRect)nativeBounds {
-    return CGRectMake(0, 0, 828, 1472);  // Plus 的像素尺寸
+    return CGRectMake(0, 0, 828.0, 1472.0);    // 你以前越狱用的值，保持一致
 }
 
 - (CGFloat)scale {
@@ -440,22 +440,37 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 }
 
 - (CGFloat)nativeScale {
-    return 2.0;
+    return 2.0;   // 建议也明确设置
 }
 
 %end
 
-// 对 AWEMaskWindow 进行整体缩放（你之前在 Flex 里调的 0.88）
-
-
-
-
-// 可选：对根 UIWindow 也做类似处理
-%hook UIWindow
-- (void)setFrame:(CGRect)frame {
-    CGRect newFrame = CGRectMake(0, 0, 414, 736);
-    %orig(newFrame);
+// 强制宽屏 trait（让布局更宽松）
+%hook UIViewController
+- (UITraitCollection *)traitCollection {
+    UITraitCollection *orig = %orig;
+    UITraitCollection *regular = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassRegular];
+    return [UITraitCollection traitCollectionWithTraitsFromCollections:@[orig, regular]];
 }
+%end
+
+// 最关键：对根容器轻微缩小 + 中心对齐，解决右下溢
+
+%hook AWEMaskWindow
+
+- (void)layoutSubviews {
+    %orig;
+    
+    CGFloat fixScale = 0.9;                    // ← 从 0.94 开始测试
+    [self setTransform:CGAffineTransformMakeScale(fixScale, fixScale)];
+    self.layer.anchorPoint = CGPointMake(0.5, 0.5);   // 中心缩放，防止右下溢出
+}
+
+- (void)setFrame:(CGRect)frame {
+    CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
+    %orig(plusFrame);
+}
+
 %end
 
 
