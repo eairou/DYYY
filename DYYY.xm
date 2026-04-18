@@ -433,9 +433,21 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
     [self setTransform:CGAffineTransformMakeScale(0.9, 0.9)];
 }
 
-%end
-    // 如果仍然有轻微溢出或偏紧，这里可以加轻微整体缩放（建议先测试不加）
 
+    // 如果仍然有轻微溢出或偏紧，这里可以加轻微整体缩放（建议先测试不加）
+- (CGRect)bounds {
+    return CGRectMake(0, 0, 414, 736);
+}
+
+%end
+
+// 可选：对根 UIWindow 也做类似处理
+%hook  AWEFeedViewCell
+- (void)setFrame:(CGRect)frame {
+    CGRect newFrame = CGRectMake(0, 0, 414, 736);
+    %orig(newFrame);
+}
+%end
 
 // ==================== 4. 额外保险：对所有 UIWindow 也处理 ====================
 
