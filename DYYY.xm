@@ -446,21 +446,9 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 %end
 
 // 对 AWEMaskWindow 进行整体缩放（你之前在 Flex 里调的 0.88）
-%hook AWEMaskWindow
 
-- (void)setTransform:(CGAffineTransform)transform {
-    // 强制应用你想要的缩放倍数（建议从 0.88 开始测试）
-    CGAffineTransform newTransform = CGAffineTransformMakeScale(0.9, 0.9);
-    %orig(newTransform);
-}
 
-- (void)layoutSubviews {
-    %orig;
-    // 可选：额外微调位置或大小
-    self.transform = CGAffineTransformMakeScale(0.9, 0.9);
-}
 
-%end
 
 // 可选：对根 UIWindow 也做类似处理
 %hook UIWindow
