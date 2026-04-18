@@ -422,28 +422,54 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 
 
 
-// ==================== 3. 关键：针对根视图 AWEMaskWindow 强制修正尺寸 ====================
-%hook AWEMaskWindow
+// Tweak.xm
 
-// 每次布局时重新修正（防止子视图重置）
-- (void)layoutSubviews {
-    %orig;
-    
-    // 使用 setTransform: 方法代替直接 .transform =
-    [self setTransform:CGAffineTransformMakeScale(0.9, 0.9)];
-}
+%hook UIScreen
 
-
-    // 如果仍然有轻微溢出或偏紧，这里可以加轻微整体缩放（建议先测试不加）
+// 模拟 iPhone 8 Plus 的逻辑尺寸 (point)
 - (CGRect)bounds {
     return CGRectMake(0, 0, 414, 736);
 }
 
+- (CGRect)nativeBounds {
+    return CGRectMake(0, 0, 828, 1472);  // Plus 的像素尺寸
+}
+
+- (CGFloat)scale {
+    return 2.0;
+}
+
+- (CGFloat)nativeScale {
+    return 2.0;
+}
+
 %end
 
+// 对 AWEMaskWindow 进行整体缩放（你之前在 Flex 里调的 0.88）
+%hook AWEMaskWindow
 
+- (void)setTransform:(CGAffineTransform)transform {
+    // 强制应用你想要的缩放倍数（建议从 0.88 开始测试）
+    CGAffineTransform newTransform = CGAffineTransformMakeScale(0.9, 0.9);
+    %orig(newTransform);
+}
 
-// ==================== 4. 额外保险：对所有 UIWindow 也处理 ====================
+- (void)layoutSubviews {
+    %orig;
+    // 可选：额外微调位置或大小
+    self.transform = CGAffineTransformMakeScale(0.9, 0.9);
+}
+
+%end
+
+// 可选：对根 UIWindow 也做类似处理
+%hook UIWindow
+- (void)setFrame:(CGRect)frame {
+    CGRect newFrame = CGRectMake(0, 0, 414, 736);
+    %orig(newFrame);
+}
+%end
+
 
 
 
