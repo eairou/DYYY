@@ -456,17 +456,27 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 
 // 最关键：对根容器轻微缩小 + 中心对齐，解决右下溢
 
+
 %hook AWEMaskWindow
 
 - (void)layoutSubviews {
     %orig;
     
-    CGFloat fixScale = 0.9;                    // ← 从 0.94 开始测试
-    [self setTransform:CGAffineTransformMakeScale(fixScale, fixScale)];
-    self.layer.anchorPoint = CGPointMake(0.5, 0.5);   // 中心缩放，防止右下溢出
+    // 1. 先把锚点改成中心（必须在 transform 前做）
+    self.layer.anchorPoint = CGPointMake(0.5, 0.5);
+    
+    // 2. 轻微整体缩小（从 0.94 开始，解决右下溢出）
+    CGFloat fixScale = 0.9;     // ← 这里重点调节！推荐范围 0.91 ~ 0.96
+    self.transform = CGAffineTransformMakeScale(fixScale, fixScale);
+    
+    // 3. 关键修正：把 center 强制设回屏幕中心，消除左上空白
+    CGFloat screenWidth = 375.0;   // iPhone 8 真实逻辑宽度
+    CGFloat screenHeight = 667.0;  // iPhone 8 真实逻辑高度
+    self.center = CGPointMake(screenWidth / 2.0, screenHeight / 2.0);
 }
 
 - (void)setFrame:(CGRect)frame {
+    // 强制保持 Plus 逻辑尺寸
     CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
     %orig(plusFrame);
 }
