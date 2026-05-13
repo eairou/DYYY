@@ -880,6 +880,12 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
             @"detail" : @"默认为空",
             @"cellType" : @26,
             @"imageName" : @"ic_pensketch_outlined_20"},
+@{@"identifier" : @"DYYYUIScale",
+            @"title" : @"整体界面缩放度",
+            @"detail" : @"不填默认",
+            @"cellType" : @26,
+            @"imageName" : @"ic_uizoomin_outlined_20"},
+          
       ];
 
       for (NSDictionary *dict in scaleSettings) {
