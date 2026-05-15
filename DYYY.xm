@@ -3819,7 +3819,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 // 隐藏状态栏
 %hook AWEFeedRootViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbarTui")) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) != class_getInstanceMethod([%c(AWEFeedRootViewController) class], @selector(prefersStatusBarHidden))) {
@@ -3833,7 +3833,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 // 直播状态栏
 %hook IESLiveAudienceViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbarZhi")) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
@@ -3848,7 +3848,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 // 主页状态栏
 %hook AWEAwemeDetailTableViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbarZhu")) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
@@ -3863,7 +3863,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 // 热点状态栏
 %hook AWEAwemeHotSpotTableViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbarRe")) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
@@ -3878,7 +3878,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 // 图文状态栏
 %hook AWEFullPageFeedNewContainerViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbarTu")) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
@@ -3893,7 +3893,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 // 纯净模式状态栏
 %hook AFDPureModePageContainerViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbarChun")) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
