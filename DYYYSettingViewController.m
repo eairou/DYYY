@@ -168,6 +168,9 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) { DYYYSettingItemTypeSwitch, DYY
 [DYYYSettingItem itemWithTitle:@"隐藏热点系统顶栏" key:@"DYYYHideStatusbarRe" type:DYYYSettingItemTypeSwitch],
 [DYYYSettingItem itemWithTitle:@"隐藏图文系统顶栏" key:@"DYYYHideStatusbarTu" type:DYYYSettingItemTypeSwitch],
 [DYYYSettingItem itemWithTitle:@"隐藏纯净系统顶栏" key:@"DYYYHideStatusbarChun" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"uiscreen开关" key:@"DYYYuiscreenKG" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"宽松布局开关" key:@"DYYYbujuKG" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"maskview开关" key:@"DYYYmaskviewKG" type:DYYYSettingItemTypeSwitch],
 
             [DYYYSettingItem itemWithTitle:@"关注二次确认" key:@"DYYYFollowTips" type:DYYYSettingItemTypeSwitch],
             [DYYYSettingItem itemWithTitle:@"收藏二次确认" key:@"DYYYCollectTips" type:DYYYSettingItemTypeSwitch],
