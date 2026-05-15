@@ -428,18 +428,30 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 %hook UIScreen
 
 - (CGRect)bounds {
+if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+        return %orig;
+    }
     return CGRectMake(0, 0, 414.0, 736.0);     // Plus 逻辑点尺寸
 }
 
 - (CGRect)nativeBounds {
+if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+        return %orig;
+    }
     return CGRectMake(0, 0, 828.0, 1472.0);    // 你以前越狱用的值，保持一致
 }
 
 - (CGFloat)scale {
+if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+        return %orig;
+    }
     return 2.0;
 }
 
 - (CGFloat)nativeScale {
+if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+        return %orig;
+    }
     return 2.0;   // 建议也明确设置
 }
 
@@ -448,6 +460,9 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 // 强制宽屏 trait（让布局更宽松）
 %hook UIViewController
 - (UITraitCollection *)traitCollection {
+if (!DYYYGetBool(@"DYYYbujuKG")) {
+        return %orig;
+    }
     UITraitCollection *orig = %orig;
     UITraitCollection *regular = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassRegular];
     return [UITraitCollection traitCollectionWithTraitsFromCollections:@[orig, regular]];
@@ -461,6 +476,10 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 
 - (void)layoutSubviews {
     %orig;
+
+if (!DYYYGetBool(@"DYYYmaskviewKG")) {
+        return;
+    }
 
     
     // 1. 先把锚点改成中心（必须在 transform 前做）
@@ -489,6 +508,10 @@ NSString *scaleValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYY
 }
 
 - (void)setFrame:(CGRect)frame {
+if (!DYYYGetBool(@"DYYYmaskviewKG")) {
+%orig;
+        return;
+    }
     // 强制保持 Plus 逻辑尺寸
     CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
     %orig(plusFrame);
