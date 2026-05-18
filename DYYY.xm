@@ -3841,15 +3841,20 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 
 // 隐藏状态栏
 %hook AWEFeedRootViewController
+
+- (void)viewWillLayoutSubviews {
+    %orig;
+
+    if (DYYYGetBool(@"DYYYHideStatusbarTui")) {
+        [self setNeedsStatusBarAppearanceUpdate];  // 强制刷新状态栏隐藏状态
+    }
+}
+
 - (BOOL)prefersStatusBarHidden {
     if (DYYYGetBool(@"DYYYHideStatusbarTui")) {
         return YES;
-    } else {
-        if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) != class_getInstanceMethod([%c(AWEFeedRootViewController) class], @selector(prefersStatusBarHidden))) {
-            return %orig;
-        }
-        return NO;
     }
+    return NO;
 }
 %end
 
