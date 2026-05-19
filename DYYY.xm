@@ -508,7 +508,7 @@ NSString *scaleValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYY
 }
 
 - (void)setFrame:(CGRect)frame {
-if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 %orig;
         return;
     }
@@ -3914,19 +3914,19 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 %end
 
 // 纯净模式状态栏
-%hook AFDPureModePageContainerViewController
-- (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbarChun")) {
-        return YES;
-    } else {
-        if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
-            class_getInstanceMethod([%c(AFDPureModePageContainerViewController) class], @selector(prefersStatusBarHidden))) {
-            return %orig;
-        }
-        return NO;
-    }
-}
-%end
+//%hook AFDPureModePageContainerViewController
+//- (BOOL)prefersStatusBarHidden {
+//    if (DYYYGetBool(@"DYYYHideStatusbarChun")) {
+//        return YES;
+//    } else {
+//        if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
+//            class_getInstanceMethod([%c(AFDPureModePageContainerViewController) class], @selector(prefersStatusBarHidden))) {
+//            return %orig;
+//        }
+//        return NO;
+//    }
+//}
+//%end
 
 
 %hook AWEPlayInteractionSearchAnchorView
