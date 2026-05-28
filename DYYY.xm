@@ -1428,7 +1428,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 - (void)layoutSubviews {
     %orig;
 
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYEnableFullScreen"]) {
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYEnablea"]) {
         return;
     }
 
@@ -6633,7 +6633,7 @@ static Class tabBarButtonClass = nil;
 
     // 背景和分隔线处理
     BOOL hideBottomBg = DYYYGetBool(@"DYYYHideBottomBg");
-    BOOL enableFullScreen = DYYYGetBool(@"DYYYEnableFullScreen");
+    BOOL enableFullScreen = DYYYGetBool(@"DYYYEnableb");
 
     if (hideBottomBg || enableFullScreen) {
         if (self.skinContainerView) {
@@ -6692,7 +6692,7 @@ static Class tabBarButtonClass = nil;
     %orig(hidden);
 
     BOOL disableHomeRefresh = DYYYGetBool(@"DYYYDisableHomeRefresh");
-    BOOL enableFullScreen = DYYYGetBool(@"DYYYEnableFullScreen");
+    BOOL enableFullScreen = DYYYGetBool(@"DYYYEnablec");
     BOOL hideBottomBg = DYYYGetBool(@"DYYYHideBottomBg");
     BOOL hideFriendsButton = DYYYGetBool(@"DYYYHideFriendsButton");
 
@@ -7024,7 +7024,7 @@ static Class tabBarButtonClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen") && gCurrentTabBarHeight > 0) {
+    if (DYYYGetBool(@"DYYYEnabled") && gCurrentTabBarHeight > 0) {
         for (UIView *subview in self.subviews) {
             CGRect frame = subview.frame;
             frame.origin.y -= gCurrentTabBarHeight;
@@ -7203,7 +7203,7 @@ static Class tabBarButtonClass = nil;
         return;
     }
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnablee")) {
         UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
         if ([vc isKindOfClass:%c(AWEAwemeDetailTableViewController)] ||
             [vc isKindOfClass:%c(AWEAwemeDetailCellViewController)]) {
@@ -7218,7 +7218,7 @@ static Class tabBarButtonClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnablef")) {
         if (self.frame.size.height == originalTabBarHeight && originalTabBarHeight > 0) {
             UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
             if ([vc isKindOfClass:NSClassFromString(@"AWEMixVideoPanelDetailTableViewController")] || [vc isKindOfClass:NSClassFromString(@"AWECommentInputViewController")] ||
@@ -7228,7 +7228,7 @@ static Class tabBarButtonClass = nil;
         }
     }
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen") || DYYYGetBool(@"DYYYEnableCommentBlur")) {
+    if (DYYYGetBool(@"DYYYEnableg") || DYYYGetBool(@"DYYYEnableCommentBlur")) {
         UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
         if ([vc isKindOfClass:%c(AWEPlayInteractionViewController)]) {
             for (UIView *subview in self.subviews) {
@@ -7249,7 +7249,7 @@ static Class tabBarButtonClass = nil;
     }
 
     BOOL enableBlur = DYYYGetBool(@"DYYYEnableCommentBlur");
-    BOOL enableFS = DYYYGetBool(@"DYYYEnableFullScreen");
+    BOOL enableFS = DYYYGetBool(@"DYYYEnableh");
 
     UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
     Class DetailVCClass = NSClassFromString(@"AWEMixVideoPanelDetailTableViewController");
@@ -7410,7 +7410,7 @@ static Class tabBarButtonClass = nil;
         return;
     }
 
-    if (!DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (!DYYYGetBool(@"DYYYEnablei")) {
         return;
     }
 
@@ -7653,7 +7653,7 @@ static Class tabBarButtonClass = nil;
 
 - (void)viewDidLayoutSubviews {
     %orig;
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnablej")) {
         UIView *contentView = self.contentView;
         if (contentView && contentView.superview) {
             CGRect frame = contentView.frame;
@@ -7787,7 +7787,7 @@ static Class tabBarButtonClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnablek")) {
         CGRect frame = self.frame;
         frame.size.height = self.superview.frame.size.height;
         self.frame = frame;
@@ -8148,7 +8148,7 @@ static Class TagViewClass = nil;
     UIViewController *viewController = [DYYYUtils firstAvailableViewControllerFromView:self];
 
     if ([viewController isKindOfClass:%c(AWELiveNewPreStreamViewController)]) {
-        const BOOL shouldShiftUp = DYYYGetBool(@"DYYYEnableFullScreen");
+        const BOOL shouldShiftUp = DYYYGetBool(@"DYYYEnablel");
         const CGFloat labelScaleValue = DYYYGetFloat(@"DYYYNicknameScale");
         const CGFloat targetLabelScale = (labelScaleValue != 0.0) ? MAX(0.01, labelScaleValue) : 1.0;
         const CGFloat elementScaleValue = DYYYGetFloat(@"DYYYElementScale");
@@ -8328,7 +8328,7 @@ static Class TagViewClass = nil;
     UIViewController *viewController = [DYYYUtils firstAvailableViewControllerFromView:self];
 
     if ([viewController isKindOfClass:%c(AWELiveNewPreStreamViewController)]) {
-        const BOOL shouldShiftUp = DYYYGetBool(@"DYYYEnableFullScreen");
+        const BOOL shouldShiftUp = DYYYGetBool(@"DYYYEnablem");
         const CGFloat labelScaleValue = DYYYGetFloat(@"DYYYNicknameScale");
         const CGFloat targetLabelScale = (labelScaleValue != 0.0) ? MAX(0.01, labelScaleValue) : 1.0;
         const CGFloat elementScaleValue = DYYYGetFloat(@"DYYYElementScale");
@@ -8411,7 +8411,7 @@ static Class TagViewClass = nil;
                 }
 
                 CGRect frame = subview.frame;
-                if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+                if (DYYYGetBool(@"DYYYEnablen")) {
                     frame.size.height = subview.superview.frame.size.height - gCurrentTabBarHeight;
                     subview.frame = frame;
                 }
@@ -8484,7 +8484,7 @@ static Class TagViewClass = nil;
 - (void)setCenter:(CGPoint)center {
     BOOL shouldAdjust = NO;
     UIView *view = (UIView *)self;
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnablep")) {
         CGFloat viewWidth = CGRectGetWidth(view.bounds);
         CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
         if (viewWidth + 0.5f >= screenWidth) {
@@ -8515,7 +8515,7 @@ static Class TagViewClass = nil;
 - (void)setCenter:(CGPoint)center {
     BOOL shouldAdjust = NO;
     UIView *view = (UIView *)self;
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnableq")) {
         CGFloat viewWidth = CGRectGetWidth(view.bounds);
         CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
         if (viewWidth + 0.5f >= screenWidth) {
@@ -8625,7 +8625,7 @@ static Class TagViewClass = nil;
 %hook AWEAwemeDetailTableView
 
 - (void)setFrame:(CGRect)frame {
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnables")) {
         CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
 
         CGFloat remainder = fmod(frame.size.height, screenHeight);
@@ -8641,7 +8641,7 @@ static Class TagViewClass = nil;
 %hook AWEMixVideoPanelMoreView
 
 - (void)setFrame:(CGRect)frame {
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnablet")) {
         CGFloat targetY = frame.origin.y - gCurrentTabBarHeight;
         CGFloat screenHeightMinusGDiff = [UIScreen mainScreen].bounds.size.height - gCurrentTabBarHeight;
 
@@ -8657,7 +8657,7 @@ static Class TagViewClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnabler")) {
         self.backgroundColor = [UIColor clearColor];
     }
 }
@@ -8902,7 +8902,7 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnableo")) {
 
         self.backgroundColor = [UIColor clearColor];
 
