@@ -7720,7 +7720,7 @@ static Class tabBarButtonClass = nil;
 
 - (void)viewDidLayoutSubviews {
     %orig;
-    if (DYYYGetBool(@"DYYYHideStatusbarTui")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         UIView *contentView = self.contentView;
         if (contentView && contentView.superview) {
             CGRect frame = contentView.frame;
