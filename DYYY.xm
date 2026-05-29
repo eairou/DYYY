@@ -419,12 +419,6 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 // ==================== 核心：伪装成 iPhone 8 Plus ====================
 // Tweak.xm
 
-
-
-
-// Tweak.xm
-
-
 %hook UIScreen
 
 - (CGRect)bounds {
@@ -457,6 +451,7 @@ if (!DYYYGetBool(@"DYYYuiscreenKG")) {
 
 %end
 
+
 // 强制宽屏 trait（让布局更宽松）
 %hook UIViewController
 - (UITraitCollection *)traitCollection {
@@ -480,7 +475,6 @@ if (!DYYYGetBool(@"DYYYbujuKG")) {
 if (!DYYYGetBool(@"DYYYmaskviewKG")) {
         return;
     }
-
     
     // 1. 先把锚点改成中心（必须在 transform 前做）
     self.layer.anchorPoint = CGPointMake(0.5, 0.5);
@@ -522,11 +516,6 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 
 
-
-
-
-
-
 // 关闭不可见水印
 %hook AWEHPChannelInvisibleWaterMarkModel
 
@@ -539,6 +528,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 }
 
 %end
+
 
 // 长按复制个人简介
 %hook AWEProfileMentionLabel
@@ -578,6 +568,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 }
 
 %end
+
 
 // 默认视频流最高画质
 %hook AWEVideoModel
@@ -672,6 +663,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
 // 直播间真实人数
 %hook IESLiveUserSeqlistFragment
 
@@ -685,6 +677,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 }
 
 %end
+
 
 // 评论具体时间
 %hook AWEDateTimeFormatter
@@ -850,6 +843,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+
 // 禁用自动进入直播间
 %hook AWELiveGuideElement
 
@@ -869,6 +864,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//隐藏上方标题
 %hook AWEFeedChannelManager
 
 - (void)reloadChannelWithChannelModels:(id)arg1 currentChannelIDList:(id)arg2 reloadType:(id)arg3 selectedChannelID:(id)arg4 {
@@ -1026,6 +1023,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//左侧栏手势？
 %hook AWELeftSideBarAddChildTransitionObject
 
 - (void)handleShowSliderPanGesture:(id)gr {
@@ -1037,6 +1036,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//关注二次确认？
 %hook AWEPlayInteractionUserAvatarElement
 - (void)onFollowViewClicked:(UITapGestureRecognizer *)gesture {
     if (DYYYGetBool(@"DYYYFollowTips")) {
@@ -1157,6 +1158,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//上方标题栏透明度
 %hook AWEFeedTopBarContainer
 - (void)didMoveToSuperview {
     %orig;
@@ -1210,6 +1213,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//弹幕颜色
 %hook AWEDanmakuContentLabel
 - (void)setTextColor:(UIColor *)textColor {
     if (DYYYGetBool(@"DYYYEnableDanmuColor")) {
@@ -1241,6 +1246,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+//评论显示弹幕
 %hook XIGDanmakuPlayerView
 
 - (id)initWithFrame:(CGRect)frame {
@@ -1273,6 +1279,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+//隐藏定位
 %hook AWEMarkView
 
 - (void)layoutSubviews {
@@ -1286,6 +1293,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//主设置手势
 %group DYYYSettingsGesture
 
 %hook UIWindow
@@ -1374,6 +1383,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//评论背景透明度及毛玻璃
 %hook AWEBaseListViewController
 - (void)viewDidLayoutSubviews {
     %orig;
@@ -1395,6 +1406,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 }
 %end
 
+
+//视频收藏二次确认
 %hook AWEFeedVideoButton
 - (id)touchUpInsideBlock {
     id r = %orig;
@@ -1424,6 +1437,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 }
 %end
 
+
+
 %hook AWEPlayInteractionProgressContainerView
 - (void)layoutSubviews {
     %orig;
@@ -1452,6 +1467,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//播放进度条
 %hook AWEFeedProgressSlider
 
 - (void)setAlpha:(CGFloat)alpha {
@@ -1671,6 +1688,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+//发布时间及归属地
 %hook AWEPlayInteractionTimestampElement
 
 - (id)timestampLabel {
@@ -1838,6 +1857,8 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+
 %hook AWEPlayInteractionProgressController
 
 %new
@@ -1893,6 +1914,9 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
+
+
+//文案垂直偏移
 %hook AWEPlayInteractionDescriptionScrollView
 
 - (void)layoutSubviews {
@@ -2053,6 +2077,8 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 
 %end
 
+
+//加号图标自定义？
 %hook AWEFeedVideoButton
 
 - (void)setImage:(id)arg1 {
@@ -2097,6 +2123,8 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 }
 %end
 
+
+
 // 获取资源的地址
 %hook AWEURLModel
 %new - (NSURL *)getDYYYSrcURLDownload {
@@ -2114,6 +2142,7 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
     return bestURL;
 }
 %end
+
 
 // 屏蔽版本更新
 %hook AWEVersionUpdateManager
@@ -2138,6 +2167,7 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 }
 
 %end
+
 
 // 应用内推送毛玻璃效果
 %hook AWEInnerNotificationWindow
@@ -2274,6 +2304,8 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 
 %end
 
+
+//评论复制
 %hook _TtC33AWECommentLongPressPanelSwiftImpl32CommentLongPressPanelCopyElement
 
 - (void)elementTapped {
@@ -2290,6 +2322,7 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
     }
 }
 %end
+
 
 // 启用自动勾选原图
 %hook AWEIMPhotoPickerFunctionModel
@@ -2312,6 +2345,7 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 }
 
 %end
+
 
 // 屏蔽直播PCDN
 %hook HTSLiveStreamPcdnManager
@@ -2349,6 +2383,8 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 }
 
 %end
+
+
 
 // 投屏忽略 VPN 检测
 %hook BDByteCastUtils
@@ -2430,7 +2466,9 @@ static NSString *const kDYYYLongPressCopyEnabledKey = @"DYYYLongPressCopyTextEna
 
 %end
 
-// 调整直播默认清晰度功能
+
+
+// 调整直播 默认清晰度 功能
 static NSArray<NSString *> *dyyy_qualityRank = nil;
 
 %hook HTSLiveStreamQualityFragment
@@ -2540,6 +2578,8 @@ static NSArray<NSString *> *dyyy_qualityRank = nil;
 
 %end
 
+
+
 // 强制启用新版抖音长按 UI（现代风）
 %hook AWELongPressPanelDataManager
 + (BOOL)enableModernLongPressPanelConfigWithSceneIdentifier:(id)arg1 {
@@ -2583,6 +2623,7 @@ static NSArray<NSString *> *dyyy_qualityRank = nil;
 }
 %end
 
+
 // 禁用个人资料自动进入橱窗
 %hook AWEUserTabListModel
 
@@ -2596,6 +2637,8 @@ static NSArray<NSString *> *dyyy_qualityRank = nil;
 
 %end
 
+
+//自动播放
 %group AutoPlay
 
 %hook AWEAwemeDetailTableViewController
@@ -2639,6 +2682,9 @@ static NSArray<NSString *> *dyyy_qualityRank = nil;
 
 %end
 
+
+
+//长按播放速度
 %hook AWEPlayInteractionSpeedController
 
 static BOOL hasChangedSpeed = NO;
@@ -2757,6 +2803,9 @@ static BOOL isGestureActive = NO;
 }
 %end
 
+
+
+
 // 强制启用保存他人头像
 %hook AFDProfileAvatarFunctionManager
 - (BOOL)shouldShowSaveAvatarItem {
@@ -2768,6 +2817,8 @@ static BOOL isGestureActive = NO;
 }
 %end
 
+
+//评论图去水印
 %hook AWECommentMediaDownloadConfigLivePhoto
 
 BOOL commentLivePhotoNotWaterMark = DYYYGetBool(@"DYYYCommentLivePhotoNotWaterMark");
@@ -2795,6 +2846,8 @@ BOOL commentLivePhotoNotWaterMark = DYYYGetBool(@"DYYYCommentLivePhotoNotWaterMa
 }
 %end
 
+
+//保存评论动图
 %group EnableStickerSaveMenu
 static __weak YYAnimatedImageView *targetStickerView = nil;
 static BOOL dyyyShouldUseLastStickerURL = NO;
@@ -2816,6 +2869,7 @@ static BOOL dyyyShouldUseLastStickerURL = NO;
 
 %end
 
+//评论保存相关
 %hook _TtC33AWECommentLongPressPanelSwiftImpl37CommentLongPressPanelSaveImageElement
 
 - (BOOL)elementShouldShow {
@@ -3215,6 +3269,9 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 %end
 %end
 
+
+
+
 %hook AWEFeedTabJumpGuideView
 
 - (void)layoutSubviews {
@@ -3276,6 +3333,10 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
     }
 }
 %end
+
+
+
+
 
 // 移除同城吃喝玩乐提示框
 %hook AWENearbySkyLightCapsuleView
@@ -3386,6 +3447,9 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 
 %end
 
+
+
+//隐藏评论视图？
 // Swift 类组
 %group CommentHeaderGeneralGroup
 %hook AWECommentPanelHeaderSwiftImpl_CommentHeaderGeneralView
@@ -3439,6 +3503,9 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 }
 
 %end
+
+
+
 
 // 隐藏观看历史搜索
 %hook AWEDiscoverFeedEntranceView
@@ -3569,6 +3636,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 %end
 
 
+// 隐藏左侧边栏
 %hook AWELeftSideBarEntranceView
 
 - (void)setRedDot:(id)redDot {
@@ -3623,6 +3691,8 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 
 %end
 
+
+//隐藏右侧喜欢 收藏 等
 %hook AWEFeedVideoButton
 
 - (void)layoutSubviews {
@@ -3675,6 +3745,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 }
 
 %end
+
 
 %hook UIButton
 
@@ -3838,6 +3909,9 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 }
 
 %end
+
+
+
 
 // 隐藏状态栏
 %hook AWEFeedRootViewController
