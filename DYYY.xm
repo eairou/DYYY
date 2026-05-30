@@ -4002,7 +4002,7 @@ static NSArray *DYYYIMMenuItemsByAddingDownloadAction(NSArray *menuItems, id cel
 //}
 //%end
 
-
+//隐藏搜索相关
 %hook AWEPlayInteractionSearchAnchorView
 
 - (void)layoutSubviews {
@@ -4689,6 +4689,8 @@ static NSHashTable *processedParentViews = nil;
 }
 %end
 
+
+//不知道
 %hook AWEVideoTypeTagView
 
 - (void)setupUI {
@@ -4971,6 +4973,8 @@ static NSHashTable *processedParentViews = nil;
 }
 %end
 
+
+//低赞过滤相关
 %hook AWEHotListDataController
 
 %new
@@ -5169,6 +5173,9 @@ static NSHashTable *processedParentViews = nil;
 
 %end
 
+
+
+//过滤相关 及自定义输入 及其它隐藏
 %hook AWEAwemeModel
 
 - (id)initWithDictionary:(id)arg1 error:(id *)arg2 {
@@ -5659,6 +5666,8 @@ static NSHashTable *processedParentViews = nil;
 
 
 //以下部分为新增
+
+
 // 屏蔽头像直播
 %hook AWEUserModel
 
@@ -5937,6 +5946,7 @@ static NSHashTable *processedParentViews = nil;
 %end
 
 
+
 // 拦截开屏广告 - hook TTAdSplashModel，直接返回 nil
 %hook TTAdSplashModel
 
@@ -6027,12 +6037,6 @@ static NSHashTable *processedParentViews = nil;
 
 
 
-
-
-
-
-
-
 %hook AWEFeedCommentConfigModel
 - (void)setCommentInputConfigText:(NSString *)text {
     NSString *customText = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYCommentContent"];
@@ -6051,6 +6055,10 @@ static NSHashTable *processedParentViews = nil;
     %orig(status);
 }
 %end
+
+
+
+
 
 %hook MTKView
 
@@ -6100,6 +6108,10 @@ static NSHashTable *processedParentViews = nil;
 }
 %end
 
+
+
+
+//双击 呼出面板
 %hook AWEPlayInteractionViewController
 
 - (void)onPlayer:(id)arg0 didDoubleClick:(id)arg1 {
@@ -6470,6 +6482,9 @@ static NSHashTable *processedParentViews = nil;
 
 %end
 
+
+
+//黑色还是白色面板
 %hook AFDPrivacyHalfScreenViewController
 
 %new
@@ -6579,7 +6594,11 @@ static NSHashTable *processedParentViews = nil;
 
 %end
 
-// 底栏高度
+
+
+
+
+// 底栏高度 及底栏功能相关
 %hook AWENormalModeTabBar
 
 static Class barBackgroundClass = nil;
@@ -7094,6 +7113,11 @@ static Class tabBarButtonClass = nil;
 }
 %end
 
+
+
+
+
+
 %hook AWEConcernCellLastView
 - (void)layoutSubviews {
     %orig;
@@ -7108,6 +7132,7 @@ static Class tabBarButtonClass = nil;
 }
 %end
 
+//评论输入框b背景
 %hook AWECommentInputBackgroundView
 - (void)layoutSubviews {
     %orig;
@@ -7125,6 +7150,7 @@ static Class tabBarButtonClass = nil;
 }
 %end
 
+//顶栏透明度
 %hook AWECommentContainerViewController
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -7156,7 +7182,7 @@ static Class tabBarButtonClass = nil;
     updateSpeedButtonVisibility();
     updateClearButtonVisibility();
 }
-
+//评论模糊
 - (void)viewDidLayoutSubviews {
     %orig;
 
@@ -7244,6 +7270,10 @@ static Class tabBarButtonClass = nil;
 }
 
 %end
+
+
+
+
 
 %hook UIView
 
@@ -7361,6 +7391,7 @@ static Class tabBarButtonClass = nil;
     %orig(frame);
 }
 
+//全局透明
 %new
 - (void)dyyy_applyGlobalTransparency {
     if ([NSThread isMainThread]) {
@@ -7395,6 +7426,10 @@ static Class tabBarButtonClass = nil;
 
 %end
 
+
+
+
+//头像列表
 %hook AWEIMSkylightListView
 - (void)setFrame:(CGRect)frame {
     if (DYYYGetBool(@"DYYYHideAvatarList")) {
@@ -7406,6 +7441,7 @@ static Class tabBarButtonClass = nil;
 }
 %end
 
+//双击喜欢
 %hook AFDPureModePageTapController
 
 - (void)onVideoPlayerViewDoubleClicked:(id)arg1 {
@@ -7417,6 +7453,8 @@ static Class tabBarButtonClass = nil;
 
 %end
 
+
+//双击喜欢
 %hook AWEPlayInteractionViewController
 
 - (void)onVideoPlayerViewDoubleClicked:(id)arg1 {
@@ -7433,7 +7471,7 @@ static Class tabBarButtonClass = nil;
     updateSpeedButtonVisibility();
     updateClearButtonVisibility();
 }
-
+//悬浮倍速
 - (void)viewDidLayoutSubviews {
     %orig;
 
@@ -7579,6 +7617,7 @@ static Class tabBarButtonClass = nil;
     }
 }
 
+//悬浮倍速
 %new
 - (void)speedButtonTapped:(UIButton *)sender {
     [(FloatingSpeedButton *)sender resetFadeTimer];
@@ -7723,6 +7762,9 @@ static Class tabBarButtonClass = nil;
 
 %end
 
+
+
+
 %hook AWEDPlayerFeedPlayerViewController
 
 - (void)viewDidLayoutSubviews {
@@ -7744,6 +7786,7 @@ static Class tabBarButtonClass = nil;
     }
 }
 
+//悬浮倍速
 - (void)setIsAutoPlay:(BOOL)arg0 {
     %orig(arg0);
     if (!DYYYShouldHandleSpeedFeatures()) {
@@ -7789,6 +7832,9 @@ static Class tabBarButtonClass = nil;
 }
 
 %end
+
+
+
 
 %hook AWEDPlayerViewController_Merge
 
@@ -7811,6 +7857,7 @@ static Class tabBarButtonClass = nil;
     }
 }
 
+// 悬浮倍速
 - (void)setIsAutoPlay:(BOOL)arg0 {
     %orig(arg0);
     if (!DYYYShouldHandleSpeedFeatures()) {
@@ -7857,6 +7904,9 @@ static Class tabBarButtonClass = nil;
 
 %end
 
+
+
+
 %hook AWEFeedTableView
 - (void)layoutSubviews {
     %orig;
@@ -7877,6 +7927,11 @@ static Class tabBarButtonClass = nil;
     }
 }
 %end
+
+
+
+
+
 
 %hook AWEFeedTableViewCell
 - (void)prepareForReuse {
@@ -7931,6 +7986,8 @@ static Class tabBarButtonClass = nil;
 }
 %end
 
+
+
 %hook AFDPureModePageContainerViewController
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
@@ -7966,6 +8023,11 @@ static Class tabBarButtonClass = nil;
 }
 %end
 
+
+
+
+
+
 static id dyyyWindowKeyObserverToken = nil;
 static id dyyyDidBecomeActiveToken = nil;
 static id dyyyWillResignActiveToken = nil;
@@ -7995,6 +8057,8 @@ static void DYYYRemoveKeyboardObserver(void) {
     }
 }
 
+
+//悬浮倍速
 %hook AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
@@ -8090,10 +8154,14 @@ static void DYYYRemoveKeyboardObserver(void) {
 
 %end
 
+
+
+
 static Class GuideViewClass = nil;
 static Class MuteViewClass = nil;
 static Class TagViewClass = nil;
 
+//纯净模式
 %hook AWEElementStackView
 
 - (void)setAlpha:(CGFloat)alpha {
@@ -8216,6 +8284,7 @@ static Class TagViewClass = nil;
     %orig;
 }
 
+//文字大小缩放
 - (void)layoutSubviews {
     %orig;
 
@@ -8346,6 +8415,8 @@ static Class TagViewClass = nil;
 
 %end
 
+
+
 %hook IESLiveStackView
 
 + (void)initialize {
@@ -8396,6 +8467,7 @@ static Class TagViewClass = nil;
     %orig;
 }
 
+//不知道
 - (void)layoutSubviews {
     %orig;
 
@@ -8449,6 +8521,8 @@ static Class TagViewClass = nil;
 
 %end
 
+
+//作者主页 功能实现未知
 %hook AWEStoryContainerCollectionView
 - (void)layoutSubviews {
     %orig;
@@ -8514,6 +8588,8 @@ static Class TagViewClass = nil;
     }
 }
 %end
+
+
 
 %hook AFDFastSpeedView
 - (void)layoutSubviews {
@@ -8616,6 +8692,8 @@ static Class TagViewClass = nil;
 }
 %end
 
+
+
 // 隐藏图片滑条
 %hook AWEStoryProgressContainerView
 - (void)setCenter:(CGPoint)center {
@@ -8637,6 +8715,8 @@ static Class TagViewClass = nil;
     %orig(forceHide ? YES : hidden);
 }
 %end
+
+
 
 %hook AWELandscapeFeedEntryView
 
@@ -8672,6 +8752,7 @@ static Class TagViewClass = nil;
     %orig;
 }
 
+//隐藏进入
 - (void)layoutSubviews {
     %orig;
     if (DYYYGetBool(@"DYYYRemoveEntry")) {
@@ -8738,6 +8819,8 @@ static Class TagViewClass = nil;
 
 %end
 
+
+//评论输入框
 %hook CommentInputContainerView
 
 - (void)layoutSubviews {
@@ -8770,6 +8853,8 @@ static Class TagViewClass = nil;
 
 %end
 
+
+
 // 聊天视频底部评论框背景透明
 %hook AWEIMFeedBottomQuickEmojiInputBar
 
@@ -8793,6 +8878,7 @@ static Class TagViewClass = nil;
 }
 
 %end
+
 
 // 隐藏上次看到
 %hook DUXPopover
@@ -8819,6 +8905,9 @@ static Class TagViewClass = nil;
 }
 %end
 
+
+
+//不知道
 %hook _TtC21AWEIncentiveSwiftImpl29IncentivePendantContainerView
 - (void)layoutSubviews {
     %orig;
@@ -8827,6 +8916,7 @@ static Class TagViewClass = nil;
     }
 }
 %end
+
 
 %hook UIImageView
 - (void)layoutSubviews {
@@ -8859,6 +8949,9 @@ static Class TagViewClass = nil;
 }
 %end
 
+
+
+//左侧栏内的
 static NSString *const kHideRecentAppsKey = @"DYYYHideSidebarRecentApps";
 static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
 
@@ -8985,6 +9078,7 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
 }
 %end
 
+
 // 极速版红包激励挂件容器视图类组（移除逻辑）
 %group IncentivePendantGroup
 %hook AWEIncentiveSwiftImplDOUYINLite_IncentivePendantContainerView
@@ -8996,6 +9090,8 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
 }
 %end
 %end
+
+
 
 // View scaling fix when comment blur is enabled
 %group BDMultiContentImageViewGroup
@@ -9023,6 +9119,8 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
 }
 
 %end
+
+
 
 %hook AWEDPlayerProgressContainerView
 
