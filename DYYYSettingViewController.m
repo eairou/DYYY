@@ -189,7 +189,11 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) { DYYYSettingItemTypeSwitch, DYY
 [DYYYSettingItem itemWithTitle:@"隐藏热点系统顶栏" key:@"DYYYHideStatusbarRe" type:DYYYSettingItemTypeSwitch],
 [DYYYSettingItem itemWithTitle:@"隐藏图文系统顶栏" key:@"DYYYHideStatusbarTu" type:DYYYSettingItemTypeSwitch],
 [DYYYSettingItem itemWithTitle:@"隐藏纯净系统顶栏" key:@"DYYYHideStatusbarChun" type:DYYYSettingItemTypeSwitch],
-[DYYYSettingItem itemWithTitle:@"uiscreen开关" key:@"DYYYuiscreenKG" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"uiscreen开关1" key:@"DYYYuiscreenKG1" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"uiscreen开关2" key:@"DYYYuiscreenKG2" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"uiscreen开关3" key:@"DYYYuiscreenKG3" type:DYYYSettingItemTypeSwitch],
+[DYYYSettingItem itemWithTitle:@"uiscreen开关4" key:@"DYYYuiscreenKG4" type:DYYYSettingItemTypeSwitch],
+
 [DYYYSettingItem itemWithTitle:@"宽松布局开关" key:@"DYYYbujuKG" type:DYYYSettingItemTypeSwitch],
 [DYYYSettingItem itemWithTitle:@"maskview开关" key:@"DYYYmaskviewKG" type:DYYYSettingItemTypeSwitch],
 
@@ -210,6 +214,11 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) { DYYYSettingItemTypeSwitch, DYY
             [DYYYSettingItem itemWithTitle:@"属地上移距离" key:@"DYYYIPLabelVerticalOffset" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
             [DYYYSettingItem itemWithTitle:@"修改底栏高度" key:@"DYYYTabBarHeight" type:DYYYSettingItemTypeTextField placeholder:@"默认为空"],
 [DYYYSettingItem itemWithTitle:@"整体界面缩放度" key:@"DYYYUIScale" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
+[DYYYSettingItem itemWithTitle:@"测试输入1" key:@"DYYYtestinput1" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
+[DYYYSettingItem itemWithTitle:@"测试输入2" key:@"DYYYtestinput2" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
+[DYYYSettingItem itemWithTitle:@"测试输入3" key:@"DYYYtestinput3" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
+[DYYYSettingItem itemWithTitle:@"测试输入4" key:@"DYYYtestinput4" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
+
             [DYYYSettingItem itemWithTitle:@"设置首页标题" key:@"DYYYIndexTitle" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
             [DYYYSettingItem itemWithTitle:@"设置朋友标题" key:@"DYYYFriendsTitle" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
             [DYYYSettingItem itemWithTitle:@"设置消息标题" key:@"DYYYMsgTitle" type:DYYYSettingItemTypeTextField placeholder:@"不填默认"],
