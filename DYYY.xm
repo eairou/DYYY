@@ -7325,7 +7325,7 @@ static Class tabBarButtonClass = nil;
         if (transparentValue && transparentValue.length > 0) {
             CGFloat alphaValue = [transparentValue floatValue];
     UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
-        if ([vc isKindOfClass:%c(AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController)]) {
+        if ([vc isKindOfClass:NSClassFromString(@"AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController")]) {
             
             if (alphaValue >= 0.0 && alphaValue <= 1.0) {
                 CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
@@ -7347,7 +7347,7 @@ static Class tabBarButtonClass = nil;
 - (void)setAlpha:(CGFloat)alpha {
     // 判断这个视图是否属于目标控制器
     UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
-        if ([vc isKindOfClass:%c(AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController)]) {
+        if ([vc isKindOfClass:NSClassFromString(@"AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController")]) {
               NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput2"];
         
         if (transparentValue && transparentValue.length > 0) {
