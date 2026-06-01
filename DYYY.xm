@@ -7319,11 +7319,14 @@ static Class tabBarButtonClass = nil;
     }
 
 
-if ([self _isCommentContainerInnerView] && backgroundColor) {
-        NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput1"];
+
+     NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput1"];
         
         if (transparentValue && transparentValue.length > 0) {
             CGFloat alphaValue = [transparentValue floatValue];
+    UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
+        if ([vc isKindOfClass:%c(AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController)]) {
+            
             if (alphaValue >= 0.0 && alphaValue <= 1.0) {
                 CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
                 
@@ -7343,8 +7346,9 @@ if ([self _isCommentContainerInnerView] && backgroundColor) {
 
 - (void)setAlpha:(CGFloat)alpha {
     // 判断这个视图是否属于目标控制器
-    if ([self _isCommentContainerInnerView]) {
-        NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput2"];
+    UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
+        if ([vc isKindOfClass:%c(AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController)]) {
+              NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput2"];
         
         if (transparentValue && transparentValue.length > 0) {
             CGFloat alphaValue = [transparentValue floatValue];
@@ -7356,29 +7360,6 @@ if ([self _isCommentContainerInnerView] && backgroundColor) {
         }
     }
     %orig(alpha);
-}
-
-
-
-// 辅助判断方法
-- (BOOL)_isCommentContainerInnerView {
-    UIViewController *vc = [self findViewController];
-    if (!vc) return NO;
-    
-    NSString *vcClass = NSStringFromClass([vc class]);
-    return [vcClass containsString:@"CommentContainerInnerViewController"];
-}
-
-// 查找视图所属的 ViewController
-- (UIViewController *)findViewController {
-    UIResponder *responder = self;
-    while (responder) {
-        if ([responder isKindOfClass:[UIViewController class]]) {
-            return (UIViewController *)responder;
-        }
-        responder = [responder nextResponder];
-    }
-    return nil;
 }
 
 
