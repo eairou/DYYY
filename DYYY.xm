@@ -422,28 +422,28 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 %hook UIScreen
 
 - (CGRect)bounds {
-if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+if (!DYYYGetBool(@"DYYYuiscreenKG1")) {
         return %orig;
     }
     return CGRectMake(0, 0, 414.0, 736.0);     // Plus 逻辑点尺寸
 }
 
 - (CGRect)nativeBounds {
-if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+if (!DYYYGetBool(@"DYYYuiscreenKG2")) {
         return %orig;
     }
     return CGRectMake(0, 0, 828.0, 1472.0);    // 你以前越狱用的值，保持一致
 }
 
 - (CGFloat)scale {
-if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+if (!DYYYGetBool(@"DYYYuiscreenKG3")) {
         return %orig;
     }
     return 2.0;
 }
 
 - (CGFloat)nativeScale {
-if (!DYYYGetBool(@"DYYYuiscreenKG")) {
+if (!DYYYGetBool(@"DYYYuiscreenKG4")) {
         return %orig;
     }
     return 2.0;   // 建议也明确设置
@@ -509,6 +509,63 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
     // 强制保持 Plus 逻辑尺寸
     CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
     %orig(plusFrame);
+}
+
+%end
+
+//评论背景透明度
+%hook AWECommentPanelContainerSwiftImpl_CommentContainerInnerViewController
+
+- (void)setAlpha:(CGFloat)alpha {
+    NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput1"];
+    
+    if (transparentValue && transparentValue.length > 0) {
+        CGFloat alphaValue = [transparentValue floatValue];
+        
+        // 有效范围判断
+        if (alphaValue >= 0.0 && alphaValue <= 1.0) {
+            CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
+            %orig(finalAlpha);
+            return;
+        }
+    }
+    
+    // 无效或没设置时，保持原始透明度（更合理）
+    %orig(alpha);
+}
+
+- (void)setBackgroundColor:(UIColor *)color {
+    NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput2"];
+    
+    if (transparentValue && transparentValue.length > 0) {
+        CGFloat alphaValue = [transparentValue floatValue];
+        
+        if (alphaValue >= 0.0 && alphaValue <= 1.0 && color) {
+            CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
+            
+            CGFloat r, g, b, a;
+            [color getRed:&r green:&g blue:&b alpha:&a];
+            UIColor *newColor = [UIColor colorWithRed:r green:g blue:b alpha:finalAlpha];
+            %orig(newColor);
+            return;
+        }
+    }
+    
+    %orig(color);
+}
+
+// 布局时强制刷新
+- (void)layoutSubviews {
+    %orig;
+    
+    NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput3"];
+    if (transparentValue && transparentValue.length > 0) {
+        CGFloat alphaValue = [transparentValue floatValue];
+        if (alphaValue >= 0.011 && alphaValue <= 1.0) {
+            self.alpha = alphaValue;
+            self.clipsToBounds = NO;
+        }
+    }
 }
 
 %end
