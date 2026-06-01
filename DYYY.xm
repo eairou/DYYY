@@ -513,62 +513,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %end
 
-//评论背景透明度
-%hook AWECommentPanelContainerSwiftImpl_CommentContainerInnerViewController
 
-- (void)setAlpha:(CGFloat)alpha {
-    NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput1"];
-    
-    if (transparentValue && transparentValue.length > 0) {
-        CGFloat alphaValue = [transparentValue floatValue];
-        
-        // 有效范围判断
-        if (alphaValue >= 0.0 && alphaValue <= 1.0) {
-            CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
-            %orig(finalAlpha);
-            return;
-        }
-    }
-    
-    // 无效或没设置时，保持原始透明度（更合理）
-    %orig(alpha);
-}
-
-- (void)setBackgroundColor:(UIColor *)color {
-    NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput2"];
-    
-    if (transparentValue && transparentValue.length > 0) {
-        CGFloat alphaValue = [transparentValue floatValue];
-        
-        if (alphaValue >= 0.0 && alphaValue <= 1.0 && color) {
-            CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
-            
-            CGFloat r, g, b, a;
-            [color getRed:&r green:&g blue:&b alpha:&a];
-            UIColor *newColor = [UIColor colorWithRed:r green:g blue:b alpha:finalAlpha];
-            %orig(newColor);
-            return;
-        }
-    }
-    
-    %orig(color);
-}
-
-// 布局时强制刷新
-- (void)layoutSubviews {
-    %orig;
-    
-    NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput3"];
-    if (transparentValue && transparentValue.length > 0) {
-        CGFloat alphaValue = [transparentValue floatValue];
-        if (alphaValue >= 0.011 && alphaValue <= 1.0) {
-            self.alpha = alphaValue;
-            self.clipsToBounds = NO;
-        }
-    }
-}
-
-%end
 
 
 
@@ -7373,8 +7318,72 @@ static Class tabBarButtonClass = nil;
         }
     }
 
+
+if ([self _isCommentContainerInnerView] && backgroundColor) {
+        NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput1"];
+        
+        if (transparentValue && transparentValue.length > 0) {
+            CGFloat alphaValue = [transparentValue floatValue];
+            if (alphaValue >= 0.0 && alphaValue <= 1.0) {
+                CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
+                
+                CGFloat r, g, b, a;
+                [backgroundColor getRed:&r green:&g blue:&b alpha:&a];
+                UIColor *newColor = [UIColor colorWithRed:r green:g blue:b alpha:finalAlpha];
+                %orig(newColor);
+                return;
+            }
+        }
+    }
+
+
     %orig(backgroundColor);
 }
+
+
+- (void)setAlpha:(CGFloat)alpha {
+    // 判断这个视图是否属于目标控制器
+    if ([self _isCommentContainerInnerView]) {
+        NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput2"];
+        
+        if (transparentValue && transparentValue.length > 0) {
+            CGFloat alphaValue = [transparentValue floatValue];
+            if (alphaValue >= 0.0 && alphaValue <= 1.0) {
+                CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
+                %orig(finalAlpha);
+                return;
+            }
+        }
+    }
+    %orig(alpha);
+}
+
+
+
+// 辅助判断方法
+- (BOOL)_isCommentContainerInnerView {
+    UIViewController *vc = [self findViewController];
+    if (!vc) return NO;
+    
+    NSString *vcClass = NSStringFromClass([vc class]);
+    return [vcClass containsString:@"CommentContainerInnerViewController"];
+}
+
+// 查找视图所属的 ViewController
+- (UIViewController *)findViewController {
+    UIResponder *responder = self;
+    while (responder) {
+        if ([responder isKindOfClass:[UIViewController class]]) {
+            return (UIViewController *)responder;
+        }
+        responder = [responder nextResponder];
+    }
+    return nil;
+}
+
+
+
+
 
 - (void)layoutSubviews {
     %orig;
