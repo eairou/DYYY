@@ -7319,49 +7319,75 @@ static Class tabBarButtonClass = nil;
     }
 
 
-
-     NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput1"];
-        
-        if (transparentValue && transparentValue.length > 0) {
-            CGFloat alphaValue = [transparentValue floatValue];
+// === 只针对评论区主背景容器的判断 ===
     UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
-        if ([vc isKindOfClass:NSClassFromString(@"AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController")]) {
+    if ([vc isKindOfClass:NSClassFromString(@"AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController")]) {
+        
+        // 判断：subviews不为空 且 包含 UICollectionView
+        BOOL hasCollectionView = NO;
+        if (self.subviews.count > 0) {
+            for (UIView *subview in self.subviews) {
+                if ([subview isKindOfClass:[UICollectionView class]]) {
+                    hasCollectionView = YES;
+                    break;
+                }
+            }
+        }
+        
+        if (hasCollectionView) {
+            NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput1"];
             
-            if (alphaValue >= 0.0 && alphaValue <= 1.0) {
-                CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
-                
-                CGFloat r, g, b, a;
-                [backgroundColor getRed:&r green:&g blue:&b alpha:&a];
-                UIColor *newColor = [UIColor colorWithRed:r green:g blue:b alpha:finalAlpha];
-                %orig(newColor);
-                return;
+            if (transparentValue && transparentValue.length > 0) {
+                CGFloat alphaValue = [transparentValue floatValue];
+                if (alphaValue >= 0.0 && alphaValue <= 1.0) {
+                    CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
+                    
+                    if (backgroundColor) {
+                        CGFloat r, g, b, a;
+                        [backgroundColor getRed:&r green:&g blue:&b alpha:&a];
+                        UIColor *newColor = [UIColor colorWithRed:r green:g blue:b alpha:finalAlpha];
+                        %orig(newColor);
+                        return;
+                    }
+                }
             }
         }
     }
-
-
+    
     %orig(backgroundColor);
 }
 
-
+// === 只针对评论区主背景容器的判断 ===
 - (void)setAlpha:(CGFloat)alpha {
-    // 判断这个视图是否属于目标控制器
     UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
-        if ([vc isKindOfClass:NSClassFromString(@"AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController")]) {
-              NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput2"];
+    if ([vc isKindOfClass:NSClassFromString(@"AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController")]) {
         
-        if (transparentValue && transparentValue.length > 0) {
-            CGFloat alphaValue = [transparentValue floatValue];
-            if (alphaValue >= 0.0 && alphaValue <= 1.0) {
-                CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
-                %orig(finalAlpha);
-                return;
+        // 判断：subviews不为空 且 包含 UICollectionView
+        BOOL hasCollectionView = NO;
+        if (self.subviews.count > 0) {
+            for (UIView *subview in self.subviews) {
+                if ([subview isKindOfClass:[UICollectionView class]]) {
+                    hasCollectionView = YES;
+                    break;
+                }
+            }
+        }
+        
+        if (hasCollectionView) {
+            NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput2"];
+            
+            if (transparentValue && transparentValue.length > 0) {
+                CGFloat alphaValue = [transparentValue floatValue];
+                if (alphaValue >= 0.0 && alphaValue <= 1.0) {
+                    CGFloat finalAlpha = (alphaValue < 0.011) ? 0.011 : alphaValue;
+                    %orig(finalAlpha);
+                    return;
+                }
             }
         }
     }
     %orig(alpha);
 }
-
 
 
 
