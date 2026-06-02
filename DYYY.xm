@@ -6728,7 +6728,7 @@ static Class tabBarButtonClass = nil;
 
     // 背景和分隔线处理
     BOOL hideBottomBg = DYYYGetBool(@"DYYYHideBottomBg");
-    BOOL enableFullScreen = DYYYGetBool(@"DYYYEnableb");
+    BOOL enableFullScreen = DYYYGetBool(@"DYYYEnableFullScreen");
 
     if (hideBottomBg || enableFullScreen) {
         if (self.skinContainerView) {
@@ -6787,7 +6787,7 @@ static Class tabBarButtonClass = nil;
     %orig(hidden);
 
     BOOL disableHomeRefresh = DYYYGetBool(@"DYYYDisableHomeRefresh");
-    BOOL enableFullScreen = DYYYGetBool(@"DYYYEnablec");
+    BOOL enableFullScreen = DYYYGetBool(@"DYYYEnableFullScreen");
     BOOL hideBottomBg = DYYYGetBool(@"DYYYHideBottomBg");
     BOOL hideFriendsButton = DYYYGetBool(@"DYYYHideFriendsButton");
 
@@ -7249,7 +7249,7 @@ static Class tabBarButtonClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (!DYYYGetBool(@"DYYYEnableCommentBlur")) {
+    if (!DYYYGetBool(@"DYYYEnableCommentBlur")||!DYYYGetBool(@"DYYYEnableb")) {
         return;
     }
 
@@ -8964,7 +8964,7 @@ static Class TagViewClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")||DYYYGetBool(@"DYYYEnablec")) {
         UIView *parentView = self.superview;
         while (parentView) {
             if ([NSStringFromClass([parentView class]) isEqualToString:@"UIView"]) {
