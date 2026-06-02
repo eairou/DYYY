@@ -7415,6 +7415,36 @@ static Class tabBarButtonClass = nil;
             }
         }
     }
+
+// 新增：布局时强制刷新 alpha（非常重要）
+    
+    UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
+    if ([vc isKindOfClass:NSClassFromString(@"AWECommentPanelContainerSwiftImpl.CommentContainerInnerViewController")]) {
+        
+        BOOL hasCollectionView = NO;
+        if (self.subviews.count > 0) {
+            for (UIView *subview in self.subviews) {
+                if ([subview isKindOfClass:[UICollectionView class]]) {
+                    hasCollectionView = YES;
+                    break;
+                }
+            }
+        }
+        
+        if (hasCollectionView) {
+            NSString *transparentValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput3"];
+            if (transparentValue && transparentValue.length > 0) {
+                CGFloat alphaValue = [transparentValue floatValue];
+                if (alphaValue >= 0.011 && alphaValue <= 1.0) {
+                    self.alpha = alphaValue;           // 直接强制赋值
+                    self.layer.opacity = alphaValue;   // 增加 layer.opacity 兜底
+                    self.clipsToBounds = NO;
+                }
+            }
+        }
+    }
+
+
 }
 
 - (void)setFrame:(CGRect)frame {
