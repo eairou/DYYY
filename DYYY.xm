@@ -7249,7 +7249,7 @@ static Class tabBarButtonClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (!DYYYGetBool(@"DYYYEnableCommentBlur")||!DYYYGetBool(@"DYYYEnableb")) {
+    if (!DYYYGetBool(@"DYYYEnableCommentBlur")&&!DYYYGetBool(@"DYYYEnableb")) {
         return;
     }
 
@@ -8958,13 +8958,13 @@ static Class TagViewClass = nil;
 
 
 
-// 聊天视频底部评论框背景透明
+// 聊天视频底部评论框背景透明 好像没用？
 %hook AWEIMFeedBottomQuickEmojiInputBar
 
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnableFullScreen")||DYYYGetBool(@"DYYYEnablec")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         UIView *parentView = self.superview;
         while (parentView) {
             if ([NSStringFromClass([parentView class]) isEqualToString:@"UIView"]) {
