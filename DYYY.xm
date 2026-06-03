@@ -7271,8 +7271,6 @@ static Class tabBarButtonClass = nil;
 
 %end
 
-%end
-
 // 开启评论区毛玻璃后滚动区域填满底部
 %hook AWEListKitMagicCollectionView
 
