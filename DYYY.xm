@@ -1445,7 +1445,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 - (void)layoutSubviews {
     %orig;
 
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYEnablea"]) {
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYEnableFullScreen"]) {
         return;
     }
 
@@ -7124,7 +7124,7 @@ static Class tabBarButtonClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnabled") && gCurrentTabBarHeight > 0) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen") && gCurrentTabBarHeight > 0) {
         for (UIView *subview in self.subviews) {
             CGRect frame = subview.frame;
             frame.origin.y -= gCurrentTabBarHeight;
@@ -7199,18 +7199,15 @@ static Class tabBarButtonClass = nil;
                 subview.backgroundColor && 
                 CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.95) {
                 
+if (DYYYGetBool(@"DYYYEnablec")) {
+subview.hidden = YES;
+}else{
                 float userTransparency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYCommentBlurTransparent"] floatValue];
                 if (userTransparency <= 0 || userTransparency > 1) {
                     userTransparency = 0.8;
                 }
                 
-                if (DYYYGetBool(@"DYYYEnablec")) {
-                    // 只修改 backgroundColor 的透明度
-                    CGFloat r, g, b, a;
-                    [subview.backgroundColor getRed:&r green:&g blue:&b alpha:&a];
-                    UIColor *newColor = [UIColor colorWithRed:r green:g blue:b alpha:userTransparency];
-                    subview.backgroundColor = newColor;
-                } else {
+               
                     [DYYYUtils applyBlurEffectToView:subview transparency:userTransparency blurViewTag:999];
                 }
             }
@@ -7337,7 +7334,7 @@ static Class tabBarButtonClass = nil;
         return;
     }
 
-    if (DYYYGetBool(@"DYYYEnablee")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
         if ([vc isKindOfClass:%c(AWEAwemeDetailTableViewController)] ||
             [vc isKindOfClass:%c(AWEAwemeDetailCellViewController)]) {
@@ -7423,7 +7420,7 @@ static Class tabBarButtonClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnablef")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         if (self.frame.size.height == originalTabBarHeight && originalTabBarHeight > 0) {
             UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
             if ([vc isKindOfClass:NSClassFromString(@"AWEMixVideoPanelDetailTableViewController")] || [vc isKindOfClass:NSClassFromString(@"AWECommentInputViewController")] ||
@@ -7432,8 +7429,8 @@ static Class tabBarButtonClass = nil;
             }
         }
     }
-
-    if (DYYYGetBool(@"DYYYEnableg") || DYYYGetBool(@"DYYYEnableCommentBlur")) {
+//点开评论 缩小的视频填充并隐藏状态栏
+    if (DYYYGetBool(@"DYYYEnablea") || DYYYGetBool(@"DYYYEnableCommentBlur")) {
         UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
         if ([vc isKindOfClass:%c(AWEPlayInteractionViewController)]) {
             for (UIView *subview in self.subviews) {
@@ -7484,7 +7481,7 @@ static Class tabBarButtonClass = nil;
     }
 
     BOOL enableBlur = DYYYGetBool(@"DYYYEnableCommentBlur");
-    BOOL enableFS = DYYYGetBool(@"DYYYEnableh");
+    BOOL enableFS = DYYYGetBool(@"DYYYEnableFullScreen");
 
     UIViewController *vc = [DYYYUtils firstAvailableViewControllerFromView:self];
     Class DetailVCClass = NSClassFromString(@"AWEMixVideoPanelDetailTableViewController");
@@ -7653,7 +7650,7 @@ static Class tabBarButtonClass = nil;
         return;
     }
 
-    if (!DYYYGetBool(@"DYYYEnablei")) {
+    if (!DYYYGetBool(@"DYYYEnableFullScreen")) {
         return;
     }
 
@@ -7900,7 +7897,7 @@ static Class tabBarButtonClass = nil;
 
 - (void)viewDidLayoutSubviews {
     %orig;
-    if (DYYYGetBool(@"DYYYEnablej")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         UIView *contentView = self.contentView;
         if (contentView && contentView.superview) {
             CGRect frame = contentView.frame;
@@ -8042,7 +8039,7 @@ static Class tabBarButtonClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnablek")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         CGRect frame = self.frame;
         frame.size.height = self.superview.frame.size.height;
         self.frame = frame;
@@ -8422,7 +8419,7 @@ static Class TagViewClass = nil;
     UIViewController *viewController = [DYYYUtils firstAvailableViewControllerFromView:self];
 
     if ([viewController isKindOfClass:%c(AWELiveNewPreStreamViewController)]) {
-        const BOOL shouldShiftUp = DYYYGetBool(@"DYYYEnablel");
+        const BOOL shouldShiftUp = DYYYGetBool(@"DYYYEnableFullScreen");
         const CGFloat labelScaleValue = DYYYGetFloat(@"DYYYNicknameScale");
         const CGFloat targetLabelScale = (labelScaleValue != 0.0) ? MAX(0.01, labelScaleValue) : 1.0;
         const CGFloat elementScaleValue = DYYYGetFloat(@"DYYYElementScale");
@@ -8605,7 +8602,7 @@ static Class TagViewClass = nil;
     UIViewController *viewController = [DYYYUtils firstAvailableViewControllerFromView:self];
 
     if ([viewController isKindOfClass:%c(AWELiveNewPreStreamViewController)]) {
-        const BOOL shouldShiftUp = DYYYGetBool(@"DYYYEnablem");
+        const BOOL shouldShiftUp = DYYYGetBool(@"DYYYEnableFullScreen");
         const CGFloat labelScaleValue = DYYYGetFloat(@"DYYYNicknameScale");
         const CGFloat targetLabelScale = (labelScaleValue != 0.0) ? MAX(0.01, labelScaleValue) : 1.0;
         const CGFloat elementScaleValue = DYYYGetFloat(@"DYYYElementScale");
@@ -8690,7 +8687,7 @@ static Class TagViewClass = nil;
                 }
 
                 CGRect frame = subview.frame;
-                if (DYYYGetBool(@"DYYYEnablen")) {
+                if (DYYYGetBool(@"DYYYEnableFullScreen")) {
                     frame.size.height = subview.superview.frame.size.height - gCurrentTabBarHeight;
                     subview.frame = frame;
                 }
@@ -8765,7 +8762,7 @@ static Class TagViewClass = nil;
 - (void)setCenter:(CGPoint)center {
     BOOL shouldAdjust = NO;
     UIView *view = (UIView *)self;
-    if (DYYYGetBool(@"DYYYEnablep")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         CGFloat viewWidth = CGRectGetWidth(view.bounds);
         CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
         if (viewWidth + 0.5f >= screenWidth) {
@@ -8796,7 +8793,7 @@ static Class TagViewClass = nil;
 - (void)setCenter:(CGPoint)center {
     BOOL shouldAdjust = NO;
     UIView *view = (UIView *)self;
-    if (DYYYGetBool(@"DYYYEnableq")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         CGFloat viewWidth = CGRectGetWidth(view.bounds);
         CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
         if (viewWidth + 0.5f >= screenWidth) {
@@ -8911,7 +8908,7 @@ static Class TagViewClass = nil;
 %hook AWEAwemeDetailTableView
 
 - (void)setFrame:(CGRect)frame {
-    if (DYYYGetBool(@"DYYYEnables")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
 
         CGFloat remainder = fmod(frame.size.height, screenHeight);
@@ -8927,7 +8924,7 @@ static Class TagViewClass = nil;
 %hook AWEMixVideoPanelMoreView
 
 - (void)setFrame:(CGRect)frame {
-    if (DYYYGetBool(@"DYYYEnablet")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         CGFloat targetY = frame.origin.y - gCurrentTabBarHeight;
         CGFloat screenHeightMinusGDiff = [UIScreen mainScreen].bounds.size.height - gCurrentTabBarHeight;
 
@@ -8943,7 +8940,7 @@ static Class TagViewClass = nil;
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnabler")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
         self.backgroundColor = [UIColor clearColor];
     }
 }
@@ -9200,7 +9197,7 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
 - (void)layoutSubviews {
     %orig;
 
-    if (DYYYGetBool(@"DYYYEnableo")) {
+    if (DYYYGetBool(@"DYYYEnableFullScreen")) {
 
         self.backgroundColor = [UIColor clearColor];
 
