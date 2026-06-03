@@ -7184,23 +7184,35 @@ static Class tabBarButtonClass = nil;
     updateSpeedButtonVisibility();
     updateClearButtonVisibility();
 }
-//评论模糊
+//评论模糊/输入框透明
 - (void)viewDidLayoutSubviews {
     %orig;
 
-    if (!DYYYGetBool(@"DYYYEnableCommentBlur"))
+    if (!DYYYGetBool(@"DYYYEnableCommentBlur") && !DYYYGetBool(@"DYYYEnablec"))
         return;
 
     Class containerViewClass = NSClassFromString(@"AWECommentInputViewSwiftImpl.CommentInputContainerView");
     NSArray<UIView *> *containerViews = [DYYYUtils findAllSubviewsOfClass:containerViewClass inContainer:self.view];
     for (UIView *containerView in containerViews) {
         for (UIView *subview in containerView.subviews) {
-            if (subview.hidden == NO && subview.backgroundColor && CGColorGetAlpha(subview.backgroundColor.CGColor) == 1) {
+            if (subview.hidden == NO && 
+                subview.backgroundColor && 
+                CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.95) {
+                
                 float userTransparency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYCommentBlurTransparent"] floatValue];
                 if (userTransparency <= 0 || userTransparency > 1) {
                     userTransparency = 0.8;
                 }
-                [DYYYUtils applyBlurEffectToView:subview transparency:userTransparency blurViewTag:999];
+                
+                if (DYYYGetBool(@"DYYYEnablec")) {
+                    // 只修改 backgroundColor 的透明度
+                    CGFloat r, g, b, a;
+                    [subview.backgroundColor getRed:&r green:&g blue:&b alpha:&a];
+                    UIColor *newColor = [UIColor colorWithRed:r green:g blue:b alpha:userTransparency];
+                    subview.backgroundColor = newColor;
+                } else {
+                    [DYYYUtils applyBlurEffectToView:subview transparency:userTransparency blurViewTag:999];
+                }
             }
         }
     }
@@ -7233,13 +7245,31 @@ static Class tabBarButtonClass = nil;
             }
         } else {
             for (UIView *subview in middleContainer.subviews) {
-                if (subview.hidden == NO && subview.backgroundColor && CGColorGetAlpha(subview.backgroundColor.CGColor) == 1) {
-                    [DYYYUtils applyBlurEffectToView:subview transparency:0.2f blurViewTag:999];
+                if (subview.hidden == NO && 
+                    subview.backgroundColor && 
+                    CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.95) {
+                    
+                    float userTransparency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput4"] floatValue];
+                    if (userTransparency <= 0 || userTransparency > 1) {
+                        userTransparency = 0.8;
+                    }
+                    
+                    if (DYYYGetBool(@"DYYYEnablec")) {
+                        // 只修改 backgroundColor 的透明度
+                        CGFloat r, g, b, a;
+                        [subview.backgroundColor getRed:&r green:&g blue:&b alpha:&a];
+                        UIColor *newColor = [UIColor colorWithRed:r green:g blue:b alpha:userTransparency];
+                        subview.backgroundColor = newColor;
+                    } else {
+                        [DYYYUtils applyBlurEffectToView:subview transparency:userTransparency blurViewTag:999];
+                    }
                 }
             }
         }
     }
 }
+
+%end
 
 %end
 
