@@ -7261,6 +7261,18 @@ subview.hidden = YES;
                         [DYYYUtils applyBlurEffectToView:subview transparency:userTransparency blurViewTag:999];
                     }
                 }
+
+//评论输入栏横线
+if (subview.hidden == NO && 
+                    subview.backgroundColor && 
+                    CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.1
+&&CGColorGetAlpha(subview.backgroundColor.CGColor) <0.2) {
+                    if (DYYYGetBool(@"DYYYEnabled")) {
+                  subview.hidden = YES;
+}
+}
+
+
             }
         }
     }
