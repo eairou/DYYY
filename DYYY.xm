@@ -1492,7 +1492,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 - (void)setAlpha:(CGFloat)alpha {
     if (DYYYGetBool(@"DYYYShowScheduleDisplay")) {
-        if (DYYYGetBool(@"DYYYHideVideoProgress")) {
+        if (DYYYGetBool(@"DYYYHideVideoProgress")||!gTopBarContainerHidden) {
             %orig(0);
       //} else if(shouldHideprogress){
           //%orig(0.3);
