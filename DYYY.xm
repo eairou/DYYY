@@ -41,6 +41,7 @@ static char kDYYYGlobalTransparencyBaseAlphaKey;
 static NSInteger dyyyGlobalTransparencyMutationDepth = 0;
 
 static BOOL shouldHideprogress=NO;
+static BOOL gTopBarContainerHidden = NO;
 
 static void updateGlobalTransparencyCache() {
     NSString *transparentValue = DYYYGetString(kDYYYGlobalTransparencyKey);
@@ -288,7 +289,7 @@ static BOOL DYYYShouldHandleSpeedFeatures(void) {
 }
 
 - (void)dyyy_updateScheduleLabelsLegacyWithCurrentTime:(CGFloat)currentTime totalDuration:(CGFloat)totalDuration model:(id)model {
-    if (!DYYYGetBool(@"DYYYShowScheduleDisplay")) {
+    if (!DYYYGetBool(@"DYYYShowScheduleDisplay")||gTopBarContainerHidden) {
         UIView *parentView = self.superview;
         if (parentView) {
             [[parentView viewWithTag:10001] removeFromSuperview];
@@ -1183,6 +1184,20 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
         %orig(1.0);
     }
 }
+
+
+- (void)setHidden:(BOOL)hidden {
+    %orig(hidden);
+    // 保存状态到全局变量
+    gTopBarContainerHidden = hidden;
+}
+
+- (void)layoutSubviews {
+    %orig;
+    // 在布局时也同步一下状态
+    gTopBarContainerHidden = self.hidden;
+}
+
 %end
 
 // 设置修改顶栏标题
@@ -1479,9 +1494,9 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
     if (DYYYGetBool(@"DYYYShowScheduleDisplay")) {
         if (DYYYGetBool(@"DYYYHideVideoProgress")) {
             %orig(0);
-        } else if(shouldHideprogress){
-%orig(0.3);
-}else {
+      //} else if(shouldHideprogress){
+          //%orig(0.3);
+        }else {
             %orig(1.0);
         }
     } else {
@@ -1553,7 +1568,7 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
 
 %new
 - (void)dyyy_updateScheduleLabelsWithCurrentTime:(CGFloat)currentTime totalDuration:(CGFloat)totalDuration {
-    if (!DYYYGetBool(@"DYYYShowScheduleDisplay")) {
+    if (!DYYYGetBool(@"DYYYShowScheduleDisplay")||gTopBarContainerHidden) {
         [self dyyy_removeScheduleLabels];
         return;
     }
@@ -7250,7 +7265,7 @@ subview.hidden = YES;
                     subview.backgroundColor && 
                     CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.95) {
 
-                    shouldHideprogress=YES;
+                    //shouldHideprogress=YES;
 
                     float userTransparency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput4"] floatValue];
                     if (userTransparency <= 0 || userTransparency > 1) {
