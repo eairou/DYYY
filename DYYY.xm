@@ -40,6 +40,8 @@ static NSString *const kDYYYGlobalTransparencyDidChangeNotification = @"DYYYGlob
 static char kDYYYGlobalTransparencyBaseAlphaKey;
 static NSInteger dyyyGlobalTransparencyMutationDepth = 0;
 
+static Bool shouldHideprogress=NO;
+
 static void updateGlobalTransparencyCache() {
     NSString *transparentValue = DYYYGetString(kDYYYGlobalTransparencyKey);
     if (transparentValue.length > 0) {
@@ -1477,7 +1479,9 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
     if (DYYYGetBool(@"DYYYShowScheduleDisplay")) {
         if (DYYYGetBool(@"DYYYHideVideoProgress")) {
             %orig(0);
-        } else {
+        } else if(shouldHideprogress){
+%orig(0.3);
+}else {
             %orig(1.0);
         }
     } else {
@@ -7245,7 +7249,9 @@ subview.hidden = YES;
                 if (subview.hidden == NO && 
                     subview.backgroundColor && 
                     CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.95) {
-                    
+
+                    shouldHideprogress=YES;
+
                     float userTransparency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYtestinput4"] floatValue];
                     if (userTransparency <= 0 || userTransparency > 1) {
                         userTransparency = 0.8;
@@ -7265,8 +7271,9 @@ subview.hidden = YES;
 //评论输入栏横线
 if (subview.hidden == NO && 
                     subview.backgroundColor && 
-                    CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.1
-&&CGColorGetAlpha(subview.backgroundColor.CGColor) <0.2) {
+                    ((CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.1
+&&CGColorGetAlpha(subview.backgroundColor.CGColor) <0.2)||(CGColorGetAlpha(subview.backgroundColor.CGColor) > 0.07
+&&CGColorGetAlpha(subview.backgroundColor.CGColor) <0.08))) {
                     if (DYYYGetBool(@"DYYYEnabled")) {
                   subview.hidden = YES;
 }
