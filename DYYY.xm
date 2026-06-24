@@ -40,7 +40,7 @@ static NSString *const kDYYYGlobalTransparencyDidChangeNotification = @"DYYYGlob
 static char kDYYYGlobalTransparencyBaseAlphaKey;
 static NSInteger dyyyGlobalTransparencyMutationDepth = 0;
 
-static Bool shouldHideprogress=NO;
+static BOOL shouldHideprogress=NO;
 
 static void updateGlobalTransparencyCache() {
     NSString *transparentValue = DYYYGetString(kDYYYGlobalTransparencyKey);
