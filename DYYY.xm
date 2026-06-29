@@ -474,34 +474,38 @@ if (!DYYYGetBool(@"DYYYbujuKG")) {
 
 - (void)layoutSubviews {
     %orig;
-
-if (!DYYYGetBool(@"DYYYmaskviewKG")) {
+    
+    if (!DYYYGetBool(@"DYYYmaskviewKG")) {
         return;
     }
-    
-    // 1. 先把锚点改成中心（必须在 transform 前做）
-    self.layer.anchorPoint = CGPointMake(0.5, 0.5);
-    
-NSString *scaleValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYUIScale"];
-            //self.transform = CGAffineTransformIdentity;
-            if (scaleValue.length > 0) {
-                CGFloat fixscale = [scaleValue floatValue];
-                if (fixscale > 0 && fixscale != 1.0) {
-                    self.transform = CGAffineTransformMakeScale(fixscale, fixscale);
-    } else {
-                    self.transform = CGAffineTransformMakeScale(1, 1);
-    
-                }
-            }
+
+    if (!DYYYGetBool(@"DYYYEnablef")) {     
+        // 1. 先把锚点改成中心（必须在 transform 前做）
+        self.layer.anchorPoint = CGPointMake(0.5, 0.5);
+    }
+
+    NSString *scaleValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYUIScale"];
+
+  //self.transform = CGAffineTransformIdentity;
+    if (scaleValue.length > 0) {
+        CGFloat fixscale = [scaleValue floatValue];
+        if (fixscale > 0 && fixscale != 1.0) {
+            self.transform = CGAffineTransformMakeScale(fixscale, fixscale);
+        } else {
+            self.transform = CGAffineTransformMakeScale(1, 1);
+        }
+    }
 
     // 2. 轻微整体缩小（从 0.94 开始，解决右下溢出）
    // CGFloat fixScale = 0.9;     // ← 这里重点调节！推荐范围 0.91 ~ 0.96
     //self.transform = CGAffineTransformMakeScale(fixScale, fixScale);
-    
+if (DYYYGetBool(@"DYYYEnableg")) {
+        
     // 3. 关键修正：把 center 强制设回屏幕中心，消除左上空白
     CGFloat screenWidth = 375.0;   // iPhone 8 真实逻辑宽度
     CGFloat screenHeight = 667.0;  // iPhone 8 真实逻辑高度
     self.center = CGPointMake(screenWidth / 2.0, screenHeight / 2.0);
+}
 }
 
 - (void)setFrame:(CGRect)frame {
