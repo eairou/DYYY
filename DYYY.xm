@@ -479,7 +479,7 @@ if (!DYYYGetBool(@"DYYYbujuKG")) {
         return;
     }
 
-    if (!DYYYGetBool(@"DYYYEnablef")) {     
+    if (DYYYGetBool(@"DYYYEnablef")) {     
         // 1. 先把锚点改成中心（必须在 transform 前做）
         self.layer.anchorPoint = CGPointMake(0.5, 0.5);
     }
