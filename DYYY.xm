@@ -481,6 +481,7 @@ if (!DYYYGetBool(@"DYYYbujuKG")) {
 
     if (DYYYGetBool(@"DYYYEnablef")) {     
         // 1. 先把锚点改成中心（必须在 transform 前做）
+[DYYYUtils showToast:@"enablef"];
         self.layer.anchorPoint = CGPointMake(0.5, 0.5);
     }
 
@@ -500,7 +501,7 @@ if (!DYYYGetBool(@"DYYYbujuKG")) {
    // CGFloat fixScale = 0.9;     // ← 这里重点调节！推荐范围 0.91 ~ 0.96
     //self.transform = CGAffineTransformMakeScale(fixScale, fixScale);
 if (DYYYGetBool(@"DYYYEnableg")) {
-        
+        [DYYYUtils showToast:@"enableg"];
     // 3. 关键修正：把 center 强制设回屏幕中心，消除左上空白
     CGFloat screenWidth = 375.0;   // iPhone 8 真实逻辑宽度
     CGFloat screenHeight = 667.0;  // iPhone 8 真实逻辑高度
