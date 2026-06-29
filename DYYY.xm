@@ -1327,6 +1327,16 @@ if (!DYYYGetBool(@"DYYYHideStatusbarChun")) {
     return window;
 }
 
+- (void)setFrame:(CGRect)frame {
+if (!DYYYGetBool(@"DYYYEnablee")) {
+%orig;
+        return;
+    }
+    // 强制保持 Plus 逻辑尺寸
+    CGRect plusFrame = CGRectMake(0, 0, 414.0, 736.0);
+    %orig(plusFrame);
+}
+
 %new
 - (void)handleDoubleFingerLongPressGesture:(UILongPressGestureRecognizer *)gesture {
     if (gesture.state == UIGestureRecognizerStateBegan) {
