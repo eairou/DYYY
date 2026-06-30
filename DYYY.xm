@@ -487,12 +487,17 @@ if (!DYYYGetBool(@"DYYYbujuKG")) {
 
     NSString *scaleValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"DYYYUIScale"];
 
+CGFloat scalex=375.0/414.0;
+CGFloat scaley=667.0/736.0;
+
   //self.transform = CGAffineTransformIdentity;
     if (scaleValue.length > 0) {
         CGFloat fixscale = [scaleValue floatValue];
         if (fixscale > 0.5 && fixscale < 1) {
             self.transform = CGAffineTransformMakeScale(fixscale, fixscale);
-        } else {
+        } else if(fixscale>1){
+self.transform = CGAffineTransformMakeScale(scalex, scaley);
+}else {
             self.transform = CGAffineTransformMakeScale(1, 1);
         }
     }
@@ -512,9 +517,10 @@ if (DYYYGetBool(@"DYYYEnableg")) {
     // 1. 修改自身的 bounds
     self.bounds = CGRectMake(0, 0, 414, 736);
   }
-if (DYYYGetBool(@"DYYYEnablei")) {   
-        self.frame = CGRectMake(0, 0, 375, 667);
-}
+//if (DYYYGetBool(@"DYYYEnablei")) {   
+       //不能用 冲突
+// self.frame = CGRectMake(0, 0, 375, 667);
+//}
     // 2. 强制修改所有子视图的 frame 和 bounds
     for (UIView *subview in self.subviews) {
 if (DYYYGetBool(@"DYYYEnablej")) {   
