@@ -507,6 +507,25 @@ if (DYYYGetBool(@"DYYYEnableg")) {
     CGFloat screenHeight = 667.0;  // iPhone 8 真实逻辑高度
     self.center = CGPointMake(screenWidth / 2.0, screenHeight / 2.0);
 }
+
+  if (DYYYGetBool(@"DYYYEnableh")) {   
+    // 1. 修改自身的 bounds
+    self.bounds = CGRectMake(0, 0, 414, 736);
+  }
+    // 2. 强制修改所有子视图的 frame 和 bounds
+    for (UIView *subview in self.subviews) {
+if (DYYYGetBool(@"DYYYEnablei")) {   
+        subview.frame = CGRectMake(0, 0, 414, 736);
+}
+if (DYYYGetBool(@"DYYYEnablej")) {   
+        subview.bounds = CGRectMake(0, 0, 414, 736);
+}
+        [subview setNeedsLayout];
+        [subview layoutIfNeeded];
+    }
+
+
+
 }
 
 - (void)setFrame:(CGRect)frame {
