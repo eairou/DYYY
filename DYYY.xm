@@ -512,12 +512,15 @@ if (DYYYGetBool(@"DYYYEnableg")) {
     // 1. 修改自身的 bounds
     self.bounds = CGRectMake(0, 0, 414, 736);
   }
+if (DYYYGetBool(@"DYYYEnablei")) {   
+        self.frame = CGRectMake(0, 0, 375, 667);
+}
     // 2. 强制修改所有子视图的 frame 和 bounds
     for (UIView *subview in self.subviews) {
-if (DYYYGetBool(@"DYYYEnablei")) {   
+if (DYYYGetBool(@"DYYYEnablej")) {   
         subview.frame = CGRectMake(0, 0, 414, 736);
 }
-if (DYYYGetBool(@"DYYYEnablej")) {   
+if (DYYYGetBool(@"DYYYEnablek")) {   
         subview.bounds = CGRectMake(0, 0, 414, 736);
 }
         [subview setNeedsLayout];
